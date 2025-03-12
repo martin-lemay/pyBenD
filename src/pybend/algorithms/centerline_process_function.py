@@ -31,6 +31,7 @@ def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
     """
     return np.array([cl_pt.pt for cl_pt in cl_pts])
 
+
 def compute_cuvilinear_abscissa(
     XY: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
@@ -283,28 +284,22 @@ def project_point(
         pt_new12 = pt_new1 + perp(pt_new12)
 
         # projection onto the segment pt0, pt1
-        pt_proj0: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt0, pt1
-        )
+        pt_proj0: npt.NDArray[np.float64] = seg_intersect(pt_new1, pt_new12, pt0, pt1)
         # projection onto the segment pt2, pt1
-        pt_proj2: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt2, pt1
-        )
+        pt_proj2: npt.NDArray[np.float64] = seg_intersect(pt_new1, pt_new12, pt2, pt1)
 
         # keep the closest pojected point when they exist
         if (pt_proj0 is None) & (pt_proj2 is None):
             raise AssertionError("Both projected points are undefined.")
 
         if pt_proj0 is None:
-            j2 = -1 # type: ignore[unreachable]
+            j2 = -1  # type: ignore[unreachable]
             pt_proj = pt_proj2
         elif pt_proj2 is None:
-            j2 = 1 # type: ignore[unreachable]
+            j2 = 1  # type: ignore[unreachable]
             pt_proj = pt_proj0
         else:
-            d: float = distance(pt_new1, pt_proj0) - distance(
-                pt_new1, pt_proj2
-            )
+            d: float = distance(pt_new1, pt_proj0) - distance(pt_new1, pt_proj2)
             if d < 0:
                 j2 = -1
                 pt_proj = pt_proj0
@@ -331,10 +326,9 @@ def project_point(
         # else:
         #     raise AssertionError("No projection")
     except AssertionError:
-        logger.error(
-            "Error when projecting the point to the former centerline"
-        )
+        logger.error("Error when projecting the point to the former centerline")
     return pt_proj, j2
+
 
 def resample_path(
     x: npt.NDArray[np.float64],
@@ -366,11 +360,12 @@ def resample_path(
         logger.warning("Too few number of points. No resampling is applied.")
         return x, y
 
-    k = min(x.size-1, 3)
+    k = min(x.size - 1, 3)
     tck, u = splprep([x, y], s=s, k=k)
     if nb_pts:
         u = np.linspace(0.0, 1.0, nb_pts)
     return splev(u, tck)
+
 
 def find_2_closest_points_multi_proc(
     dataset1: pd.DataFrame,
@@ -414,8 +409,7 @@ def find_2_closest_points_multi_proc(
             find_2_closest_points, dataset2, x_prop, y_prop, 0
         )
         inputs = [
-            np.array((row[x_prop], row[y_prop]))
-            for _, row in dataset1.iterrows()
+            np.array((row[x_prop], row[y_prop])) for _, row in dataset1.iterrows()
         ]
         outputs = pool.map(partial_find_2_closest_points, inputs)
         for i, (j1, j2, d1, d2) in enumerate(outputs):
@@ -463,12 +457,8 @@ def find_2_closest_points_mono_proc(
     # 1. find the closest point in dataset
     j1: int = 0  # index of closest point from pt_new in dataset2
     for i, row_new in dataset1.iterrows():
-        pt_new: npt.NDArray[np.float64] = np.array(
-            (row_new[x_prop], row_new[y_prop])
-        )
-        (j1, j2, d1, d2) = find_2_closest_points(
-            dataset2, x_prop, y_prop, j1, pt_new
-        )
+        pt_new: npt.NDArray[np.float64] = np.array((row_new[x_prop], row_new[y_prop]))
+        (j1, j2, d1, d2) = find_2_closest_points(dataset2, x_prop, y_prop, j1, pt_new)
         result.loc[i, "index1"] = j1  # type: ignore
         result.loc[i, "index2"] = j2  # type: ignore
         result.loc[i, "d1"] = d1  # type: ignore
@@ -538,24 +528,16 @@ def find_2_closest_points(
         d2 = 0.0
     # case where j1 == 0 or j1 == dataset2.shape[0]-1
     elif j1 == 0:
-        pt_next = np.array(
-            (dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1])
-        )
+        pt_next = np.array((dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1]))
         d2 = distance(pt_next, pt_new)
         j2 = j1 + 1
     elif j1 == dataset2.shape[0] - 1:
-        pt_prev = np.array(
-            (dataset2[x_prop][j1 - 1], dataset2[y_prop][j1 - 1])
-        )
+        pt_prev = np.array((dataset2[x_prop][j1 - 1], dataset2[y_prop][j1 - 1]))
         d2 = distance(pt_prev, pt_new)
         j2 = j1 - 1
     else:
-        pt_prev = np.array(
-            (dataset2[x_prop][j1 - 1], dataset2[y_prop][j1 - 1])
-        )
-        pt_next = np.array(
-            (dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1])
-        )
+        pt_prev = np.array((dataset2[x_prop][j1 - 1], dataset2[y_prop][j1 - 1]))
+        pt_next = np.array((dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1]))
         d_prev = distance(pt_prev, pt_new)
         d_next = distance(pt_next, pt_new)
         if d_prev < d_next:
@@ -591,7 +573,7 @@ def find_inflection_points(
         + "curvature before inflection points"
     )
 
-     # duplicate first and last values for calculation
+    # duplicate first and last values for calculation
     curvature1: npt.NDArray[np.float64] = np.zeros(curvature.size + 2)
     curvature1[1:-1] = curvature
     curvature1[0], curvature1[-1] = curvature1[1], curvature1[-2]
@@ -606,8 +588,9 @@ def find_inflection_points(
     ).flatten("A")
     return filter_consecutive_indices(inflex_pts, lag)
 
+
 def find_inflection_points_from_peaks(
-    curvature: npt.NDArray[np.float64], curv_threshold: float=0.1
+    curvature: npt.NDArray[np.float64], curv_threshold: float = 0.1
 ) -> npt.NDArray[np.int64]:
     r"""Find inflection points from curvature array.
 
@@ -640,8 +623,9 @@ def find_inflection_points_from_peaks(
     curv1[curv1 > -1e-6] = -1e-6
 
     # normalizes curvature must be < 0.001
-    peak_indexes, _ = find_peaks(curv1, height=(-1.*curv_threshold, 0))
+    peak_indexes, _ = find_peaks(curv1, height=(-1.0 * curv_threshold, 0))
     return peak_indexes
+
 
 def filter_consecutive_indices(
     values: npt.NDArray[np.int64], lag: int
@@ -661,9 +645,7 @@ def filter_consecutive_indices(
     diffs: npt.NDArray[np.int64] = np.diff(values)
 
     # find indices where differences > lag
-    non_consecutive_indices0: npt.NDArray[np.int64] = (
-        np.where(diffs > lag)[0] + 1
-    )
+    non_consecutive_indices0: npt.NDArray[np.int64] = np.where(diffs > lag)[0] + 1
 
     # Add first and last index of values list
     non_consecutive_indices: list[int] = (
@@ -737,12 +719,8 @@ def compute_curvature_at_point(
     dxds: float = (x3 - x1) / (ds13)
     dyds: float = (y3 - y1) / (ds13)
 
-    d2xds2: float = (ds12 * (x3 - x2) - ds23 * (x2 - x1)) / (
-        ds12 * ds23 * ds13
-    )
-    d2yds2: float = (ds12 * (y3 - y2) - ds23 * (y2 - y1)) / (
-        ds12 * ds23 * ds13
-    )
+    d2xds2: float = (ds12 * (x3 - x2) - ds23 * (x2 - x1)) / (ds12 * ds23 * ds13)
+    d2yds2: float = (ds12 * (y3 - y2) - ds23 * (y2 - y1)) / (ds12 * ds23 * ds13)
     return -(dxds * d2yds2 - dyds * d2xds2) / pow(dxds**2 + dyds**2, 3.0 / 2.0)
 
 
@@ -841,9 +819,7 @@ def compute_curvature_at_point_flumy(
 
 
 # TODO: add unit test
-def compute_median_curvature_index(
-    curvature: npt.NDArray[np.float64], n: float
-) -> int:
+def compute_median_curvature_index(curvature: npt.NDArray[np.float64], n: float) -> int:
     """Find the median abscissa using curvature distribution as weighting function.
 
     Parameters:
@@ -857,9 +833,7 @@ def compute_median_curvature_index(
 
     """
     curvature1: npt.NDArray[np.float64] = np.abs(curvature)
-    cumsum: npt.NDArray[np.float64] = np.cumsum(curvature1**n) / np.sum(
-        curvature1**n
-    )
+    cumsum: npt.NDArray[np.float64] = np.cumsum(curvature1**n) / np.sum(curvature1**n)
     return np.argwhere(cumsum > 0.5).flatten("A")[0]
 
 
@@ -881,9 +855,7 @@ def compute_esperance(
         float: average abscissa.
     """
     curvature1: npt.NDArray[np.float64] = np.abs(curvature)
-    mean: float = float(
-        np.sum(curv_abscissa * curvature1**n) / np.sum(curvature1**n)
-    )
+    mean: float = float(np.sum(curv_abscissa * curvature1**n) / np.sum(curvature1**n))
     return mean
 
 
@@ -977,9 +949,7 @@ def get_MP(
         NDArray[float]: Array corresponding to rotation 2D matrix.
 
     """
-    dir_trans_norm: npt.NDArray[np.float64] = dir_trans / np.linalg.norm(
-        dir_trans
-    )
+    dir_trans_norm: npt.NDArray[np.float64] = dir_trans / np.linalg.norm(dir_trans)
     ref_norm: npt.NDArray[np.float64] = ref / np.linalg.norm(ref)
     if np.dot(dir_trans_norm, ref) < 0.0:
         dir_trans_norm *= -1.0
@@ -1104,9 +1074,7 @@ def compute_Leopold_parameters(
         )
     )
 
-    pt: npt.NDArray[np.float64] = project_orthogonal(
-        pt_apex1, pt_apex3, pt_apex2
-    )
+    pt: npt.NDArray[np.float64] = project_orthogonal(pt_apex1, pt_apex3, pt_apex2)
     ampl: float = distance(pt, pt_apex2)
     wavelength: float = distance(pt_apex1, pt_apex3)
 

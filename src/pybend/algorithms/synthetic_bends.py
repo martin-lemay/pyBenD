@@ -9,9 +9,7 @@ import pybend.algorithms.centerline_process_function as cpf
 
 
 # function to add points in front of and next to the bend to get inflection points
-def mirror(
-    coords: npt.NDArray[np.float64], nb_pts: int
-) -> npt.NDArray[np.float64]:
+def mirror(coords: npt.NDArray[np.float64], nb_pts: int) -> npt.NDArray[np.float64]:
     """Function to add points at the beginning and end of the list.
 
     Parameters:
@@ -62,7 +60,7 @@ def circular_bend(nb_pts: int, ampl: float = 1.0) -> npt.NDArray[np.float64]:
     coords_y: list[float] = []
     i: int = 0
     while i < nb_pts:
-        t: float = np.pi * i / (nb_pts-1)
+        t: float = np.pi * i / (nb_pts - 1)
         coords_x += [np.cos(t + np.pi)]
         coords_y += [np.sin(t)]
         i += 1
@@ -103,12 +101,12 @@ def kinoshita_bend(
         npt.NDArray[np.float64]: point coordinates
 
     """
-    coords_x: list[float] = [0.]
-    coords_y: list[float] = [0.]
+    coords_x: list[float] = [0.0]
+    coords_y: list[float] = [0.0]
     teta: float = teta_max
-    ds: float = 1.
+    ds: float = 1.0
     for i in range(int(round(1.2 * nb_pts))):
-        t: float = np.pi * i / (nb_pts-1)
+        t: float = np.pi * i / (nb_pts - 1)
         teta = teta_max * np.cos(t) + teta_max**3 * (
             Js * np.sin(3 * t) - Jf * np.cos(3 * t)
         )
@@ -120,8 +118,10 @@ def kinoshita_bend(
     curvature: npt.NDArray[np.float64] = np.abs(cpf.compute_curvature(coords))
 
     # find inflection points
-    curv1: npt.NDArray[np.float64] = -1. * curvature
-    peak_indexes: npt.NDArray[np.int64] = cpf.find_inflection_points_from_peaks(curv1, 0.1)
+    curv1: npt.NDArray[np.float64] = -1.0 * curvature
+    peak_indexes: npt.NDArray[np.int64] = cpf.find_inflection_points_from_peaks(
+        curv1, 0.1
+    )
     i_up: int = 0
     i_down: int = len(coords)
     if len(peak_indexes) == 1:

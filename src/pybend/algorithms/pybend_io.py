@@ -51,22 +51,19 @@ def load_centerline_dataset_from_csv(
             of each channel point
 
     """
-    dataset: pd.DataFrame = pd.read_csv(
-        filepath, sep=sep, float_precision="round_trip"
-    )
+    dataset: pd.DataFrame = pd.read_csv(filepath, sep=sep, float_precision="round_trip")
 
-    assert (
-        x_prop in dataset.columns
-    ), "X coordinate column indexes was not found."
-    assert (
-        y_prop in dataset.columns
-    ), "Y coordinate column indexes was not found."
+    assert x_prop in dataset.columns, "X coordinate column indexes was not found."
+    assert y_prop in dataset.columns, "Y coordinate column indexes was not found."
 
     for col in drop_columns:
         dataset.drop(columns=col, inplace=True)
 
     dataset.rename(
-        columns={x_prop: PropertyNames.CARTESIAN_ABSCISSA.value, y_prop: PropertyNames.CARTESIAN_ORDINATE.value},
+        columns={
+            x_prop: PropertyNames.CARTESIAN_ABSCISSA.value,
+            y_prop: PropertyNames.CARTESIAN_ORDINATE.value,
+        },
         inplace=True,
         copy=False,
     )
@@ -108,11 +105,21 @@ def load_centerline_dataset_from_Flumy_csv(
     data: pd.DataFrame = pd.read_csv(filepath, sep=sep)
 
     mess: str = " property is missing. Try to use load_dataset_from_csv loader instead."
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, PropertyNames.CARTESIAN_ORDINATE.value + mess
-    assert PropertyNames.ELEVATION.value in data.columns, PropertyNames.ELEVATION.value + mess
-    assert PropertyNames.CURVATURE.value in data.columns, PropertyNames.CURVATURE.value + mess
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, (
+        PropertyNames.CARTESIAN_ORDINATE.value + mess
+    )
+    assert PropertyNames.ELEVATION.value in data.columns, (
+        PropertyNames.ELEVATION.value + mess
+    )
+    assert PropertyNames.CURVATURE.value in data.columns, (
+        PropertyNames.CURVATURE.value + mess
+    )
     assert "Iteration" in data.columns, "Iteration" + mess
 
     assert data["Iteration"].unique().size == 1, (
@@ -162,7 +169,11 @@ def load_centerline_dataset_from_kml(
                     coords = elt.split(",")
                     coords_all += [coords]
 
-    columns = (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value, PropertyNames.ELEVATION.value)
+    columns = (
+        PropertyNames.CARTESIAN_ABSCISSA.value,
+        PropertyNames.CARTESIAN_ORDINATE.value,
+        PropertyNames.ELEVATION.value,
+    )
     nb_pts = len(coords_all)
     assert nb_pts > 0, "Point coordinates were not found."
 
@@ -195,7 +206,9 @@ def dump_centerline_to_csv(
             Defaults to ";".
 
     """
-    columns = centerline.cl_points[0].get_data().index.tolist() + [PropertyNames.AGE.value]
+    columns = centerline.cl_points[0].get_data().index.tolist() + [
+        PropertyNames.AGE.value
+    ]
     nrows = len(centerline.cl_points)
     data = pd.DataFrame(np.zeros((nrows, len(columns))), columns=columns)
     data[PropertyNames.AGE.value] = centerline.age
@@ -224,12 +237,24 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     """
     data: pd.DataFrame = pd.read_csv(filepath, sep=sep)
 
-    mess: str = " property is missing. Try to use load_centerline_evolution_from_multiple_xy_csv loader instead."
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, PropertyNames.CARTESIAN_ORDINATE.value + mess
-    assert PropertyNames.ELEVATION.value in data.columns, PropertyNames.ELEVATION.value + mess
-    assert PropertyNames.CURVATURE.value in data.columns, PropertyNames.CURVATURE.value + mess
+    mess: str = (
+        " property is missing. Try to use load_centerline_evolution_from_multiple_xy_csv loader instead."
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, (
+        PropertyNames.CARTESIAN_ORDINATE.value + mess
+    )
+    assert PropertyNames.ELEVATION.value in data.columns, (
+        PropertyNames.ELEVATION.value + mess
+    )
+    assert PropertyNames.CURVATURE.value in data.columns, (
+        PropertyNames.CURVATURE.value + mess
+    )
     assert "Iteration" in data.columns, "Iteration" + mess
 
     assert data["Iteration"].unique().size > 1, (
@@ -311,9 +336,7 @@ def load_centerline_evolution_from_single_xy_csv(
     map_dataset: dict[int, pd.DataFrame] = {}
     ages: npt.NDArray[np.int64] = data[age_prop].unique()
     for age in ages.tolist():
-        sub_data: pd.DataFrame = data[data[age_prop] == age].drop(
-            age_prop, axis=1
-        )
+        sub_data: pd.DataFrame = data[data[age_prop] == age].drop(age_prop, axis=1)
         sub_data.rename(
             columns={
                 x_prop: PropertyNames.CARTESIAN_ABSCISSA.value,
@@ -322,7 +345,9 @@ def load_centerline_evolution_from_single_xy_csv(
             inplace=True,
             copy=False,
         )
-        sub_data[PropertyNames.CURVILINEAR_ABSCISSA.value] = cpf.compute_cuvilinear_abscissa(
+        sub_data[
+            PropertyNames.CURVILINEAR_ABSCISSA.value
+        ] = cpf.compute_cuvilinear_abscissa(
             sub_data.loc[:, (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value)].to_numpy()  # type: ignore
         )
         print(sub_data.columns)
@@ -410,9 +435,9 @@ def load_centerline_evolution_from_multiple_kml(
 
 
 @deprecated("Use load_centerline_dataset_from_csv instead.")
-def create_dataset_from_xy(X: npt.NDArray[np.float64],
-                           Y: npt.NDArray[np.float64]
-                          ) ->pd.DataFrame:
+def create_dataset_from_xy(
+    X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]
+) -> pd.DataFrame:
     """Create a dataset from X and Y 1D arrays.
 
     Parameters:
@@ -446,4 +471,3 @@ def create_dataset_from_xy(X: npt.NDArray[np.float64],
         ),
     )
     return dataset
-

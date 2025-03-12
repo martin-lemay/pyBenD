@@ -2,7 +2,7 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-from typing import Any, Optional
+from typing import Optional
 
 import matplotlib.cm as cm
 import matplotlib.colors as colors
@@ -12,7 +12,6 @@ import numpy.typing as npt
 from matplotlib.axes import Axes
 from matplotlib.markers import MarkerStyle
 
-import pybend.algorithms.centerline_process_function as cpf
 from pybend.model.Bend import Bend
 from pybend.model.BendEvolution import BendEvolution
 from pybend.model.Centerline import Centerline
@@ -44,7 +43,7 @@ def plot_centerline_collection(
     plot_section: bool = False,
     plot_warping: bool = True,
     cmap_name: str = "Blues",
-) ->None:
+) -> None:
     """Function to plot CenterlineCollection object.
 
     Parameters:
@@ -295,7 +294,7 @@ def plot_bend_evol(
     cl_collec: tuple[CenterlineCollection],
     bend_evol: BendEvolution,
     nb_cl: int = 999,
-    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()), # type: ignore
+    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()),  # type: ignore
     annotate: bool = False,
     plot_apex: bool = True,
     plot_inflex: bool = False,
@@ -454,7 +453,7 @@ def plot_bends(
     ax: Axes,
     cl_points: tuple[list[ClPoint]],
     bends: list[Bend],
-    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()), # type: ignore
+    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()),  # type: ignore
     annotate: bool = False,
     plot_apex: bool = True,
     plot_inflex: bool = False,
@@ -544,9 +543,7 @@ def plot_bends(
         color = cl_color
     index: int = 0
     for i, bend in enumerate(bends):
-        coords: npt.NDArray[np.float64] = np.full(
-            (bend.get_nb_points(), 2), np.nan
-        )
+        coords: npt.NDArray[np.float64] = np.full((bend.get_nb_points(), 2), np.nan)
         for i, cl_pt in enumerate(
             cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
         ):
@@ -641,11 +638,7 @@ def plot_bends(
                 markersize=0.8 * markersize,
             )
 
-        if (
-            plot_apex_proba
-            and bend.isvalid
-            and bend.apex_probability is not None
-        ):
+        if plot_apex_proba and bend.isvalid and bend.apex_probability is not None:
             ax.scatter(
                 coords[:, 0],
                 coords[:, 1],
@@ -748,7 +741,11 @@ def plot_section(
     cmap: Optional[colors.Normalize] = None
     if not color_same_bend:
         colors_norm = colors.Normalize(vmin=0, vmax=len(section.isolines))
-        cmap = colors.Colormap(cmap_name) if len(cmap_name) > 0 else colors.Colormap("Blues")
+        cmap = (
+            colors.Colormap(cmap_name)
+            if len(cmap_name) > 0
+            else colors.Colormap("Blues")
+        )
 
     for i, isoline in enumerate(section.isolines):
         # coordinates to plot
@@ -756,7 +753,7 @@ def plot_section(
         # print(isoline.points)
         # print(origin)
         coords = np.array(isoline.points).T
-        #print(coords[0])
+        # print(coords[0])
         lx: npt.NDArray[np.float64] = (origin[0] + coords[0]) / norm_hor
         ly: npt.NDArray[np.float64] = (origin[1] + coords[1]) / norm_vert
         # print(ly)
@@ -828,12 +825,8 @@ def plot_versus_curvilinear(
     assert len(curves2) == len(
         labels2
     ), "The number of Curves and labels from second set is different"
-    assert len(curves1) > len(
-        colors1
-    ), "Too many curves to plot from first set."
-    assert len(curves2) > len(
-        colors2
-    ), "Too many curves to plot from second set."
+    assert len(curves1) > len(colors1), "Too many curves to plot from first set."
+    assert len(curves2) > len(colors2), "Too many curves to plot from second set."
 
     _, ax1 = plt.subplots()
 
@@ -918,15 +911,21 @@ def _plot_bend_evol_trajectories(
 
     """
     if plot_apex_trajec and (len(bend_evol.apex_trajec_smooth) > 0):
-        coords0: npt.NDArray[np.float64] = np.array(bend_evol.apex_trajec_smooth) #cpf.points2coords(bend_evol.apex_trajec_smooth)
+        coords0: npt.NDArray[np.float64] = np.array(
+            bend_evol.apex_trajec_smooth
+        )  # cpf.points2coords(bend_evol.apex_trajec_smooth)
         ax.plot(coords0[:, 0], coords0[:, 1], "r-", linewidth=1)
 
     if plot_middle_trajec and (len(bend_evol.middle_trajec_smooth) > 0):
-        coords1: npt.NDArray[np.float64] = np.array(bend_evol.middle_trajec_smooth) #cpf.points2coords(bend_evol.middle_trajec_smooth)
+        coords1: npt.NDArray[np.float64] = np.array(
+            bend_evol.middle_trajec_smooth
+        )  # cpf.points2coords(bend_evol.middle_trajec_smooth)
         ax.plot(coords1[:, 0], coords1[:, 1], "b-", linewidth=1)
 
     if plot_centroid_trajec and (len(bend_evol.centroid_trajec_smooth) > 0):
-        coords2: npt.NDArray[np.float64] = np.array(bend_evol.centroid_trajec_smooth) #cpf.points2coords(bend_evol.centroid_trajec_smooth)
+        coords2: npt.NDArray[np.float64] = np.array(
+            bend_evol.centroid_trajec_smooth
+        )  # cpf.points2coords(bend_evol.centroid_trajec_smooth)
         ax.plot(coords2[:, 0], coords2[:, 1], "-", color="orange", linewidth=1)
 
 
@@ -1001,11 +1000,11 @@ def _update_plot_properties(
 
     """
     if (len(domain) == 0) or (len(domain[0]) == 0) or (len(domain[1]) == 0):
-        plt.axis("equal") # type: ignore[unreachable]
+        plt.axis("equal")  # type: ignore[unreachable]
     elif len(domain[0]) > 0:
-        plt.xlim(domain[0]) # type: ignore[unreachable]
-    elif len(domain[1]) > 0: # type: ignore[unreachable]
-        plt.ylim(domain[1]) # type: ignore[unreachable]
+        plt.xlim(domain[0])  # type: ignore[unreachable]
+    elif len(domain[1]) > 0:  # type: ignore[unreachable]
+        plt.ylim(domain[1])  # type: ignore[unreachable]
 
     plt.grid(True, which="both", axis="both")
     plt.xlabel("X (m)")

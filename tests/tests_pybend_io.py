@@ -37,9 +37,7 @@ dir_path: str = "tests/data/"
 filepath1: str = dir_path + "centerline_xyz_data.csv"
 filepath2: str = dir_path + "centerline_flumy_data.csv"
 filepath3: str = dir_path + "centerline_kml.kml"
-filepath_cl_collection_flumy: str = (
-    dir_path + "centerline_Collection_test_data.csv"
-)
+filepath_cl_collection_flumy: str = dir_path + "centerline_Collection_test_data.csv"
 map_file: dict[int, str] = {
     10: dir_path + "centerline_Collection_test_data10.csv",
     40: dir_path + "centerline_Collection_test_data40.csv",

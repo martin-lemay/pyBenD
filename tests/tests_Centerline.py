@@ -38,7 +38,7 @@ spacing: float = 1  # spacing between channel point (m)
 smooth_distance: float = 5  # channel point location smoothing distance (m)
 window: int = 5  # number of points for filtered curvature
 sinuo_threshold: float = 1.0  # threshold for bends
-n = 2 # exponent of curvature distribution function
+n = 2  # exponent of curvature distribution function
 # curvature, amplitude, length (4 set of weighting)
 l_apex_proba_weights: tuple[tuple[float, float, float], ...] = (
     (1.0, 1.0, 1.0),
@@ -67,19 +67,27 @@ l_apex_proba_weights_flumy: tuple[tuple[float, float, float], ...] = (
     (1.0, 1.0, 1.0),
 )
 
-age_flumy, dataset_flumy = load_centerline_dataset_from_Flumy_csv(
-    filepath_flumy
-)
+age_flumy, dataset_flumy = load_centerline_dataset_from_Flumy_csv(filepath_flumy)
 
 # expected results
 nb_points_resampling_out: int = 505
 nb_bends_out: int = 6  # number of bends
 inflex_index_out: tuple[int, ...] = (
-    0,    91,    181,    271,    360,    451,    504,
+    0,
+    91,
+    181,
+    271,
+    360,
+    451,
+    504,
 )  # index of inclection points
 sides_out: tuple[BendSide, ...] = (
-    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
 )  # side of beands
 # coordinates of middle points
 middles_out: tuple[npt.NDArray[np.float64], ...] = (
@@ -101,10 +109,10 @@ centroids_out: tuple[npt.NDArray[np.float64], ...] = (
     np.array((474.9670, -3.0880)),
 )
 # index of apex
-apex_index_auto_out: tuple[tuple[int, ...],...] = (
-     (45, 136, 226, 316, 405, 486),
-     (45, 136, 226, 315, 405, 489),
-     (46, 136, 226, 315, 406, 491),
+apex_index_auto_out: tuple[tuple[int, ...], ...] = (
+    (45, 136, 226, 316, 405, 486),
+    (45, 136, 226, 315, 405, 489),
+    (46, 136, 226, 315, 406, 491),
 )
 l_apex_index_user_weights_out: tuple[tuple[int, ...], ...] = (
     (46, 136, 226, 315, 405, 478),
@@ -131,90 +139,257 @@ nb_valid_bends_out_flumy: int = 34  # number of valid bends
 
 # index of inclection points
 inflex_index_out_flumy: tuple[int, ...] = (
-    0,    2,    6,    13,    21,    39,    60,    84,    98,    122,
-    146,    149,    154,    177,    198,    220,    236,    243,    248,
-    263,    280,    295,    319,    333,    334,    348,    370,    372,
-    377,    391,    393,    404,    430,    433,    440,    451,    452,
-    464,    467,    473,    494,    508,    514,    517,    529,    535,
-    539,    561,    585,    611,    620,
+    0,
+    2,
+    6,
+    13,
+    21,
+    39,
+    60,
+    84,
+    98,
+    122,
+    146,
+    149,
+    154,
+    177,
+    198,
+    220,
+    236,
+    243,
+    248,
+    263,
+    280,
+    295,
+    319,
+    333,
+    334,
+    348,
+    370,
+    372,
+    377,
+    391,
+    393,
+    404,
+    430,
+    433,
+    440,
+    451,
+    452,
+    464,
+    467,
+    473,
+    494,
+    508,
+    514,
+    517,
+    529,
+    535,
+    539,
+    561,
+    585,
+    611,
+    620,
 )
 
 # side of bends
 sides_out_flumy: tuple[BendSide, ...] = (
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,    BendSide.DOWN,    BendSide.UP,
-    BendSide.DOWN,    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
 )
 
 # coordinates of middle points
 middles_out_flumy: tuple[npt.NDArray[np.float64], ...] = (
-    np.array((-5769.8060, 93981.8680, 50.0000)),    np.array((-5201.8160, 94091.2510, 50.0000)),
-    np.array((-4352.2190, 94492.7120, 50.0000)),    np.array((-3287.3550, 94673.8310, 50.0000)),
-    np.array((-1580.1180, 95055.9250, 50.0000)),    np.array((665.8680, 94899.3030, 50.0000)),
-    np.array((3073.8980, 93515.9470, 50.0000)),    np.array((5081.7650, 92619.3830, 50.0000)),
-    np.array((6400.7270, 93472.9540, 50.0000)),    np.array((8158.0640, 94449.1030, 50.0000)),
-    np.array((9438.2890, 94130.9610, 50.0000)),    np.array((9638.3710, 93362.9650, 50.0000)),
-    np.array((10710.0550, 93622.4180, 50.0000)),    np.array((12635.7700, 93816.4010, 50.0000)),
-    np.array((14776.7370, 93559.9320, 50.0000)),    np.array((17008.3350, 93974.5260, 50.0000)),
-    np.array((18658.7950, 93791.7110, 50.0000)),    np.array((19729.5720, 93321.8520, 50.0000)),
-    np.array((21042.6400, 93946.0320, 50.0000)),    np.array((23024.0770, 94700.5800, 50.0000)),
-    np.array((24870.4480, 95122.4230, 50.0000)),    np.array((26763.2860, 95204.5080, 50.0000)),
-    np.array((28584.3960, 94386.9220, 50.0000)),    np.array((29526.7650, 95314.7970, 50.0000)),
-    np.array((30770.0580, 96475.6270, 50.0000)),    np.array((31624.9260, 95586.4880, 50.0000)),
-    np.array((32058.5630, 94328.2370, 50.0000)),    np.array((33032.6620, 94858.6240, 50.0000)),
-    np.array((34779.5910, 96293.9830, 50.0000)),    np.array((36197.0040, 96347.1140, 50.0000)),
-    np.array((36317.4160, 95400.9110, 50.0000)),    np.array((36830.0590, 94165.5290, 50.0000)),
-    np.array((38033.2330, 94394.2290, 50.0000)),    np.array((38756.7500, 95490.0330, 50.0000)),
-    np.array((38724.0480, 96384.9270, 50.0000)),    np.array((39941.2570, 97542.6860, 50.0000)),
-    np.array((42258.7300, 98160.6740, 50.0000)),    np.array((43717.3370, 98585.6710, 50.0000)),
-    np.array((44390.0050, 99099.9260, 50.0000)),    np.array((45569.9650, 98882.6740, 50.0000)),
-    np.array((46881.4880, 98177.3910, 50.0000)),    np.array((47590.9450, 97602.2570, 50.0000)),
-    np.array((49072.0050, 98379.2590, 50.0000)),    np.array((51368.0810, 98723.6080, 50.0000)),
-    np.array((53823.1690, 98315.6170, 50.0000)),    np.array((55548.4120, 99254.4340, 50.0000)),
+    np.array((-5769.8060, 93981.8680, 50.0000)),
+    np.array((-5201.8160, 94091.2510, 50.0000)),
+    np.array((-4352.2190, 94492.7120, 50.0000)),
+    np.array((-3287.3550, 94673.8310, 50.0000)),
+    np.array((-1580.1180, 95055.9250, 50.0000)),
+    np.array((665.8680, 94899.3030, 50.0000)),
+    np.array((3073.8980, 93515.9470, 50.0000)),
+    np.array((5081.7650, 92619.3830, 50.0000)),
+    np.array((6400.7270, 93472.9540, 50.0000)),
+    np.array((8158.0640, 94449.1030, 50.0000)),
+    np.array((9438.2890, 94130.9610, 50.0000)),
+    np.array((9638.3710, 93362.9650, 50.0000)),
+    np.array((10710.0550, 93622.4180, 50.0000)),
+    np.array((12635.7700, 93816.4010, 50.0000)),
+    np.array((14776.7370, 93559.9320, 50.0000)),
+    np.array((17008.3350, 93974.5260, 50.0000)),
+    np.array((18658.7950, 93791.7110, 50.0000)),
+    np.array((19729.5720, 93321.8520, 50.0000)),
+    np.array((21042.6400, 93946.0320, 50.0000)),
+    np.array((23024.0770, 94700.5800, 50.0000)),
+    np.array((24870.4480, 95122.4230, 50.0000)),
+    np.array((26763.2860, 95204.5080, 50.0000)),
+    np.array((28584.3960, 94386.9220, 50.0000)),
+    np.array((29526.7650, 95314.7970, 50.0000)),
+    np.array((30770.0580, 96475.6270, 50.0000)),
+    np.array((31624.9260, 95586.4880, 50.0000)),
+    np.array((32058.5630, 94328.2370, 50.0000)),
+    np.array((33032.6620, 94858.6240, 50.0000)),
+    np.array((34779.5910, 96293.9830, 50.0000)),
+    np.array((36197.0040, 96347.1140, 50.0000)),
+    np.array((36317.4160, 95400.9110, 50.0000)),
+    np.array((36830.0590, 94165.5290, 50.0000)),
+    np.array((38033.2330, 94394.2290, 50.0000)),
+    np.array((38756.7500, 95490.0330, 50.0000)),
+    np.array((38724.0480, 96384.9270, 50.0000)),
+    np.array((39941.2570, 97542.6860, 50.0000)),
+    np.array((42258.7300, 98160.6740, 50.0000)),
+    np.array((43717.3370, 98585.6710, 50.0000)),
+    np.array((44390.0050, 99099.9260, 50.0000)),
+    np.array((45569.9650, 98882.6740, 50.0000)),
+    np.array((46881.4880, 98177.3910, 50.0000)),
+    np.array((47590.9450, 97602.2570, 50.0000)),
+    np.array((49072.0050, 98379.2590, 50.0000)),
+    np.array((51368.0810, 98723.6080, 50.0000)),
+    np.array((53823.1690, 98315.6170, 50.0000)),
+    np.array((55548.4120, 99254.4340, 50.0000)),
 )
 
 # coordinates of centroid points
 centroids_out_flumy: tuple[npt.NDArray[np.float64], ...] = (
-    np.array((-5779.6930, 93977.6670)),    np.array((-5104.7090, 94128.6920)),
-    np.array((-4220.9990, 94393.9290)),    np.array((-3343.7210, 94872.4590)),
-    np.array((-1531.3900, 94580.8400)),    np.array((760.0620, 95486.3200)),
-    np.array((2869.9340, 92834.3870)),    np.array((5226.5280, 93025.9950)),
-    np.array((6714.4850, 92842.5510)),    np.array((7800.7210, 95068.7130)),
-    np.array((9417.2770, 94177.2380)),    np.array((9662.2420, 93352.7840)),
-    np.array((10832.5610, 92912.9060)),    np.array((12606.4200, 94509.5970)),
-    np.array((14799.5150, 92952.9800)),    np.array((16731.8810, 94332.2720)),
-    np.array((18624.7260, 93748.8790)),    np.array((19735.5710, 93352.7400)),
-    np.array((21173.6710, 93633.4430)),    np.array((22815.5060, 95102.8970)),
-    np.array((25027.6300, 94701.5890)),    np.array((26877.0740, 95934.8080)),
-    np.array((28412.8280, 93991.2920)),    np.array((29687.0450, 95172.1330)),
-    np.array((30707.5590, 97173.3700)),    np.array((31658.0510, 95495.4540)),
-    np.array((31784.6720, 93996.4920)),    np.array((33227.8740, 94836.1210)),
-    np.array((34529.9280, 97077.9980)),    np.array((36186.4250, 96350.3200)),
-    np.array((36397.3980, 95418.5350)),    np.array((36627.0750, 93945.8910)),
-    np.array((38252.0130, 94232.7180)),    np.array((38748.8480, 95434.3240)),
-    np.array((38739.5390, 96390.0440)),    np.array((39755.6280, 98036.1690)),
-    np.array((42271.5150, 97828.3200)),    np.array((43683.4370, 98663.9820)),
-    np.array((44394.9320, 99083.6610)),    np.array((45595.7460, 99128.8360)),
-    np.array((46792.5470, 98107.9020)),    np.array((47469.6400, 97706.1410)),
-    np.array((49395.8790, 97910.6780)),    np.array((51389.7200, 99474.1270)),
-    np.array((53842.7470, 97492.9250)),    np.array((55448.6600, 99368.8670)),
+    np.array((-5779.6930, 93977.6670)),
+    np.array((-5104.7090, 94128.6920)),
+    np.array((-4220.9990, 94393.9290)),
+    np.array((-3343.7210, 94872.4590)),
+    np.array((-1531.3900, 94580.8400)),
+    np.array((760.0620, 95486.3200)),
+    np.array((2869.9340, 92834.3870)),
+    np.array((5226.5280, 93025.9950)),
+    np.array((6714.4850, 92842.5510)),
+    np.array((7800.7210, 95068.7130)),
+    np.array((9417.2770, 94177.2380)),
+    np.array((9662.2420, 93352.7840)),
+    np.array((10832.5610, 92912.9060)),
+    np.array((12606.4200, 94509.5970)),
+    np.array((14799.5150, 92952.9800)),
+    np.array((16731.8810, 94332.2720)),
+    np.array((18624.7260, 93748.8790)),
+    np.array((19735.5710, 93352.7400)),
+    np.array((21173.6710, 93633.4430)),
+    np.array((22815.5060, 95102.8970)),
+    np.array((25027.6300, 94701.5890)),
+    np.array((26877.0740, 95934.8080)),
+    np.array((28412.8280, 93991.2920)),
+    np.array((29687.0450, 95172.1330)),
+    np.array((30707.5590, 97173.3700)),
+    np.array((31658.0510, 95495.4540)),
+    np.array((31784.6720, 93996.4920)),
+    np.array((33227.8740, 94836.1210)),
+    np.array((34529.9280, 97077.9980)),
+    np.array((36186.4250, 96350.3200)),
+    np.array((36397.3980, 95418.5350)),
+    np.array((36627.0750, 93945.8910)),
+    np.array((38252.0130, 94232.7180)),
+    np.array((38748.8480, 95434.3240)),
+    np.array((38739.5390, 96390.0440)),
+    np.array((39755.6280, 98036.1690)),
+    np.array((42271.5150, 97828.3200)),
+    np.array((43683.4370, 98663.9820)),
+    np.array((44394.9320, 99083.6610)),
+    np.array((45595.7460, 99128.8360)),
+    np.array((46792.5470, 98107.9020)),
+    np.array((47469.6400, 97706.1410)),
+    np.array((49395.8790, 97910.6780)),
+    np.array((51389.7200, 99474.1270)),
+    np.array((53842.7470, 97492.9250)),
+    np.array((55448.6600, 99368.8670)),
 )
 
 # apex indexes automatic calculation
 apex_index_auto_out_flumy: tuple[int, ...] = (
-    0, 4, 10, 16, 27, 44, 73, 92, 103, 128, 148, 152, 161, 183, 206,
-    225, 239, 245, 253, 267, 286, 304, 327, 338, 356, 375, 385, 398,
-    416, 431, 436, 446, 458, 465, 470, 486, 501, 511, 516, 521, 532,
-    537, 549, 567, 595, 617,
+    0,
+    4,
+    10,
+    16,
+    27,
+    44,
+    73,
+    92,
+    103,
+    128,
+    148,
+    152,
+    161,
+    183,
+    206,
+    225,
+    239,
+    245,
+    253,
+    267,
+    286,
+    304,
+    327,
+    338,
+    356,
+    375,
+    385,
+    398,
+    416,
+    431,
+    436,
+    446,
+    458,
+    465,
+    470,
+    486,
+    501,
+    511,
+    516,
+    521,
+    532,
+    537,
+    549,
+    567,
+    595,
+    617,
 )
 
 eps = 0.001  # tolerance for distance calculation (m)
@@ -524,7 +699,7 @@ class TestsCenterline(unittest.TestCase):
                 fig_path + "centerline_tests.png",
                 (centerline.cl_points,),
                 centerline.bends,
-                domain=((), ()), # type: ignore
+                domain=((), ()),  # type: ignore
                 show=False,
                 plot_apex=False,
                 plot_inflex=False,
@@ -575,8 +750,7 @@ class TestsCenterline(unittest.TestCase):
         diff = np.array(middles) - np.array(middles_out)
 
         middles_list = [
-            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
-            for pt in middles
+            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2]) for pt in middles
         ]
 
         self.assertTrue(
@@ -624,8 +798,7 @@ class TestsCenterline(unittest.TestCase):
         diff = np.array(middles) - np.array(middles_out)
 
         middles_list = [
-            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
-            for pt in middles
+            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2]) for pt in middles
         ]
         # with open("tests/.out/middles_obs.txt", "w") as fout:
         #     fout.writelines(middles_list)
@@ -773,8 +946,8 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex probability
             # centerline.set_bend_apex_probability_user_weights(apex_proba_weights)
-            apex_probability: npt.NDArray[np.float64] = (
-                centerline.get_property(PropertyNames.APEX_PROBABILITY.value)
+            apex_probability: npt.NDArray[np.float64] = centerline.get_property(
+                PropertyNames.APEX_PROBABILITY.value
             )
 
             self.assertAlmostEqual(
@@ -808,11 +981,7 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex index
             apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
+                [bend.index_apex for bend in centerline.bends if bend.index_apex > -1]
             )
 
             # dump_apex_index = ["%s, "%index for index in apex_index]
@@ -864,16 +1033,12 @@ class TestsCenterline(unittest.TestCase):
                 self.fail("Unable to compute bend apex points.")
 
             # check apex probability
-            apex_probability: npt.NDArray[np.float64] = (
-                centerline.get_property(PropertyNames.APEX_PROBABILITY.value)
+            apex_probability: npt.NDArray[np.float64] = centerline.get_property(
+                PropertyNames.APEX_PROBABILITY.value
             )
 
             apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
+                [bend.index_apex for bend in centerline.bends if bend.index_apex > -1]
             )
 
             print(apex_index)
@@ -913,11 +1078,7 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex index
             apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
+                [bend.index_apex for bend in centerline.bends if bend.index_apex > -1]
             )
             self.assertTrue(
                 np.array_equal(apex_index, apex_index_out),
@@ -952,18 +1113,14 @@ class TestsCenterline(unittest.TestCase):
         for i in range(3):
             # compute bend apex point
             try:
-                centerline.find_all_bend_apex(i+1)
+                centerline.find_all_bend_apex(i + 1)
             except Exception as err:
                 print(err)
                 self.fail("Unable to compute bend apex points.")
 
             # check apex index
             apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
+                [bend.index_apex for bend in centerline.bends if bend.index_apex > -1]
             )
             # dump_apex_index = ["%s, "%index for index in apex_index]
             # with open("tests/.out/apex_index.txt", "w") as fout:
@@ -1034,16 +1191,14 @@ class TestsCenterline(unittest.TestCase):
             self.skipTest("Centerline intialization failed.")
         self.assertNotEqual(centerline, None, "Centerline must be defined")
         self.assertEqual(centerline.get_nb_bends(), nb_bends_out_flumy)
-        self.assertEqual(
-            centerline.get_nb_valid_bends(), nb_valid_bends_out_flumy
-        )
+        self.assertEqual(centerline.get_nb_valid_bends(), nb_valid_bends_out_flumy)
 
         # check bend side
         sides = tuple([bend.side for bend in centerline.bends])
         self.assertEqual(len(sides), len(sides_out_flumy))
         self.assertEqual(sides[0], sides_out_flumy[0])
         self.assertEqual(sides[-1], sides_out_flumy[-1])
-        #self.assertSequenceEqual(sides, sides_out_flumy)
+        # self.assertSequenceEqual(sides, sides_out_flumy)
         set_nb_procs(1)
 
         # compute bend middle point
@@ -1060,8 +1215,7 @@ class TestsCenterline(unittest.TestCase):
         ]
 
         middles_list = [
-            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
-            for pt in middles
+            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2]) for pt in middles
         ]
         # with open("tests/.out/middles_obs.txt", "w") as fout:
         #     fout.writelines(middles_list)
@@ -1107,11 +1261,7 @@ class TestsCenterline(unittest.TestCase):
 
         # check apex index
         apex_index = np.array(
-            [
-                bend.index_apex
-                for bend in centerline.bends
-                if bend.index_apex > -1
-            ]
+            [bend.index_apex for bend in centerline.bends if bend.index_apex > -1]
         )
 
         # dump_apex_index = ["%s, " % index for index in apex_index]
@@ -1129,7 +1279,7 @@ class TestsCenterline(unittest.TestCase):
                 fig_path + "centerline_flumy_tests.png",
                 (centerline.cl_points,),
                 centerline.bends,
-                domain=((), ()), # type: ignore
+                domain=((), ()),  # type: ignore
                 show=False,
                 plot_apex=True,
                 plot_inflex=True,

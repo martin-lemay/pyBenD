@@ -34,6 +34,7 @@ class StackingPatternType(Enum):
     channel basal point. ':' stands for aggradation phase.*
 
     """
+
     #: pure aggradation
     AGGRADATION = "Aggradation Only"
     #: one way migration
@@ -46,6 +47,7 @@ class StackingPatternType(Enum):
     MULTIPLE_WAYS = "Multiple Ways"
     #: undefined
     UNDEFINED = "Undefined"
+
 
 class Section:
     def __init__(
@@ -111,9 +113,7 @@ class Section:
         #: list of average displacements between first and last isoline of the section
         self.averaged_disp: dict[str, npt.NDArray[np.float64]] = {}
         #: stacking pattern type
-        self.stacking_pattern_type: StackingPatternType = (
-            StackingPatternType.UNDEFINED
-        )
+        self.stacking_pattern_type: StackingPatternType = StackingPatternType.UNDEFINED
 
     def _compute_origin(
         self: Self, flow_dir: npt.NDArray[np.float64] = np.array([1, 0])
@@ -237,9 +237,7 @@ class Section:
             if 1 in types:
                 index1 = types.index(1)
 
-            if (index0 == 1) & (
-                groups[index1] > begin_threshold * mig_steps1.size
-            ):
+            if (index0 == 1) & (groups[index1] > begin_threshold * mig_steps1.size):
                 self.stacking_pattern_type = StackingPatternType.ONE_WAY
             elif groups[index0] > begin_threshold * mig_steps1.size:
                 self.stacking_pattern_type = StackingPatternType.AGGRAD_ONE_WAY
@@ -301,7 +299,7 @@ class Section:
                 [isoline.age for isoline in self.isolines]
             ).astype(float)
             l_pt = cpf.resample_path(l_pt, ages, 0).T
-            #l_pt = cpf.coords2points(
+            # l_pt = cpf.coords2points(
             #     cpf.resample_path(l_pt, ages, 0)#cpf.points2coords(l_pt), ages, 0)
             # )
 
@@ -318,9 +316,9 @@ class Section:
             )  # vertical displacements
             pt_origin_prev = pt_origin
         # local stratigraphic number
-        self.local_disp[:, 2] = (
-            self.local_disp[:, 0] / self.local_disp[:, 1]
-        ) * (norm_vert / norm_hor)
+        self.local_disp[:, 2] = (self.local_disp[:, 0] / self.local_disp[:, 1]) * (
+            norm_vert / norm_hor
+        )
 
     def section_averaged_channel_displacements(
         self: Self,
@@ -399,10 +397,7 @@ class Section:
             (self.stacking_pattern_type is None)
             or (
                 (self.stacking_pattern_type is not None)
-                and (
-                    self.stacking_pattern_type
-                    is not StackingPatternType.ONE_WAY
-                )
+                and (self.stacking_pattern_type is not StackingPatternType.ONE_WAY)
             )
         ):
             # reference point from which to compute 'bend' averaged displacements

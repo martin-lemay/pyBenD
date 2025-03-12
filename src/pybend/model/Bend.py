@@ -9,7 +9,7 @@ from typing import Optional
 import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Polygon  # type: ignore
 from typing_extensions import Self
 
 from pybend.model.enumerations import BendSide

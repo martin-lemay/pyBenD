@@ -99,9 +99,7 @@ class ClPoint:
         ----------
             ClPoint: new channel point with updated properties
         """
-        array = [
-            self._data[col] + cl_point._data[col] for col in self._data.index
-        ]
+        array = [self._data[col] + cl_point._data[col] for col in self._data.index]
         data = pd.Series(array, index=self._data.index)
         return ClPoint(self._id, self._age, data)
 

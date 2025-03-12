@@ -4,6 +4,8 @@
 
 import os
 
+from pybend.utils.logging import logger
+
 __doc__ = """
 Defines global parameters such as the number of processors to use and
  functions to get and set these parameters.
@@ -24,9 +26,8 @@ def get_nb_procs() -> int:
 
     """
     procs_count: int = len(os.sched_getaffinity(0))
-
     if procs_count < NB_PROCS:
-        print("Available number of cpu: %s" % procs_count)
+        logger.warning(f"Available number of cpu: {procs_count}")
     return min(procs_count, NB_PROCS)
 
 

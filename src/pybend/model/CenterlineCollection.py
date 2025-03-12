@@ -33,7 +33,11 @@ from pybend.model.enumerations import (
 from pybend.model.Isoline import ChannelCrossSection, Isoline
 from pybend.model.Section import Section
 from pybend.utils.globalParameters import get_nb_procs
-from pybend.utils.logging import logger
+from pybend.utils.logging import ERROR, logger
+
+# disable info and warnings
+logger.setLevel(ERROR)
+
 
 __doc__ = r"""
 This module defines CenterlineCollection objet that stores the successive

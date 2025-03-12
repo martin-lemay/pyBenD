@@ -22,6 +22,10 @@ from pybend.algorithms.pybend_io import (
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import BendSide, PropertyNames
 from pybend.utils.globalParameters import set_nb_procs
+from pybend.utils.logging import ERROR, logger
+
+# disable info and warnings
+logger.setLevel(ERROR)
 
 set_nb_procs(1)
 
@@ -600,15 +604,16 @@ class TestsCenterline(unittest.TestCase):
         self.assertNotEqual(centerline, None, "Centerline must be defined")
 
         # compute inflection points
-        inflex_index: npt.NDArray[np.int64] = np.empty(0).astype(int)
+        inflex_index: list[int] = []
         try:
-            inflex_index = centerline.find_inflection_points()
+            inflex_index = centerline.find_inflection_points().tolist()
         except Exception as err:
             print(err)
             self.fail("Unable to compute inflection point indexes.")
 
-        self.assertTrue(
-            np.array_equal(inflex_index, inflex_index_out),
+        self.assertSequenceEqual(
+            tuple(inflex_index),
+            inflex_index_out,
             f"Inflection point detection: {inflex_index} instead of "
             + f" {inflex_index}",
         )
@@ -714,8 +719,8 @@ class TestsCenterline(unittest.TestCase):
             print(err)
             self.fail("Unable to plot imported centerline.")
 
-    def test_compute_all_bend_middle_multiproc(self: Self) -> None:
-        """Test of compute_all_bend_middle method from Centerline object."""
+    def test_compute_all_bend_center_multiproc(self: Self) -> None:
+        """Test of compute_all_bend_center method from Centerline object."""
         set_nb_procs(nb_procs)
         # load dataset
         centerline: Centerline
@@ -750,23 +755,14 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_center is not None
         ]
-        diff: npt.NDArray[np.float64] = np.array(middles) - np.array(
-            middles_out
-        )
 
-        middles_list = [
-            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
-            for pt in middles
-        ]
+        for pt_obs, pt_exp in zip(middles, middles_out, strict=False):
+            self.assertSequenceEqual(pt_obs.tolist(), pt_exp.tolist())
 
-        self.assertTrue(
-            all(list(np.linalg.norm(diff, axis=0) < eps)),
-            f"Middle point calculation: {middles_list}",
-        )
         set_nb_procs(1)
 
-    def test_compute_all_bend_middle_monoproc(self: Self) -> None:
-        """Test of compute_all_bend_middle method from Centerline object."""
+    def test_compute_all_bend_center_monoproc(self: Self) -> None:
+        """Test of compute_all_bend_center method from Centerline object."""
         set_nb_procs(1)
         # load dataset
         centerline: Centerline
@@ -801,21 +797,12 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_center is not None
         ]
-        diff: npt.NDArray[np.float64] = np.array(middles) - np.array(
-            middles_out
-        )
 
-        middles_list = [
-            "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
-            for pt in middles
-        ]
         # with open("tests/.out/middles_obs.txt", "w") as fout:
         #     fout.writelines(middles_list)
+        for pt_obs, pt_exp in zip(middles, middles_out, strict=False):
+            self.assertSequenceEqual(pt_obs.tolist(), pt_exp.tolist())
 
-        self.assertTrue(
-            all(list(np.linalg.norm(diff, axis=0) < eps)),
-            f"Middle point calculation: {middles_list}",
-        )
         set_nb_procs(1)
 
     def test_compute_all_bend_centroid_multiproc(self: Self) -> None:
@@ -854,17 +841,10 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_centroid is not None
         ]
-        diff: npt.NDArray[np.float64] = np.array(centroids) - np.array(
-            centroids_out
-        )
-        centroids_list = [
-            "np.array((%.4f, %.4f)),\n" % (pt[0], pt[1]) for pt in centroids
-        ]
 
-        self.assertTrue(
-            all(list(np.linalg.norm(diff, axis=0) < eps)),
-            f"Centroid point calculation: {centroids_list}",
-        )
+        for pt_obs, pt_exp in zip(centroids, centroids_out, strict=False):
+            self.assertSequenceEqual(pt_obs.tolist(), pt_exp.tolist())
+
         set_nb_procs(1)
 
     def test_compute_all_bend_centroid_monoproc(self: Self) -> None:
@@ -903,20 +883,12 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_centroid is not None
         ]
-        diff: npt.NDArray[np.float64] = np.array(centroids) - np.array(
-            centroids_out
-        )
-        centroids_list = [
-            "np.array((%.4f, %.4f)),\n" % (pt[0], pt[1]) for pt in centroids
-        ]
 
         # with open("tests/.out/centroids.txt", "w") as fout:
         #     fout.writelines(centroids_list)
+        for pt_obs, pt_exp in zip(centroids, centroids_out, strict=False):
+            self.assertSequenceEqual(pt_obs.tolist(), pt_exp.tolist())
 
-        self.assertTrue(
-            all(list(np.linalg.norm(diff, axis=0) < eps)),
-            f"Centroid point calculation: {centroids_list}",
-        )
         set_nb_procs(1)
 
     def test_find_all_bend_apex_user_weights_monoproc(self: Self) -> None:
@@ -992,20 +964,19 @@ class TestsCenterline(unittest.TestCase):
             )
 
             # check apex index
-            apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
-            )
+            apex_index: list[int] = [
+                bend.index_apex
+                for bend in centerline.bends
+                if bend.index_apex > -1
+            ]
 
             # dump_apex_index = ["%s, "%index for index in apex_index]
             # with open("tests/.out/apex_index.txt", "w") as fout:
             #     fout.writelines(dump_apex_index)
 
-            self.assertTrue(
-                np.array_equal(apex_index, apex_index_out),
+            self.assertSequenceEqual(
+                tuple(apex_index),
+                apex_index_out,
                 f"Apex probability calculation: Apex indexes (@{i}: "
                 + f"{apex_index})",
             )
@@ -1053,16 +1024,6 @@ class TestsCenterline(unittest.TestCase):
             apex_probability: npt.NDArray[np.float64] = (
                 centerline.get_property(PropertyNames.APEX_PROBABILITY.value)
             )
-
-            apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
-            )
-
-            print(apex_index)
             print(
                 f"{i} {round(np.mean(apex_probability), 3)}, "
                 + f"{round(np.median(apex_probability), 3)},"
@@ -1100,15 +1061,14 @@ class TestsCenterline(unittest.TestCase):
             )
 
             # check apex index
-            apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
-            )
-            self.assertTrue(
-                np.array_equal(apex_index, apex_index_out),
+            apex_index: list[int] = [
+                bend.index_apex
+                for bend in centerline.bends
+                if bend.index_apex > -1
+            ]
+            self.assertSequenceEqual(
+                tuple(apex_index),
+                apex_index_out,
                 f"Apex probability calculation: Apex indexes (@{i}: "
                 + f"{apex_index})",
             )
@@ -1147,19 +1107,19 @@ class TestsCenterline(unittest.TestCase):
                 self.fail("Unable to compute bend apex points.")
 
             # check apex index
-            apex_index = np.array(
-                [
-                    bend.index_apex
-                    for bend in centerline.bends
-                    if bend.index_apex > -1
-                ]
-            )
+            apex_index: list[int] = [
+                bend.index_apex
+                for bend in centerline.bends
+                if bend.index_apex > -1
+            ]
+
             # dump_apex_index = ["%s, "%index for index in apex_index]
             # with open("tests/.out/apex_index.txt", "w") as fout:
             #     fout.writelines(dump_apex_index)
 
-            self.assertTrue(
-                np.array_equal(apex_index, apex_index_auto_out[i]),
+            self.assertSequenceEqual(
+                tuple(apex_index),
+                apex_index_auto_out[i],
                 f"Apex probability calculation: Apex indexes ({apex_index})",
             )
         set_nb_procs(1)
@@ -1299,21 +1259,20 @@ class TestsCenterline(unittest.TestCase):
             self.fail("Unable to compute bend apex points.")
 
         # check apex index
-        apex_index = np.array(
-            [
-                bend.index_apex
-                for bend in centerline.bends
-                if bend.index_apex > -1
-            ]
-        )
+        apex_index = [
+            bend.index_apex
+            for bend in centerline.bends
+            if bend.index_apex > -1
+        ]
 
         # dump_apex_index = ["%s, " % index for index in apex_index]
         # with open("tests/.out/apex_index_flumy.txt", "w") as fout:
         #     fout.writelines(dump_apex_index)
 
-        self.assertTrue(
-            np.array_equal(apex_index, apex_index_auto_out_flumy),
-            f"Apex probability calculation: Apex indexes ({apex_index})",
+        self.assertSequenceEqual(
+            tuple(apex_index),
+            apex_index_auto_out_flumy,
+            "Apex indexes detection failed.",
         )
 
         # visual check

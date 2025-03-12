@@ -5,8 +5,8 @@
 import os
 
 __doc__ = """
-Defines global parameters such as the number of processors to use and 
-functions to get and set these parameters.
+Defines global parameters such as the number of processors to use and
+ functions to get and set these parameters.
 """
 # number of processors for multiprocessing
 NB_PROCS: int = 1

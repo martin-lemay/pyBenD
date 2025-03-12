@@ -98,8 +98,8 @@ def kinoshita_bend(
         teta_max (float): maximum angle (rad) from horizontal axis
         Js (float): skewness coefficient. If positive, bends are left skewed,
             if negative bends are right skewed.
-        Jf (float): flatness coefficient. If positive, bends are more elongated,
-            if negative bends are more flat.
+        Jf (float): flatness coefficient. If positive, bends are more
+            elongated, if negative bends are more flat.
 
     Returns:
     -------

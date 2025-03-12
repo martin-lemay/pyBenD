@@ -14,12 +14,12 @@ from pybend.model.Centerline import Centerline, ClPoint
 from pybend.model.enumerations import MorphometricNames, PropertyNames
 
 __doc__ = r"""
-This module defines the Morphometry class that compute meander bend morphometric
-parameters from a Centerline object.
+This module defines the Morphometry class that compute meander bend
+ morphometric parameters from a Centerline object.
 
 Bends are defined as the channel path comprised between 2 consecutive
-inflection points (o). A Bend contains a maximum curvature point (+) and an
-apex (x) whose definition may vary.
+ inflection points (o). A Bend contains a maximum curvature point (+) and an
+ apex (x) whose definition may vary.
 
 Metrics include:
 * arc length: curvilinear distance between inflection points
@@ -28,9 +28,9 @@ Metrics include:
 * extension (Ex): distance between bend apex and center
 * asymmetry coefficient: A=(Lup-Ldown) / L, where Lup and Ldown are arc length
 * radius of curvature: inverse of bend apex curvature
-* roundess: ratio of maximum to mean curvature along the bend
-distances between bend apex and upstream and downstream inflection point
-respectively, and L is the bend arc length.
+* roundess: ratio of maximum to mean curvature along the bend distances between
+ bend apex and upstream and downstream inflection point respectively, and L
+ is the bend arc length.
 
                              .   x  .
                          .      /|    .

@@ -50,7 +50,7 @@ def plot_centerline_collection(
     -----------
         filepath (str): path to export figures if not empty.
         cl_collec (CenterlineCollection): CenterlineCollection object to plot
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         nb_cl (int, optional): Number of centerline to show.
 
             Defaults to 999 (i.e., plot all centerlines).
@@ -201,7 +201,7 @@ def plot_centerline_single(
         filepath (str): path to export figures if not empty.
         cl_points (tuple[list[ClPoint]]): list of ClPoint objects.
         bends (list[Bend]): list of Bend objects to plot
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         show (bool, optional): if True, show the figure.
 
             Defaults to False.
@@ -220,7 +220,7 @@ def plot_centerline_single(
         plot_centroid (bool, optional): if True, plot bend centroid.
 
             Defaults to False.
-        plot_pt_start (bool, optional): if True, plot centerline starting point.
+        plot_pt_start (bool, optional): if True, plot centerline starting point
 
             Defaults to False.
         plot_apex_proba (bool, optional): If True, color channel points with
@@ -321,7 +321,7 @@ def plot_bend_evol(
         nb_cl (int, optional): Number of centerline to plot.
 
             Defaults to 999 (i.e., plot all centerlines).
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         annotate (bool, optional): if True, add bend ids.
 
             Defaults to False.
@@ -514,8 +514,8 @@ def plot_bends(
 
         Defaults to 1.
     markersize (float, optional): Marker size.
-    cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to True,
-        centerline color is overwrite.
+    cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to
+        True, centerline color is overwrite.
 
         Defaults to None.
     plot_apex_proba (bool, optional): If True, color channel points with
@@ -543,7 +543,9 @@ def plot_bends(
         color = cl_color
     index: int = 0
     for i, bend in enumerate(bends):
-        coords: npt.NDArray[np.float64] = np.full((bend.get_nb_points(), 2), np.nan)
+        coords: npt.NDArray[np.float64] = np.full(
+            (bend.get_nb_points(), 2), np.nan
+        )
         for i, cl_pt in enumerate(
             cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
         ):
@@ -638,7 +640,11 @@ def plot_bends(
                 markersize=0.8 * markersize,
             )
 
-        if plot_apex_proba and bend.isvalid and bend.apex_probability is not None:
+        if (
+            plot_apex_proba
+            and bend.isvalid
+            and bend.apex_probability is not None
+        ):
             ax.scatter(
                 coords[:, 0],
                 coords[:, 1],
@@ -662,14 +668,15 @@ def plot_bends(
                 )
 
         if plot_property:
-            prop: npt.NDArray[np.float64] = np.zeros(bend.get_nb_points())
-            # prop :list[float] = []
-            for i, cl_pt in enumerate(
-                cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
-            ):
-                prop[i] = cl_pt.get_property(property_name)
-                # prop += [cl_pt.get_property(property_name)]
-                # vp_color = vp_colormap(vp_colormap_norm(cl_pt.get_property(property_name)))
+            prop = np.array(
+                [
+                    cl_pt.get_property(property_name)
+                    for cl_pt in cl_points[0][
+                        bend.index_inflex_up : bend.index_inflex_down + 1
+                    ]
+                ]
+            )
+
             vmax = np.max(np.abs(prop))
             ax.scatter(
                 coords[:, 0],
@@ -738,7 +745,7 @@ def plot_section(
     """
     # get color map
     colors_norm: Optional[colors.Normalize] = None
-    cmap: Optional[colors.Normalize] = None
+    cmap: Optional[colors.Colormap] = None
     if not color_same_bend:
         colors_norm = colors.Normalize(vmin=0, vmax=len(section.isolines))
         cmap = (
@@ -819,14 +826,18 @@ def plot_versus_curvilinear(
         "hotpink",
     ]
 
-    assert len(curves1) == len(
-        labels1
-    ), "The number of Curves and labels from first set is different"
-    assert len(curves2) == len(
-        labels2
-    ), "The number of Curves and labels from second set is different"
-    assert len(curves1) > len(colors1), "Too many curves to plot from first set."
-    assert len(curves2) > len(colors2), "Too many curves to plot from second set."
+    assert len(curves1) == len(labels1), (
+        "The number of Curves and labels from first set is different"
+    )
+    assert len(curves2) == len(labels2), (
+        "The number of Curves and labels from second set is different"
+    )
+    assert len(curves1) > len(colors1), (
+        "Too many curves to plot from first set."
+    )
+    assert len(curves2) > len(colors2), (
+        "Too many curves to plot from second set."
+    )
 
     _, ax1 = plt.subplots()
 

@@ -90,7 +90,9 @@ class TestsClPoint(unittest.TestCase):
             strict=True,
         ):
             cl_pt: ClPoint = create_cl_point(dataset, ide, age)
-            self.assertEqual(cl_pt._id, ide, f"Id test: Channel point id must be {ide}")
+            self.assertEqual(
+                cl_pt._id, ide, f"Id test: Channel point id must be {ide}"
+            )
 
     def test_age(self: Self) -> None:
         """Test of create_cl_point age."""
@@ -161,7 +163,7 @@ class TestsClPoint(unittest.TestCase):
                 % dataset[PropertyNames.VELOCITY.value],
             )
             self.assertEqual(
-                cl_pt.depth(),
+                cl_pt.depth_mean(),
                 dataset[PropertyNames.DEPTH_MEAN.value],
                 "Properties test: Mean_depth must be equal to %.3f"
                 % dataset[PropertyNames.DEPTH_MEAN.value],
@@ -218,7 +220,9 @@ class TestsClPoint(unittest.TestCase):
         cl_pt2 = create_cl_point(dataset2, ide2, age2)
         cl_pt12 = cl_pt1 + cl_pt2
         self.assertEqual(cl_pt12._id, cl_pt1._id, "Add test: id must be equal")
-        self.assertEqual(cl_pt12._age, cl_pt1._age, "Add test: age must be equal")
+        self.assertEqual(
+            cl_pt12._age, cl_pt1._age, "Add test: age must be equal"
+        )
         expected = cl_pt1.width() + cl_pt2.width()
         self.assertEqual(
             cl_pt12.width(),
@@ -250,7 +254,8 @@ class TestsClPoint(unittest.TestCase):
             self.assertEqual(
                 cl_pt11.width(),
                 expected,
-                "Multiply test - cl_pt*n: Width must be equal to %.2f" % expected,
+                "Multiply test - cl_pt*n: Width must be equal to %.2f"
+                % expected,
             )
 
             cl_pt12 = 5.0 * cl_pt
@@ -268,7 +273,8 @@ class TestsClPoint(unittest.TestCase):
             self.assertEqual(
                 cl_pt12.width(),
                 expected,
-                "Multiply test - n*cl_pt: Width must be equal to %.2f" % expected,
+                "Multiply test - n*cl_pt: Width must be equal to %.2f"
+                % expected,
             )
 
     def test_divide(self: Self) -> None:
@@ -298,7 +304,9 @@ class TestsClPoint(unittest.TestCase):
         """Test of cl point eq function."""
         cl_pt1 = create_cl_point(dataset1, ide1, age1)
         cl_pt2 = create_cl_point(dataset2, ide2, age2)
-        self.assertEqual(cl_pt1, cl_pt1, "Equality test: cl_pt1 must be equal to cpt1")
+        self.assertEqual(
+            cl_pt1, cl_pt1, "Equality test: cl_pt1 must be equal to cpt1"
+        )
         self.assertNotEqual(
             cl_pt1,
             cl_pt2,

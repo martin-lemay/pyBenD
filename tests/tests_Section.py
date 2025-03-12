@@ -8,7 +8,7 @@ Tests functions for Isoline.py.
 
 import os
 import unittest
-from typing import Self
+from typing import Optional, Self
 
 import numpy as np
 import numpy.typing as npt
@@ -58,7 +58,7 @@ bend_id: str = "Bend-1"
 pt_start: npt.NDArray[np.float64] = np.array([1.0, 1.0])
 pt_stop: npt.NDArray[np.float64] = np.array([10.0, 20.0])
 isolines: list[Isoline] = [channel_cs]
-same_bend = None
+same_bend: Optional[list[bool]] = None
 flow_dir: npt.NDArray[np.float64] = np.array([1.0, 0.0])
 
 
@@ -74,16 +74,21 @@ class TestsSection(unittest.TestCase):
             ide, bend_id, pt_start, pt_stop, isolines, same_bend, flow_dir
         )
         self.assertEqual(section.id, ide, "Id was not correctly set.")
-        self.assertEqual(section.bend_id, bend_id, "Bend ID was not correctly set.")
+        self.assertEqual(
+            section.bend_id, bend_id, "Bend ID was not correctly set."
+        )
         self.assertTrue(
             np.array_equal(section.pt_start, pt_start),
             "Start point was not correctly set.",
         )
         self.assertTrue(
-            np.array_equal(section.pt_stop, pt_stop), "End point was not correctly set."
+            np.array_equal(section.pt_stop, pt_stop),
+            "End point was not correctly set.",
         )
         self.assertEqual(
-            len(section.isolines), len(isolines), "Isoline list was not correctly set."
+            len(section.isolines),
+            len(isolines),
+            "Isoline list was not correctly set.",
         )
 
         self.assertSequenceEqual(

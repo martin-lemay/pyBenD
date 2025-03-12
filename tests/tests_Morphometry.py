@@ -3,7 +3,7 @@
 # ruff: noqa: E402 # disable Module level import not at top of file
 
 __doc__ = """
-Tests functions for Centerline_collection class - Run with input data
+Tests functions for CenterlineCollection class - Run with input data
 centerline_Collection_test_data*.csv.
 """
 
@@ -66,12 +66,12 @@ centerline = Centerline(
 )
 centerline.find_bends(sinuo_thres, 3)
 
-assert (
-    centerline.get_nb_bends() == 46
-), "Number of bends in invalid. Run tests_Centerline.py first."
-assert (
-    centerline.get_nb_valid_bends() == 34
-), "Number of bends in invalid. Run tests_Centerline.py first."
+assert centerline.get_nb_bends() == 46, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
+assert centerline.get_nb_valid_bends() == 34, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
 
 valid_bend_indexes: list[int] = centerline.get_valid_bend_indexes()
 
@@ -1110,7 +1110,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[0].tolist(), "Arc length are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[0].tolist(), "Arc length are not equal."
+        )
 
     def test_compute_bend_wavelength(self: Self) -> None:
         """Test of compute_bend_wavelength method."""
@@ -1120,7 +1122,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[1].tolist(), "Wavelength are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[1].tolist(), "Wavelength are not equal."
+        )
 
     def test_compute_bend_sinuosity(self: Self) -> None:
         """Test of compute_bend_sinuosity method."""
@@ -1130,7 +1134,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[2].tolist(), "Sinuosity are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[2].tolist(), "Sinuosity are not equal."
+        )
 
     def test_compute_bend_amplitude(self: Self) -> None:
         """Test of compute_bend_amplitude method."""
@@ -1140,7 +1146,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[3].tolist(), "Amplitude are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[3].tolist(), "Amplitude are not equal."
+        )
 
     def test_compute_bend_extension(self: Self) -> None:
         """Test of compute_bend_extension method."""
@@ -1150,16 +1158,21 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[4].tolist(), "Extension are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[4].tolist(), "Extension are not equal."
+        )
 
     def test_compute_bend_radius(self: Self) -> None:
         """Test of compute_bend_radius method."""
         morph: Morphometry = Morphometry(centerline)
         obs = [
-            morph.compute_bend_radius(i) for i in range(morph.centerline.get_nb_bends())
+            morph.compute_bend_radius(i)
+            for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[5].tolist(), "Radius are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[5].tolist(), "Radius are not equal."
+        )
 
     def test_compute_bend_asymmetry(self: Self) -> None:
         """Test of compute_bend_asymmetry method."""
@@ -1169,7 +1182,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[6].tolist(), "Asymmetry are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[6].tolist(), "Asymmetry are not equal."
+        )
 
     def test_compute_bend_roundness(self: Self) -> None:
         """Test of compute_bend_roundness method."""
@@ -1179,7 +1194,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)
-        self.assertSequenceEqual(obs, expected[7].tolist(), "Roudness are not equal.")
+        self.assertSequenceEqual(
+            obs, expected[7].tolist(), "Roudness are not equal."
+        )
 
     def test_compute_bend_wavelength_leopold(self: Self) -> None:
         """Test of compute_bend_wavelength_leopold method."""
@@ -1189,7 +1206,9 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(1, morph.centerline.get_nb_bends() - 1, 1)
         ]
         self.assertSequenceEqual(
-            obs, expected[8].tolist()[1:-1], "Leopold wavelength are not equal."
+            obs,
+            expected[8].tolist()[1:-1],
+            "Leopold wavelength are not equal.",
         )
 
     def test_compute_bend_amplitude_leopold(self: Self) -> None:
@@ -1213,7 +1232,9 @@ class TestsMorphometry(unittest.TestCase):
         """Test of compute_bends_morphometry method."""
         morph: Morphometry = Morphometry(centerline)
         obs = morph.compute_bends_morphometry(valid_bends=True).to_numpy()
-        self.assertTrue(np.array_equal(obs, expected.T[valid_bend_indexes], True))
+        self.assertTrue(
+            np.array_equal(obs, expected.T[valid_bend_indexes], True)
+        )
 
     def test_compute_bend_sinuosity_moving_window(self: Self) -> None:
         """Test of compute_bend_sinuosity_moving_window method."""
@@ -1224,7 +1245,9 @@ class TestsMorphometry(unittest.TestCase):
         ]
         print(obs)
         self.assertSequenceEqual(
-            obs, sinuo_window_exp, "Sinuosity over moving window are not equal."
+            obs,
+            sinuo_window_exp,
+            "Sinuosity over moving window are not equal.",
         )
 
     def test_compute_average_metric_window(self: Self) -> None:

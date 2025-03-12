@@ -35,7 +35,7 @@ class Isoline:
         self.age: int = age
         self.cl_pt_ref: ClPoint = cl_pt_ref
         #: point coordinates according to cl_pt_ref
-        self.points: list[npt.NDArray[np.float64]] = []
+        self.points: npt.NDArray[np.float64] = np.empty(0)
         # isoline type
         self.isoline_type: IsolineType = isoline_type
 

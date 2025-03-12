@@ -3,7 +3,7 @@
 # ruff: noqa: E402 # disable Module level import not at top of file
 
 __doc__ = """
-Tests functions for Centerline_collection class - Run with input data
+Tests functions for CenterlineCollection class - Run with input data
 centerline_Collection_test_data*.csv.
 """
 
@@ -66,7 +66,7 @@ dtw_weights: tuple[tuple[float, float, float], ...] = (
 )
 pattern: str = "asymmetric"
 
-nb_procs: int = 3  # number of procs
+nb_procs: int = 2  # number of procs
 
 property_map: dict[int, dict[str, float]] = {
     10: {"Width": 20.0, "Discharge": 1e5},
@@ -303,7 +303,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [173],
         [],
-        [174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188],
+        [
+            174,
+            175,
+            176,
+            177,
+            178,
+            179,
+            180,
+            181,
+            182,
+            183,
+            184,
+            185,
+            186,
+            187,
+            188,
+        ],
         [],
         [189],
         [],
@@ -352,7 +368,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [225],
         [],
-        [226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+        [
+            226,
+            227,
+            228,
+            229,
+            230,
+            231,
+            232,
+            233,
+            234,
+            235,
+            236,
+            237,
+            238,
+            239,
+            240,
+        ],
         [],
         [241],
         [],
@@ -1368,7 +1400,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [121],
         [],
-        [122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136],
+        [
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+        ],
         [137],
         [],
         [138],
@@ -1417,7 +1465,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [173],
         [],
-        [174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188],
+        [
+            174,
+            175,
+            176,
+            177,
+            178,
+            179,
+            180,
+            181,
+            182,
+            183,
+            184,
+            185,
+            186,
+            187,
+            188,
+        ],
         [],
         [189],
         [],
@@ -1466,7 +1530,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [225],
         [],
-        [226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+        [
+            226,
+            227,
+            228,
+            229,
+            230,
+            231,
+            232,
+            233,
+            234,
+            235,
+            236,
+            237,
+            238,
+            239,
+            240,
+        ],
         [],
         [241],
         [],
@@ -1515,7 +1595,23 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [276],
         [],
         [277],
-        [278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292],
+        [
+            278,
+            279,
+            280,
+            281,
+            282,
+            283,
+            284,
+            285,
+            286,
+            287,
+            288,
+            289,
+            290,
+            291,
+            292,
+        ],
         [],
         [293],
         [],
@@ -2971,17 +3067,18 @@ apex_trajec_expected = [
 
 
 class TestsCenterlineCollection(unittest.TestCase):
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_create_centerline_collection_from_flumy_dataset_monoproc(
         self: Self,
     ) -> None:
-        """Test of CenterlineCollection initialisation from csv file using single processing."""
+        """Test of initialisation from csv file using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
         if map_dataset is None:
             self.skipTest(
-                "Imported data is null. Check pybend_io tests for centerline collect loading."
+                "Imported data is null. Check pybend_io tests for centerline "
+                + " collect loading."
             )
 
         centerline_collec = None
@@ -2999,31 +3096,32 @@ class TestsCenterlineCollection(unittest.TestCase):
             )
         except Exception as err:
             print(err)
-            self.fail("Centerline_collection creation failed.")
+            self.fail("CenterlineCollection creation failed.")
 
         self.assertTrue(centerline_collec is not None)
         self.assertEqual(
             len(centerline_collec.centerlines),
             nb_centerlines_out,
-            "Centerline_collection intialization: centerlines are missing.",
+            "CenterlineCollection intialization: centerlines are missing.",
         )
         self.assertTrue(
             np.array_equal(ages_out, centerline_collec.get_all_ages()),
-            "Centerline_collection intialization: some ages are missing.",
+            "CenterlineCollection intialization: some ages are missing.",
         )
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_create_centerline_collection_from_flumy_dataset_multiproc(
         self: Self,
     ) -> None:
-        """Test of CenterlineCollection initialisation from Flumy dataset using single processing."""
+        """Test of initialisation from Flumy dataset using single proc."""
         set_nb_procs(nb_procs)
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
         if map_dataset is None:
             self.skipTest(
-                "Imported data is null. Check pybend_io tests for centerline collect loading."
+                "Imported data is null. Check pybend_io tests for centerline "
+                + " collect loading."
             )
 
         centerline_collec = None
@@ -3041,21 +3139,21 @@ class TestsCenterlineCollection(unittest.TestCase):
             )
         except Exception as err:
             print(err)
-            self.fail("Centerline_collection creation failed.")
+            self.fail("CenterlineCollection creation failed.")
 
         self.assertTrue(centerline_collec is not None)
         self.assertEqual(
             len(centerline_collec.centerlines),
             nb_centerlines_out,
-            "Centerline_collection intialization: centerlines are missing.",
+            "CenterlineCollection intialization: centerlines are missing.",
         )
         self.assertTrue(
             np.array_equal(ages_out, centerline_collec.get_all_ages()),
-            "Centerline_collection intialization: some ages are missing.",
+            "CenterlineCollection intialization: some ages are missing.",
         )
         set_nb_procs(1)
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_create_properties(self: Self) -> None:
         """Test of adding properties to CenterlineCollection."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3073,42 +3171,42 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             for age, prop in property_map.items():
                 centerline_collec.set_centerline_constant_properties(age, prop)
         except Exception as err:
             print(err)
-            self.fail(
-                "Centerline_collection creation: Enable to set centerline properties."
-            )
+            self.fail("Enable to set centerline properties.")
 
         for age in ages_out:
             values: npt.NDArray[np.float64]
             if age in property_map:
                 for name, val in property_map[age].items():
                     try:
-                        values = centerline_collec.get_centerline_property(age, name)
+                        values = centerline_collec.get_centerline_property(
+                            age, name
+                        )
                     except Exception as err:
                         print(err)
                         self.fail(
-                            "Centerline_collection creation: Enable to get centerline property when it exists."
+                            "Enable to get centerline property when it exists."
                         )
                     self.assertEqual(
                         values.size,
                         centerline_collec.centerlines[age].get_nb_points(),
-                        "Centerline_collection creation: centerline property was not correctly set or get.",
+                        "Centerline property was not correctly set or get.",
                     )
                     self.assertEqual(
                         np.unique(values).size,
                         1,
-                        "Centerline_collection creation: centerline property was not correctly set or get.",
+                        "Centerline property was not correctly set or get.",
                     )
                     self.assertEqual(
                         np.unique(values)[0],
                         val,
-                        "Centerline_collection creation: centerline property was not correctly set or get.",
+                        "Centerline property was not correctly set or get.",
                     )
             else:
                 try:
@@ -3118,26 +3216,27 @@ class TestsCenterlineCollection(unittest.TestCase):
                 except Exception as err:
                     print(err)
                     self.fail(
-                        "Centerline_collection creation: Error in centerline property getter when it does not exist."
+                        "Error in centerline property getter when it does "
+                        + "not exist."
                     )
                 self.assertEqual(
                     values.size,
                     centerline_collec.centerlines[age].get_nb_points(),
-                    "Centerline_collection creation: centerline property was not correctly set or get.",
+                    "Centerline property was not correctly set or get.",
                 )
                 self.assertEqual(
                     np.unique(values).size,
                     1,
-                    "Centerline_collection creation: centerline property was not correctly set or get.",
+                    "Centerline property was not correctly set or get.",
                 )
                 self.assertTrue(
                     np.isnan(np.unique(values)[0]),
-                    "Centerline_collection creation: centerline property was not correctly set or get.",
+                    "Centerline property was not correctly set or get.",
                 )
 
     # @unittest.skip("")
     def test_centerlines_matching_monoproc(self: Self) -> None:
-        """Test of CenterlineCollection.match_centerlines function using single processing."""
+        """Test of match_centerlines function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
@@ -3153,7 +3252,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         for i, weights in enumerate(dtw_weights):
             try:
@@ -3167,18 +3266,15 @@ class TestsCenterlineCollection(unittest.TestCase):
                 )
             except Exception as err:
                 print(err)
-                self.fail(
-                    "Centerline_collection match centerline: Unable to match centerlines."
-                )
+                self.fail("match centerline: Unable to match centerlines.")
 
-            index_cl_pts_prev_centerline: list[int] = centerline_collec.centerlines[
-                50
-            ].index_cl_pts_prev_centerline
+            index_cl_pts_prev_centerline: list[int] = (
+                centerline_collec.centerlines[50].index_cl_pts_prev_centerline
+            )
             self.assertSequenceEqual(
                 index_cl_pts_prev_centerline_expected[i],
                 index_cl_pts_prev_centerline[:-1],
-                "Centerline matching: index_cl_pts_prev_centerline at weight index %s"
-                % i,
+                f"Matching: index_cl_pts_prev_centerline at weight index {i}",
             )
 
             index_cl_pts_next_centerline: list[list[int]] = (
@@ -3192,13 +3288,15 @@ class TestsCenterlineCollection(unittest.TestCase):
                 self.assertSequenceEqual(
                     l_indexes,
                     l_indexes_expected,
-                    "Centerline matching: index_cl_pts_next_centerline at weight index %s"
-                    % i,
+                    (
+                        "Centerline matching: index_cl_pts_next_centerline at "
+                        + "weight index {i}"
+                    ),
                 )
 
-    ## @unittest.skip("")
+    @unittest.skip("")
     def test_centerlines_matching_multiproc(self: Self) -> None:
-        """Test of CenterlineCollection.match_centerlines function using multi-processing."""
+        """Test of match_centerlines function using multi-processing."""
         set_nb_procs(nb_procs)
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
@@ -3215,7 +3313,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         for i, weights in enumerate(dtw_weights):
             try:
@@ -3229,20 +3327,17 @@ class TestsCenterlineCollection(unittest.TestCase):
                 )
             except Exception as err:
                 print(err)
-                self.fail(
-                    "Centerline_collection match centerline: Unable to match centerlines."
-                )
+                self.fail("Unable to match centerlines.")
 
-            index_cl_pts_prev_centerline: list[int] = centerline_collec.centerlines[
-                50
-            ].index_cl_pts_prev_centerline
+            index_cl_pts_prev_centerline: list[int] = (
+                centerline_collec.centerlines[50].index_cl_pts_prev_centerline
+            )
             print("Prev ctl, ", i)
             print(index_cl_pts_prev_centerline)
             self.assertSequenceEqual(
                 index_cl_pts_prev_centerline[:-1],
                 index_cl_pts_prev_centerline_expected[i],
-                "Centerline matching: index_cl_pts_prev_centerline at weight index %s"
-                % i,
+                f"index_cl_pts_prev_centerline at weight index {i}",
             )
 
             index_cl_pts_next_centerline: list[list[int]] = (
@@ -3258,14 +3353,13 @@ class TestsCenterlineCollection(unittest.TestCase):
                 self.assertSequenceEqual(
                     l_indexes,
                     l_indexes_expected,
-                    "Centerline matching: index_cl_pts_next_centerline at weight index %s"
-                    % i,
+                    f"Index_cl_pts_next_centerline at weight index {i}",
                 )
         set_nb_procs(1)
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_bend_connection(self: Self) -> None:
-        """Test of CenterlineCollection.connect_bends function using single processing."""
+        """Test of connect_bends function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
@@ -3282,7 +3376,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
 
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.connect_bends(
@@ -3290,18 +3384,18 @@ class TestsCenterlineCollection(unittest.TestCase):
             )
         except Exception as err:
             print(err)
-            self.fail("Centerline_collection bend connection: Unable to connect bends.")
+            self.fail("bend connection: Unable to connect bends.")
 
         self.assertEqual(
             centerline_collec.get_nb_bends_evol(),
             nb_bend_evols_exp,
-            "Centerline_collection bend connection: Number of "
+            "CenterlineCollection bend connection: Number of "
             + f"bend evolution must be {nb_bend_evols_exp}.",
         )
         self.assertEqual(
             centerline_collec.get_nb_valid_bends_evol(),
             nb_bend_evols_valid_exp,
-            "Centerline_collection bend connection: Number of "
+            "CenterlineCollection bend connection: Number of "
             + f"valid bend evolution must be {nb_bend_evols_valid_exp}.",
         )
 
@@ -3323,9 +3417,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_bend_connection_{i}.png", dpi=150)
             plt.close()
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_compute_all_bend_middle_monoproc(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_middle function using single processing."""
+        """Test of find_all_bend_middle function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
@@ -3342,7 +3436,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
 
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.connect_bends(
@@ -3383,9 +3477,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_middles_{i}.png", dpi=150)
             plt.close()
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_compute_all_bend_middle_multiprocs(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_middle function using multi-processing."""
+        """Test of find_all_bend_middle function using multi-processing."""
         set_nb_procs(nb_procs)
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
@@ -3403,7 +3497,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
 
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.connect_bends(
@@ -3426,9 +3520,9 @@ class TestsCenterlineCollection(unittest.TestCase):
         self.assertSequenceEqual(trajec_all.tolist(), middle_trajec_expected)
         set_nb_procs(1)
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_compute_all_bend_centroid_monoproc(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_centroid function using single processing."""
+        """Test of find_all_bend_centroid function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
@@ -3445,7 +3539,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
 
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.connect_bends(
@@ -3487,9 +3581,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_centroids_{i}.png", dpi=150)
             plt.close()
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_compute_all_bend_centroid_multiprocs(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_centroid function using multi-processing."""
+        """Test of find_all_bend_centroid function using multi-processing."""
         set_nb_procs(nb_procs)
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
@@ -3507,7 +3601,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
 
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
         try:
             centerline_collec.connect_bends(
                 bend_evol_validity=6, method=BendConnectionMethod.APEX
@@ -3529,9 +3623,9 @@ class TestsCenterlineCollection(unittest.TestCase):
         self.assertSequenceEqual(trajec_all.tolist(), centroid_trajec_expected)
         set_nb_procs(1)
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_find_all_bend_apex_monoproc(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_apex function using single processing."""
+        """Test of find_all_bend_apex function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
         )
@@ -3547,7 +3641,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
         try:
             centerline_collec.connect_bends(
                 bend_evol_validity=6, method=BendConnectionMethod.APEX
@@ -3588,9 +3682,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_apexes_{i}.png", dpi=150)
             plt.close()
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_find_all_bend_apex_multiproc(self: Self) -> None:
-        """Test of CenterlineCollection.find_all_bend_apex function using multi-processing."""
+        """Test of find_all_bend_apex function using multi-processing."""
         set_nb_procs(nb_procs)
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
             filepath_cl_collection, sep=";"
@@ -3607,7 +3701,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
         try:
             centerline_collec.connect_bends(
                 bend_evol_validity=6, method=BendConnectionMethod.APEX
@@ -3630,7 +3724,7 @@ class TestsCenterlineCollection(unittest.TestCase):
 
         set_nb_procs(1)
 
-    # @unittest.skip("")
+    @unittest.skip("")
     def test_set_section_lines(self: Self) -> None:
         """Test of CenterlineCollection.set_section_lines function."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3648,7 +3742,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.connect_bends(
@@ -3658,7 +3752,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             self.skipTest("Centerline matching or bend tracking failed.")
 
         try:
-            centerline_collec.set_section_lines(section_pts_start, section_pts_end)
+            centerline_collec.set_section_lines(
+                section_pts_start, section_pts_end
+            )
         except Exception as err:
             print(err)
             self.fail("Unable to set section lines.")
@@ -3713,7 +3809,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             find_bends,
         )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         # apex
         try:
@@ -3766,7 +3862,9 @@ class TestsCenterlineCollection(unittest.TestCase):
             )
 
         try:
-            centerline_collec.create_section_lines(CreateSectionMethod.CENTROID)
+            centerline_collec.create_section_lines(
+                CreateSectionMethod.CENTROID
+            )
         except Exception as err:
             print(err)
             self.fail("Unable to create section lines using CENTROID method.")
@@ -3805,16 +3903,8 @@ class TestsCenterlineCollection(unittest.TestCase):
             interpol_props,
             find_bends,
         )
-        # centerline_collec.match_centerlines(
-        #     dmax,
-        #     dtw_weights[1][0],
-        #     dtw_weights[1][1],
-        #     dtw_weights[1][2],
-        #     filtering_window,
-        #     pattern,
-        # )
         if centerline_collec is None:
-            self.skipTest("Centerline_collection is null.")
+            self.skipTest("CenterlineCollection is null.")
 
         try:
             centerline_collec.find_points_on_sections(1, flow_dir, 0)

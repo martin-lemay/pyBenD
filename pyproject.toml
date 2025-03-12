@@ -1,0 +1,170 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pybend*"]
+exclude = ['tests*']
+
+[project]
+name = "pybend"
+version = "1.0.0"
+description = "The Python package pyBenD is dedicated to process channel centerline data of meandering systems to measure and analyze meander morphology and dynamics."
+authors = [{name = "Martin Lemay", email = "martinlemay@mines-paris.org"}]
+license = {text = "Other"}
+classifiers = [
+    "Intended Audience :: Developers",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License ",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+keywords = [
+    "Meander",
+    "Geomorphology",
+]
+dependencies = [
+    "numpy >= 2.1.2",
+    "pandas >= 2.2.3",
+    "scipy >= 1.14.1",
+    "typing_extensions >= 4.12",
+    "shapely >= 2.0.6",
+    "networkx >= 3.4.2",
+    "matplotlib >= 3.9.2",
+    "dtw-python >= 1.5.3",
+    "psutil >= 6.1.0" ,
+    "statsmodels => 0.14.4",
+    "seaborn => 0.13.2"
+]
+requires-python = ">= 3.12"
+
+[project.optional-dependencies]
+build = [
+  "build ~= 1.2"
+]
+dev = [
+    "pylint",
+    "mypy",
+    "black",
+    "ruff",
+    "sphinx", 
+    "sphinx-rtd-theme", 
+    "sphinx-autodoc-typehints"
+]
+test = [
+    "pytest",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.bumpversion]
+current_version = "1.0.0"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+
+[tool.ruff]
+target-version = "py312"
+
+extend-exclude = ["tests/data", "docs/", "notebooks/"]
+
+# Same as Black.
+line-length = 79
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+#    "UP",   # pyupgrade deactivate since python39
+    "B",    # flake8-bugbear        
+    "SIM",  # flake8-simplify        
+    "ANN",  # flake8-annotations        
+    "C4",   # flake8-comprehensions    
+    "I",    # isort        
+    "D",    # pydocstyle    
+]
+
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "W191", # indentation contains tabs
+    "D100",
+    "D101",
+    "D104",  # Missing docstring in public package in __init__.py files
+    "UP007",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+#[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+#keep-runtime-typing = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+console_output_style = "count"
+pythonpath = [".", "src"]
+python_classes = "Test"
+python_files = "test*.py"
+python_functions = "test*"
+testpaths = ["tests"]
+norecursedirs = "bin"
+
+[tool.coverage.run]
+branch = true
+source = ["pybend, algorithms, bin, model"]
+
+[tool.mypy]
+# Specify the target platform details in config, so your developers are
+# free to run mypy on Windows, Linux, or macOS and get consistent
+# results.
+python_version = "3.12"
+files = "."
+exclude = "build/*"
+# strict = true
+
+warn_unreachable = true
+implicit_reexport = true
+show_error_codes = true
+show_column_numbers = true
+disable_error_code = "misc, import-untyped"
+
+# Overrides for currently untyped modules
+[[tool.mypy.overrides]]
+module = [
+    "docs.*",
+    "docs.ext.*",
+    "tests.unit.*",
+]
+ignore_errors = true
+

@@ -96,7 +96,9 @@ dataset = pd.DataFrame(
     ),
 )
 
-dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = np.arange(0, len(pts_in), 1)
+dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = np.arange(
+    0, len(pts_in), 1
+)
 cl_pts_in = [ClPoint("0", 0, data) for _, data in dataset.iterrows()]
 
 nb_pts: int = 50
@@ -423,7 +425,9 @@ class TestsProcessFunctions(unittest.TestCase):
     def test_clpoints2coords(self: Self) -> None:
         """Test of clpoints2coords() function."""
         coords = clpoints2coords(cl_pts_in)
-        self.assertTrue(np.array_equal(coords, coords_out), "Coordinates are wrong.")
+        self.assertTrue(
+            np.array_equal(coords, coords_out), "Coordinates are wrong."
+        )
 
     def test_compute_cuvilinear_abscissa(self: Self) -> None:
         """Test of compute_cuvilinear_abscissa() function."""
@@ -439,7 +443,9 @@ class TestsProcessFunctions(unittest.TestCase):
     def test_compute_colinear(self: Self) -> None:
         """Test of compute_colinear() function."""
         pt = compute_colinear(pt11, pt21, k)
-        self.assertTrue(np.array_equal(pt, pt_out1), "Point coordinate is wrong.")
+        self.assertTrue(
+            np.array_equal(pt, pt_out1), "Point coordinate is wrong."
+        )
 
     def test_distance_arrays(self: Self) -> None:
         """Test of distance_arrays() function."""
@@ -458,7 +464,10 @@ class TestsProcessFunctions(unittest.TestCase):
         """Test of distance() function."""
         pts1, pts2 = coords_out[:5], coords_out[4:]
         d1 = distance_arrays(pts1, pts2, prec=4)
-        d2 = [distance(pt1, pt2, prec=4) for pt1, pt2 in zip(pts1, pts2, strict=False)]
+        d2 = [
+            distance(pt1, pt2, prec=4)
+            for pt1, pt2 in zip(pts1, pts2, strict=False)
+        ]
         self.assertTrue(np.array_equal(d1, d2), "Distances are different.")
 
     def test_perp(self: Self) -> None:
@@ -582,10 +591,12 @@ class TestsProcessFunctions(unittest.TestCase):
         )
 
         lx_closest = [
-            dataset2[x_prop][int(row["index1"])] for _, row in result.iterrows()
+            dataset2[x_prop][int(row["index1"])]
+            for _, row in result.iterrows()
         ]
         ly_closest = [
-            dataset2[y_prop][int(row["index1"])] for _, row in result.iterrows()
+            dataset2[y_prop][int(row["index1"])]
+            for _, row in result.iterrows()
         ]
         plt.plot(
             lx_closest,
@@ -596,10 +607,12 @@ class TestsProcessFunctions(unittest.TestCase):
         )
 
         lx_closest = [
-            dataset2[x_prop][int(row["index2"])] for _, row in result.iterrows()
+            dataset2[x_prop][int(row["index2"])]
+            for _, row in result.iterrows()
         ]
         ly_closest = [
-            dataset2[y_prop][int(row["index2"])] for _, row in result.iterrows()
+            dataset2[y_prop][int(row["index2"])]
+            for _, row in result.iterrows()
         ]
         plt.plot(
             lx_closest,
@@ -633,7 +646,9 @@ class TestsProcessFunctions(unittest.TestCase):
 
     def test_find_inflection_points(self: Self) -> None:
         """Test of find_inflection_points function."""
-        curv: npt.NDArray[np.float64] = np.sin(np.linspace(1, 100.0, 100) / 10.0)
+        curv: npt.NDArray[np.float64] = np.sin(
+            np.linspace(1, 100.0, 100) / 10.0
+        )
         obs: list[int] = find_inflection_points(curv, 2).tolist()
         exp: list[int] = [30, 62, 93]
         self.assertSequenceEqual(obs, exp)

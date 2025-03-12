@@ -75,7 +75,9 @@ class TestsIsoline(unittest.TestCase):
     def test_isoline_initialization(self: Self) -> None:
         """Test of Isoline.__init__() function."""
         isoline = Isoline(age1, cl_point, IsolineType.CHANNEL)
-        self.assertEqual(isoline.age, age1, "Isoline age was not correctly set.")
+        self.assertEqual(
+            isoline.age, age1, "Isoline age was not correctly set."
+        )
         self.assertEqual(
             isoline.cl_pt_ref,
             cl_point,
@@ -94,7 +96,9 @@ class TestsIsoline(unittest.TestCase):
         """Test of ChannelCrossSection.__init__() function."""
         channel_cs = ChannelCrossSection(age1, cl_point)
         self.assertEqual(
-            channel_cs.age, age1, "Channel cross-section age was not correctly set."
+            channel_cs.age,
+            age1,
+            "Channel cross-section age was not correctly set.",
         )
         self.assertEqual(
             channel_cs.cl_pt_ref,
@@ -130,5 +134,7 @@ class TestsIsoline(unittest.TestCase):
         plt.savefig(fig_path + "channel_cross_section.png", dpi=150)
 
         self.assertSequenceEqual(
-            points_obs, points_out, "Channel cross-section list of points is wrong."
+            points_obs,
+            points_out,
+            "Channel cross-section list of points is wrong.",
         )

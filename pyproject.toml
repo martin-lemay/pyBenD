@@ -102,7 +102,7 @@ ignore = [
     "W191", # indentation contains tabs
     "D100",
     "D101",
-#    "D104",  # Missing docstring in public package in __init__.py files
+    "D104",  # Missing docstring in public package in __init__.py files
     "UP007",
 ]
 

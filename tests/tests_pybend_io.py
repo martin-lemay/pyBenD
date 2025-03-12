@@ -37,7 +37,9 @@ dir_path: str = "tests/data/"
 filepath1: str = dir_path + "centerline_xyz_data.csv"
 filepath2: str = dir_path + "centerline_flumy_data.csv"
 filepath3: str = dir_path + "centerline_kml.kml"
-filepath_cl_collection_flumy: str = dir_path + "centerline_Collection_test_data.csv"
+filepath_cl_collection_flumy: str = (
+    dir_path + "centerline_Collection_test_data.csv"
+)
 map_file: dict[int, str] = {
     10: dir_path + "centerline_Collection_test_data10.csv",
     40: dir_path + "centerline_Collection_test_data40.csv",
@@ -88,7 +90,7 @@ class TestsPybendIO(unittest.TestCase):
         self.assertIn(
             "Elevation",
             dataset1.columns,
-            "Import xyz centerline - no z: Elevation must be in the dataframe.",
+            "Import xyz centerline, no z: Elevation must be in the dataframe.",
         )
         self.assertEqual(
             dataset1["Elevation"].sum(),
@@ -159,7 +161,8 @@ class TestsPybendIO(unittest.TestCase):
         self.assertSequenceEqual(
             expected,
             sorted(dataset3.columns.tolist()),
-            "Import xyz dataset - with drop columns: columns are not well imported.",
+            "Import xyz dataset - with drop columns: columns are not well "
+            + "imported.",
         )
         self.assertSequenceEqual(
             (505, 7),
@@ -209,7 +212,8 @@ class TestsPybendIO(unittest.TestCase):
         self.assertSequenceEqual(
             expected,
             sorted(dataset.columns.tolist()),
-            "Import xml dataset - with drop columns: columns are not well imported.",
+            "Import xml dataset - with drop columns: columns are not well "
+            + "imported.",
         )
         self.assertSequenceEqual(
             (505, 4),
@@ -268,7 +272,8 @@ class TestsPybendIO(unittest.TestCase):
 
         if centerline is None:
             self.skipTest(
-                "Export Centerline: Centerline instance is null. Check Centerline creation tests."
+                "Export Centerline: Centerline instance is null. Check "
+                + "Centerline creation tests."
             )
 
         dump_centerline_to_csv(filepath_out, centerline)
@@ -311,7 +316,7 @@ class TestsPybendIO(unittest.TestCase):
         )
 
     def test_import_centerline_collection_multi_files(self: Self) -> None:
-        """Test of load_centerline_evolution_from_multiple_xy_csv() function."""
+        """Test of load_centerline_evolution_from_multiple_xy_csv function."""
         map_dataset: dict[int, pd.DataFrame] = (
             load_centerline_evolution_from_multiple_xy_csv(
                 map_file,
@@ -323,17 +328,20 @@ class TestsPybendIO(unittest.TestCase):
         )
         self.assertTrue(
             map_dataset is not None,
-            "Import centerline collection - multiple files: Loaded map is undefined",
+            "Import centerline collection - multiple files: Loaded map is "
+            + "undefined",
         )
         self.assertEqual(
             len(map_dataset.keys()),
             3,
-            "Import centerline collection - multiple files: Loaded map must have 3 keys.",
+            "Import centerline collection - multiple files: Loaded map must "
+            + " have 3 keys.",
         )
         self.assertSequenceEqual(
             sorted(map_dataset.keys()),
             [10, 40, 70],
-            "Import centerline collection - multiple files: Loaded ages must be [10, 40, 70]",
+            "Import centerline collection - multiple files: Loaded ages must "
+            + "be [10, 40, 70]",
         )
 
         age: int = list(map_dataset.keys())[0]
@@ -355,13 +363,14 @@ class TestsPybendIO(unittest.TestCase):
         self.assertSequenceEqual(
             expected,
             sorted(map_dataset[age].columns.tolist()),
-            "Import centerline collection - multiple files: columns are not well loaded.",
+            "Import centerline collection - multiple files: columns are not "
+            + "well loaded.",
         )
 
     def test_import_centerline_collection_single_file_flumy(
         self: Self,
     ) -> None:
-        """Test of load_centerline_collection_dataset_from_Flumy_csv() function."""
+        """Test load_centerline_collection_dataset_from_Flumy_csv function."""
         map_dataset: dict[int, pd.DataFrame] = (
             load_centerline_collection_dataset_from_Flumy_csv(
                 filepath_cl_collection_flumy,
@@ -370,18 +379,20 @@ class TestsPybendIO(unittest.TestCase):
         )
         self.assertTrue(
             map_dataset is not None,
-            "Import centerline collection - single file: Loaded map is undefined",
+            "Import centerline collection - single file: Loaded map is "
+            + "undefined",
         )
         self.assertEqual(
             len(map_dataset.keys()),
             7,
-            "Import centerline collection - single file: Loaded map must have 7 keys.",
+            "Import centerline collection - single file: Loaded map must have "
+            + "7 keys.",
         )
         expected: list[int] = list(np.arange(10, 71, 10).astype(int))
         self.assertSequenceEqual(
             sorted(map_dataset.keys()),
             expected,
-            "Import centerline collection - single file: Loaded ages must be %s"
+            "Import centerline collection -single file: Loaded ages must be %s"
             % str(expected),
         )
 
@@ -402,11 +413,12 @@ class TestsPybendIO(unittest.TestCase):
         self.assertSequenceEqual(
             expected1,
             sorted(map_dataset[age].columns.tolist()),
-            "Import centerline collection - single file: columns are not well loaded.",
+            "Import centerline collection - single file: columns are not well "
+            + "loaded.",
         )
 
     def test_import_centerline_collection_single_file_csv(self: Self) -> None:
-        """Test of load_centerline_collection_dataset_from_Flumy_csv() function."""
+        """Test load_centerline_collection_dataset_from_Flumy_csv function."""
         map_dataset: dict[int, pd.DataFrame] = (
             load_centerline_evolution_from_single_xy_csv(
                 filepath_cl_collection_xy,
@@ -418,18 +430,20 @@ class TestsPybendIO(unittest.TestCase):
         )
         self.assertTrue(
             map_dataset is not None,
-            "Import centerline collection - single file: Loaded map is undefined",
+            "Import centerline collection - single file: Loaded map is "
+            + "undefined",
         )
         self.assertEqual(
             len(map_dataset.keys()),
             5,
-            "Import centerline collection - single file: Loaded map must have 5 keys.",
+            "Import centerline collection - single file: Loaded map must have "
+            + "5 keys.",
         )
         expected: list[int] = list(np.arange(1, 6, 1).astype(int))
         self.assertSequenceEqual(
             sorted(map_dataset.keys()),
             expected,
-            "Import centerline collection - single file: Loaded ages must be %s"
+            "Import centerline collection -single file: Loaded ages must be %s"
             % str(expected),
         )
 
@@ -445,7 +459,8 @@ class TestsPybendIO(unittest.TestCase):
         self.assertSequenceEqual(
             expected1,
             sorted(map_dataset[age].columns.tolist()),
-            "Import centerline collection - single file: columns are not well loaded.",
+            "Import centerline collection - single file: columns are not well "
+            + "loaded.",
         )
 
 

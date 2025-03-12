@@ -95,7 +95,11 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.figure(dpi=150)
         plt.plot(bend.T[0], bend.T[1], "k--", label="Kinoshita bend")
         plt.plot(
-            expected.T[0], expected.T[1], "bo", markersize=2, label="Expected path"
+            expected.T[0],
+            expected.T[1],
+            "bo",
+            markersize=2,
+            label="Expected path",
         )
         plt.legend()
         plt.axis("equal")
@@ -167,7 +171,11 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.figure(dpi=150)
         plt.plot(bend.T[0], bend.T[1], "k--", label="Circular bend")
         plt.plot(
-            expected.T[0], expected.T[1], "bo", markersize=2, label="Expected path"
+            expected.T[0],
+            expected.T[1],
+            "bo",
+            markersize=2,
+            label="Expected path",
         )
         plt.legend()
         plt.axis("equal")
@@ -257,9 +265,18 @@ class TestsProcessFunctions(unittest.TestCase):
 
         # visual check
         plt.figure(dpi=150)
-        plt.plot(new_coords.T[0], new_coords.T[1], "k--", label="Circular bend mirror")
         plt.plot(
-            expected.T[0], expected.T[1], "bo", markersize=2, label="Expected path"
+            new_coords.T[0],
+            new_coords.T[1],
+            "k--",
+            label="Circular bend mirror",
+        )
+        plt.plot(
+            expected.T[0],
+            expected.T[1],
+            "bo",
+            markersize=2,
+            label="Expected path",
         )
         plt.legend()
         plt.axis("equal")

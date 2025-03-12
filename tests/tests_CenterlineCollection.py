@@ -66,7 +66,7 @@ dtw_weights: tuple[tuple[float, float, float], ...] = (
 )
 pattern: str = "asymmetric"
 
-nb_procs: int = 2  # number of procs
+nb_procs: int = 3  # number of procs
 
 property_map: dict[int, dict[str, float]] = {
     10: {"Width": 20.0, "Discharge": 1e5},
@@ -3067,7 +3067,7 @@ apex_trajec_expected = [
 
 
 class TestsCenterlineCollection(unittest.TestCase):
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_create_centerline_collection_from_flumy_dataset_monoproc(
         self: Self,
     ) -> None:
@@ -3109,7 +3109,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             "CenterlineCollection intialization: some ages are missing.",
         )
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_create_centerline_collection_from_flumy_dataset_multiproc(
         self: Self,
     ) -> None:
@@ -3153,7 +3153,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         )
         set_nb_procs(1)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_create_properties(self: Self) -> None:
         """Test of adding properties to CenterlineCollection."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3234,7 +3234,7 @@ class TestsCenterlineCollection(unittest.TestCase):
                     "Centerline property was not correctly set or get.",
                 )
 
-    # @unittest.skip("")
+    # # @unittest.skip("")
     def test_centerlines_matching_monoproc(self: Self) -> None:
         """Test of match_centerlines function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3294,7 +3294,7 @@ class TestsCenterlineCollection(unittest.TestCase):
                     ),
                 )
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_centerlines_matching_multiproc(self: Self) -> None:
         """Test of match_centerlines function using multi-processing."""
         set_nb_procs(nb_procs)
@@ -3357,7 +3357,7 @@ class TestsCenterlineCollection(unittest.TestCase):
                 )
         set_nb_procs(1)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_bend_connection(self: Self) -> None:
         """Test of connect_bends function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3417,7 +3417,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_bend_connection_{i}.png", dpi=150)
             plt.close()
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_compute_all_bend_middle_monoproc(self: Self) -> None:
         """Test of find_all_bend_middle function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3477,7 +3477,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_middles_{i}.png", dpi=150)
             plt.close()
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_compute_all_bend_middle_multiprocs(self: Self) -> None:
         """Test of find_all_bend_middle function using multi-processing."""
         set_nb_procs(nb_procs)
@@ -3520,7 +3520,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         self.assertSequenceEqual(trajec_all.tolist(), middle_trajec_expected)
         set_nb_procs(1)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_compute_all_bend_centroid_monoproc(self: Self) -> None:
         """Test of find_all_bend_centroid function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3581,7 +3581,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_centroids_{i}.png", dpi=150)
             plt.close()
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_compute_all_bend_centroid_multiprocs(self: Self) -> None:
         """Test of find_all_bend_centroid function using multi-processing."""
         set_nb_procs(nb_procs)
@@ -3623,7 +3623,7 @@ class TestsCenterlineCollection(unittest.TestCase):
         self.assertSequenceEqual(trajec_all.tolist(), centroid_trajec_expected)
         set_nb_procs(1)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_find_all_bend_apex_monoproc(self: Self) -> None:
         """Test of find_all_bend_apex function using single processing."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
@@ -3682,7 +3682,7 @@ class TestsCenterlineCollection(unittest.TestCase):
             plt.savefig(fig_path + f"test_apexes_{i}.png", dpi=150)
             plt.close()
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_find_all_bend_apex_multiproc(self: Self) -> None:
         """Test of find_all_bend_apex function using multi-processing."""
         set_nb_procs(nb_procs)
@@ -3724,7 +3724,7 @@ class TestsCenterlineCollection(unittest.TestCase):
 
         set_nb_procs(1)
 
-    @unittest.skip("")
+    # @unittest.skip("")
     def test_set_section_lines(self: Self) -> None:
         """Test of CenterlineCollection.set_section_lines function."""
         map_dataset = load_centerline_collection_dataset_from_Flumy_csv(

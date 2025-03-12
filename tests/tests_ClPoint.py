@@ -188,7 +188,8 @@ class TestsClPoint(unittest.TestCase):
             )
             self.assertFalse(
                 np.isfinite(cl_pt.curvature_filtered()),
-                "Properties test: curvature_filtered function must return finite values.",
+                "Properties test: curvature_filtered function must return "
+                + "finite values.",
             )
 
     def test_repr(self: Self) -> None:

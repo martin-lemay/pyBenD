@@ -1370,7 +1370,7 @@ class CenterlineCollection:
             key = self.get_all_ages()[-1]
             pt_end = None
             if point_name == CreateSectionMethod.MIDDLE:
-                pt_end = bend.pt_middle
+                pt_end = bend.pt_center
             elif point_name == CreateSectionMethod.CENTROID:
                 pt_end = bend.pt_centroid
             else:
@@ -1498,7 +1498,7 @@ class CenterlineCollection:
         flow_dir: npt.NDArray[np.float64] = np.array([1.0, 0]),
         cl_collec_id: int = 0,
     ) -> bool:
-        """Collect channels from CenterlineCollection that are intersected by sections.
+        """Collect channels that are intersected by sections.
 
         This method create the Section objects with intersected channel
         geometry and store them in the list self.sections.
@@ -1584,7 +1584,8 @@ class CenterlineCollection:
         Parameters:
         ----------
             cl_pt_index (int): Index of the channel point.
-            age (float): Age of the Centerline where the channel point belongs to.
+            age (float): Age of the Centerline where the channel point
+                belongs to.
 
         Returns:
         ----------
@@ -1618,7 +1619,7 @@ class CenterlineCollection:
 
         """
         for age in self.get_all_ages():
-            self.centerlines[age].compute_all_bend_middle()
+            self.centerlines[age].compute_all_bend_center()
 
         if smooth_trajectory:
             assert self.bends_tracking_computed, (
@@ -1653,12 +1654,12 @@ class CenterlineCollection:
         ly: list[float] = []
         for age in bend_evol.get_all_ages():
             bend_id: int = bend_evol.bend_indexes[age][0]
-            pt_middle: Optional[npt.NDArray[np.float64]] = (
-                self.centerlines[age].bends[bend_id].pt_middle
+            pt_center: Optional[npt.NDArray[np.float64]] = (
+                self.centerlines[age].bends[bend_id].pt_center
             )
-            assert pt_middle is not None, "Middle point is undefined"
-            lx += [pt_middle[0]]
-            ly += [pt_middle[1]]
+            assert pt_center is not None, "Middle point is undefined"
+            lx += [pt_center[0]]
+            ly += [pt_center[1]]
 
         print(np.round(lx, 4).tolist())
         print(np.round(ly, 4).tolist())
@@ -1670,7 +1671,7 @@ class CenterlineCollection:
     def find_all_bend_centroid(
         self: Self, smooth_trajectory: bool = False
     ) -> None:
-        """Compute the centroid points of all bends of the CenterlineCollection.
+        """Compute the centroid point of each bend of the CenterlineCollection.
 
         Parameters:
         ----------

@@ -41,7 +41,9 @@ class TestsBendEvolution(unittest.TestCase):
 
     def test_set_is_valid(self: Self) -> None:
         """Test of BendEvolution.set_is_valid() method."""
-        bend_evol: BendEvolution = BendEvolution(bend_indexes, ide, order, False)
+        bend_evol: BendEvolution = BendEvolution(
+            bend_indexes, ide, order, False
+        )
         if bend_evol is None:
             self.skipTest("BendEvolution object was not created.")
         bend_evol.set_is_valid(1)
@@ -52,7 +54,9 @@ class TestsBendEvolution(unittest.TestCase):
 
     def test_is_valid(self: Self) -> None:
         """Test of BendEvolution._check_is_valid() method."""
-        bend_evol: BendEvolution = BendEvolution(bend_indexes, ide, order, False)
+        bend_evol: BendEvolution = BendEvolution(
+            bend_indexes, ide, order, False
+        )
         if bend_evol is None:
             self.skipTest("BendEvolution object was not created.")
 

@@ -32,10 +32,10 @@ class PropertyNames(Enum):
 class AmplitudeType(Enum):
     """Method to compute amplitude.
 
-    * MIDDLE: use the distance between the given point and the middle of the line
-        defined by inflection points.
-    * ORTHOGONAL: use the orthogonal distance between the given point and the line
-        defined by inflection points.
+    * MIDDLE: use the distance between the given point and the middle of the
+        line defined by inflection points.
+    * ORTHOGONAL: use the orthogonal distance between the given point and the
+        line defined by inflection points.
 
     """
 
@@ -44,13 +44,13 @@ class AmplitudeType(Enum):
 
 
 class BendConnectionMethod(Enum):
-    """Enumeration of methods that can be used to create BendEvolution objects."""
+    """Enumeration defining bend connection method."""
 
-    #: Connected bends are the same side and shows tje shortest distance between apexes.
+    #: Connected bends: same side and shortest distance between apexes.
     APEX = "From Apex"
-    #: Connected bends are the same side and shows tje shortest distance between centroids.
+    #: Connected bends: same side and shortest distance between centroids.
     CENTROID = "From Centroid"
-    #: Connected bends are shows the greatest number of cnnected channel points.
+    #: Connected bends: greatest number of cnnected channel points.
     MATCHING = "From Matching"
 
 
@@ -69,7 +69,7 @@ class BendSide(Enum):
 
 
 class CreateSectionMethod(Enum):
-    """Enumeration of methods that can be used to automatically create cross-sections."""
+    """Enumeration of methods to use to automatically create cross-sections."""
 
     #: Section goes by the middle point of the last bend of BendEvolution
     MIDDLE = "From middle"

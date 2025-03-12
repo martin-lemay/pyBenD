@@ -45,7 +45,8 @@ class CustomLoggerFormatter(logging.Formatter):
     # define prefix of log messages
     format1: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     format2: str = (
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s "
+        + "(%(filename)s:%(lineno)d)"
     )
 
     #: format for each logger output type

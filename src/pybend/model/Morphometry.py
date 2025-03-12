@@ -81,12 +81,15 @@ class Morphometry:
             MorphometricNames.AMPLITUDE_LEOPOLD.value,
         )
 
-    def compute_bends_morphometry(self: Self, valid_bends: bool = True) -> pd.DataFrame:
+    def compute_bends_morphometry(
+        self: Self, valid_bends: bool = True
+    ) -> pd.DataFrame:
         """Compute all bend morphometric parameters.
 
         Parameters:
         -----------
-            valid_bends (bool): if True, compute morphometry on valid bends only
+            valid_bends (bool): if True, compute morphometry on valid bends
+                only
 
                 Defaults to True.
 
@@ -135,7 +138,9 @@ class Morphometry:
             data.loc[i, MorphometricNames.ROUNDNESS.value] = (
                 self.compute_bend_roundness(bend.id)
             )
-            if (bend.id > 0) and (bend.id < self.centerline.get_nb_bends() - 1):
+            if (bend.id > 0) and (
+                bend.id < self.centerline.get_nb_bends() - 1
+            ):
                 data.loc[i, MorphometricNames.WAVELENGTH_LEOPOLD.value] = (
                     self.compute_bend_wavelength_leopold(bend.id)
                 )
@@ -156,9 +161,9 @@ class Morphometry:
         --------
             float: bend sinuosity
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         den: float = self.compute_bend_wavelength(bend_id)
         sinuo: float = np.nan
         if den > 0:
@@ -177,9 +182,9 @@ class Morphometry:
         --------
             float: bend wavelength
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_inflex_up
@@ -200,11 +205,13 @@ class Morphometry:
         --------
             float: bend amplitude
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
-        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[bend.index_apex].pt
+        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
+            bend.index_apex
+        ].pt
         pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_inflex_up
         ].pt
@@ -224,14 +231,16 @@ class Morphometry:
         --------
             float: bend extension
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
-        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[bend.index_apex].pt
-        pt_middle: Optional[npt.NDArray[np.float64]] = bend.pt_middle
-        if pt_middle is not None:
-            return cpf.distance(pt_apex, pt_middle)
+        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
+            bend.index_apex
+        ].pt
+        pt_center: Optional[npt.NDArray[np.float64]] = bend.pt_center
+        if pt_center is not None:
+            return cpf.distance(pt_apex, pt_center)
         return np.nan
 
     def compute_bend_radius(self: Self, bend_id: int) -> float:
@@ -245,9 +254,9 @@ class Morphometry:
         --------
             float: bend radius
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         curvature: npt.NDArray[np.float64] = np.abs(
             self.centerline.get_bend_curvature_filtered(bend_id)
@@ -268,9 +277,9 @@ class Morphometry:
         --------
             float: bend arc length
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
             bend_id, PropertyNames.CURVILINEAR_ABSCISSA.value
         )
@@ -289,9 +298,9 @@ class Morphometry:
         --------
             float: bend roundness
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         curvature: npt.NDArray[np.float64] = np.abs(
             self.centerline.get_bend_curvature_filtered(bend_id)
         )
@@ -310,19 +319,25 @@ class Morphometry:
         --------
             float: bend asymmetry coefficient
         """
-        assert (
-            bend_id > -1
-        ) and bend_id < self.centerline.get_nb_bends(), "Bend index is undefined."
+        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
             bend_id, PropertyNames.CURVILINEAR_ABSCISSA.value
         )
 
         arc_length_tot = curv_abs[-1] - curv_abs[0]
-        arc_length1 = curv_abs[bend.index_apex - bend.index_inflex_up] - curv_abs[0]
-        arc_length2 = curv_abs[-1] - curv_abs[bend.index_apex - bend.index_inflex_up]
+        arc_length1 = (
+            curv_abs[bend.index_apex - bend.index_inflex_up] - curv_abs[0]
+        )
+        arc_length2 = (
+            curv_abs[-1] - curv_abs[bend.index_apex - bend.index_inflex_up]
+        )
         if arc_length_tot > 0:
-            return float(round((arc_length1 - arc_length2) / arc_length_tot, 4))
+            return float(
+                round((arc_length1 - arc_length2) / arc_length_tot, 4)
+            )
         return np.nan
 
     def compute_bend_wavelength_leopold(self: Self, bend_id: int) -> float:
@@ -341,7 +356,9 @@ class Morphometry:
         """
         assert (
             bend_id > 0
-        ) and bend_id < self.centerline.get_nb_bends() - 1, "Bend index is undefined."
+        ) and bend_id < self.centerline.get_nb_bends() - 1, (
+            "Bend index is undefined."
+        )
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         next_bend: Bend = self.centerline.bends[bend_id + 1]
         clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
@@ -364,7 +381,9 @@ class Morphometry:
         """
         assert (
             bend_id > 0
-        ) and bend_id < self.centerline.get_nb_bends() - 1, "Bend index is undefined."
+        ) and bend_id < self.centerline.get_nb_bends() - 1, (
+            "Bend index is undefined."
+        )
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         bend: Bend = self.centerline.bends[bend_id]
         next_bend: Bend = self.centerline.bends[bend_id + 1]
@@ -408,7 +427,9 @@ class Morphometry:
         arc_length: float = float(round(cl_ptmax._s - cl_ptmin._s, 4))
         cart_length: float = cpf.distance(cl_ptmin.pt, cl_ptmax.pt, 4)
         sinuo: float = (
-            round(abs(arc_length / cart_length), 4) if abs(cart_length) > 0 else np.nan
+            round(abs(arc_length / cart_length), 4)
+            if abs(cart_length) > 0
+            else np.nan
         )
         return sinuo
 
@@ -477,81 +498,3 @@ class Morphometry:
                 self.centerline.bends[jmax].index_inflex_down
             ]
         return jmin, jmax
-
-    # # TODO: to move to Morhometry
-    # def bend_morphometry(self: Self, bend_index :int) ->None:
-    #     bend :Bend = self.bends[bend_index]
-    #     cl_pt_inflex_up = self.cl_points[bend.index_inflex_up]
-    #     cl_pt_inflex_down = self.cl_points[bend.index_inflex_down]
-
-    #     # Sinuosity, Length, half-wavelength, Amplitude perpendicular, Amplitude middle
-    #     bend.params = pd.Series(
-    #         np.nan * np.zeros(7),
-    #         index=(
-    #             "Sinuosity",
-    #             "Length",
-    #             "Half_Wavelength",
-    #             "Amplitude_perp",
-    #             "Amplitude_middle",
-    #             "Amplitude_Leopold",
-    #             "Wavelength_Leopold",
-    #         ),
-    #     )
-
-    #     # Sinuosity, Length, half-wavelength, Amplitude perpendicular, Amplitude middle
-    #     bend.params_averaged = pd.DataFrame(
-    #         np.nan * np.zeros((2, 7)), columns=bend.params.index
-    #     )
-
-    #     bend.params["Length"] = abs(cl_pt_inflex_down._s - cl_pt_inflex_up._s)
-
-    #     d_inflex = cpf.distance(cl_pt_inflex_up.pt, cl_pt_inflex_down.pt)
-    #     bend.params["Half_Wavelength"] = d_inflex
-    #     if d_inflex > 0:
-    #         bend.params["Sinuosity"] = bend.params["Length"] / d_inflex
-    #     else:
-    #         bend.params["Sinuosity"] = 1
-
-    #     # compute the amplitudes
-    #     if bend.index_apex:
-    #         bend.params["Amplitude_perp"] = self.compute_bend_amplitude(
-    #             bend_index, kind=AmplitudeType.ORTHOGONAL)
-    #         bend.params["Amplitude_middle"] = self.compute_bend_amplitude(
-    #             bend_index, kind=AmplitudeType.MIDDLE)
-
-    # # TODO: to move to Morhometry
-    # def save_morphometry_results(self: Self,
-    #                              workdir :str,
-    #                              delimiter :str=";"
-    #                             ) ->None:
-
-    #     props = [
-    #         "Sinuosity_W1",
-    #         "Sinuosity_W2",
-    #         "Wavelength_Leopold_W1",
-    #         "Wavelength_Leopold_W2",
-    #         "Amplitude_Leopold_W1",
-    #         "Amplitude_Leopold_W2",
-    #         "Half_Wavelength_W1",
-    #         "Half_Wavelength_W2",
-    #         "Amplitude_middle_W1",
-    #         "Amplitude_middle_W2",
-    #     ]
-
-    #     data = pd.DataFrame(
-    #         np.nan * np.zeros((len(self.bends), 11)), columns=["Bend_ID"] + props
-    #     )
-
-    #     for i, bend in enumerate(self.bends):
-    #         data["Bend_ID"][i] = bend.id
-    #         assert bend.params_averaged is not None, "Bend morphometric parameters are undefined"
-    #         for prop in props:
-    #             data[prop][i] = bend.params_averaged[prop[:-3]]
-
-    #     data.to_csv(
-    #         workdir + "morphometry.csv",
-    #         sep=delimiter,
-    #         index=False,
-    #         float_format="%.2f",
-    #         mode="a",
-    #     )

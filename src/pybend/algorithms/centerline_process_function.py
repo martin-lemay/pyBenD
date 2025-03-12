@@ -16,6 +16,10 @@ from scipy.signal import find_peaks  # type: ignore[import-untyped]
 from pybend.model.ClPoint import ClPoint
 from pybend.utils.logging import logger
 
+__doc__ = """
+Usefull methods.
+"""
+
 
 def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
     """Transform a list of ClPoint into a numpy array (1 point per row).

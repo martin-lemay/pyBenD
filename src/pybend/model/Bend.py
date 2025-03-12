@@ -139,9 +139,9 @@ class Bend:
         #: smoothed apex probability values for each point of the bend
         self.apex_probability_smooth: Optional[npt.NDArray[np.float64]] = None
 
-        #: middle point coordinates. Middle point is defined as the point at
+        #: center point coordinates. Center point is defined as the point at
         #: equal distance from inflection points.
-        self.pt_middle: Optional[npt.NDArray[np.float64]] = None
+        self.pt_center: Optional[npt.NDArray[np.float64]] = None
         #: Bend centroid is the barycenter of the polygon defined by the
         #: centerline between upstream and downstream inflection points and is
         #: closed between these points.

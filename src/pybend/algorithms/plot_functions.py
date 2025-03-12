@@ -21,6 +21,10 @@ from pybend.model.enumerations import BendSide
 from pybend.model.Section import Section
 from pybend.utils.logging import logger
 
+__doc__ = """
+Plot methods.
+"""
+
 
 def plot_centerline_collection(
     filepath: str,
@@ -615,13 +619,13 @@ def plot_bends(
                 markersize=1.5 * markersize,
             )
 
-        if plot_middle and bend.isvalid and bend.pt_middle is not None:
-            pt_middle: npt.NDArray[np.float64] = bend.pt_middle
+        if plot_middle and bend.isvalid and bend.pt_center is not None:
+            pt_center: npt.NDArray[np.float64] = bend.pt_center
             if rotate:
-                pt_middle = (coords[-1] + coords[0]) / 2.0
+                pt_center = (coords[-1] + coords[0]) / 2.0
             ax.plot(
-                pt_middle[0],
-                pt_middle[1],
+                pt_center[0],
+                pt_center[1],
                 marker="o",
                 color="k",
                 markersize=0.8 * markersize,

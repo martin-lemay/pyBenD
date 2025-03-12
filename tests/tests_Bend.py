@@ -115,8 +115,12 @@ class TestsBend(unittest.TestCase):
 
     def test_bend_add(self: Self) -> None:
         """Test of Bend.__add__() method."""
-        bend1 = Bend(bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True)
-        bend2 = Bend(bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True)
+        bend1 = Bend(
+            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True
+        )
+        bend2 = Bend(
+            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True
+        )
         if (bend1 is None) or (bend2 is None):
             self.skipTest("Bend object was not created.")
         bend: Bend = bend1 + bend2
@@ -134,8 +138,12 @@ class TestsBend(unittest.TestCase):
 
     def test_equality(self: Self) -> None:
         """Test of Bend.__eq__() method."""
-        bend1 = Bend(bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True)
-        bend2 = Bend(bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True)
+        bend1 = Bend(
+            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True
+        )
+        bend2 = Bend(
+            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True
+        )
         if (bend1 is None) or (bend2 is None):
             self.skipTest("Bend object was not created.")
         self.assertEqual(bend1, bend1)

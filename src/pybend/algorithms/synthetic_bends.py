@@ -7,9 +7,14 @@ import numpy.typing as npt
 
 import pybend.algorithms.centerline_process_function as cpf
 
+__doc__ = """
+Set of methods to create synthetic bends.
+"""
 
-# function to add points in front of and next to the bend to get inflection points
-def mirror(coords: npt.NDArray[np.float64], nb_pts: int) -> npt.NDArray[np.float64]:
+
+def mirror(
+    coords: npt.NDArray[np.float64], nb_pts: int
+) -> npt.NDArray[np.float64]:
     """Function to add points at the beginning and end of the list.
 
     Parameters:
@@ -119,8 +124,8 @@ def kinoshita_bend(
 
     # find inflection points
     curv1: npt.NDArray[np.float64] = -1.0 * curvature
-    peak_indexes: npt.NDArray[np.int64] = cpf.find_inflection_points_from_peaks(
-        curv1, 0.1
+    peak_indexes: npt.NDArray[np.int64] = (
+        cpf.find_inflection_points_from_peaks(curv1, 0.1)
     )
     i_up: int = 0
     i_down: int = len(coords)

@@ -12,6 +12,17 @@ import pybend.algorithms.centerline_process_function as cpf
 from pybend.model.ClPoint import ClPoint
 from pybend.model.Isoline import Isoline
 
+__doc__ = r"""
+Section module defines Section object allowing to represent the stratigraphic
+ architecture.
+
+The stratigraphic architecture is characterized by the stacking pattern.
+ Stacking pattern types are defined from StackingPatternType enumeration.
+
+..Warning: this class is under construction...
+
+"""
+
 
 class StackingPatternType(Enum):
     """Channel stacking pattern type.

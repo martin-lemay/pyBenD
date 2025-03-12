@@ -76,7 +76,9 @@ assert centerline.get_nb_valid_bends() == 34, (
 valid_bend_indexes: list[int] = centerline.get_valid_bend_indexes()
 
 # expected results
-#  "Arc_length", "Wavelength", "Sinuosity", "Amplitude", "Extension", "RadiusCurvature", "Skewness", "Roundness", "Wavelength_Leopold", "Amplitude_Leopold"
+#  "Arc_length", "Wavelength", "Sinuosity", "Amplitude", "Extension",
+# "RadiusCurvature", "Skewness", "Roundness", "Wavelength_Leopold",
+# "Amplitude_Leopold"
 expected = np.array(
     [
         [

@@ -4,6 +4,10 @@
 
 import os
 
+__doc__ = """
+Defines global parameters such as the number of processors to use and 
+functions to get and set these parameters.
+"""
 # number of processors for multiprocessing
 NB_PROCS: int = 1
 
@@ -11,8 +15,8 @@ NB_PROCS: int = 1
 def get_nb_procs() -> int:
     """Get the number of processors.
 
-    Number of processors is the minimum between expected values and the number of
-    available processors.
+    Number of processors is the minimum between expected values and the number
+    of available processors.
 
     Returns:
     --------

@@ -750,7 +750,9 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_center is not None
         ]
-        diff = np.array(middles) - np.array(middles_out)
+        diff: npt.NDArray[np.float64] = np.array(middles) - np.array(
+            middles_out
+        )
 
         middles_list = [
             "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
@@ -758,7 +760,7 @@ class TestsCenterline(unittest.TestCase):
         ]
 
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff, axis=0) < eps)),
             f"Middle point calculation: {middles_list}",
         )
         set_nb_procs(1)
@@ -799,7 +801,9 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_center is not None
         ]
-        diff = np.array(middles) - np.array(middles_out)
+        diff: npt.NDArray[np.float64] = np.array(middles) - np.array(
+            middles_out
+        )
 
         middles_list = [
             "np.array((%.4f, %.4f, %.4f)),\n" % (pt[0], pt[1], pt[2])
@@ -809,7 +813,7 @@ class TestsCenterline(unittest.TestCase):
         #     fout.writelines(middles_list)
 
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff, axis=0) < eps)),
             f"Middle point calculation: {middles_list}",
         )
         set_nb_procs(1)
@@ -850,13 +854,15 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_centroid is not None
         ]
-        diff = np.array(centroids) - np.array(centroids_out)
+        diff: npt.NDArray[np.float64] = np.array(centroids) - np.array(
+            centroids_out
+        )
         centroids_list = [
             "np.array((%.4f, %.4f)),\n" % (pt[0], pt[1]) for pt in centroids
         ]
 
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff, axis=0) < eps)),
             f"Centroid point calculation: {centroids_list}",
         )
         set_nb_procs(1)
@@ -897,7 +903,9 @@ class TestsCenterline(unittest.TestCase):
             for bend in centerline.bends
             if bend.pt_centroid is not None
         ]
-        diff = np.array(centroids) - np.array(centroids_out)
+        diff: npt.NDArray[np.float64] = np.array(centroids) - np.array(
+            centroids_out
+        )
         centroids_list = [
             "np.array((%.4f, %.4f)),\n" % (pt[0], pt[1]) for pt in centroids
         ]
@@ -906,7 +914,7 @@ class TestsCenterline(unittest.TestCase):
         #     fout.writelines(centroids_list)
 
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff, axis=0) < eps)),
             f"Centroid point calculation: {centroids_list}",
         )
         set_nb_procs(1)
@@ -1247,9 +1255,11 @@ class TestsCenterline(unittest.TestCase):
         # with open("tests/.out/middles_obs.txt", "w") as fout:
         #     fout.writelines(middles_list)
 
-        diff = np.array(middles) - np.array(middles_out_flumy)
+        diff: npt.NDArray[np.float64] = np.array(middles) - np.array(
+            middles_out_flumy
+        )
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff, axis=0) < eps)),
             f"Middle point calculation: {middles_list}",
         )
 
@@ -1273,9 +1283,11 @@ class TestsCenterline(unittest.TestCase):
         # with open("tests/.out/centroids_obs.txt", "w") as fout:
         #     fout.writelines(centroids_list)
 
-        diff = np.array(centroids) - np.array(centroids_out_flumy)
+        diff1: npt.NDArray[np.float64] = np.array(centroids) - np.array(
+            centroids_out_flumy
+        )
         self.assertTrue(
-            all(np.array([np.linalg.norm(vec) for vec in diff]) < eps),
+            all(list(np.linalg.norm(diff1, axis=0) < eps)),
             f"Centroid point calculation: {centroids_list}",
         )
 

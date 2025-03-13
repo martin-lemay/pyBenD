@@ -476,7 +476,8 @@ def plot_bends(
         ax (Axes): Axes where to plot.
         cl_points (tuple[list[ClPoint]]): list of ClPoint objects
         bends (list[Bend]): list of Bend objects to plot.
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float], tuple[float, float]]): display
+            domain
         annotate (bool, optional): if True, add bend ids.
 
             Defaults to False.
@@ -513,8 +514,8 @@ def plot_bends(
 
             Defaults to 1.
         markersize (float, optional): Marker size.
-        cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to
-            True, centerline color is overwrite.
+        cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set
+            to True, centerline color is overwrite.
 
             Defaults to None.
         plot_apex_proba (bool, optional): If True, color channel points with

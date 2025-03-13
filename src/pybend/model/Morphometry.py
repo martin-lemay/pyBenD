@@ -34,7 +34,7 @@ Metrics include:
  is the bend arc length.
 
  .. code-block:: bash
- 
+
                              .   x  .
                          .      /|    .
                       .        / |     +

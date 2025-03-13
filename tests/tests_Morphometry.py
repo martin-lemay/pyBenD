@@ -1260,3 +1260,6 @@ class TestsMorphometry(unittest.TestCase):
             for i in range(morph.centerline.get_nb_bends())
         ]
         self.assertTrue(np.array_equal(obs, average_metrics_exp.T, True))
+
+if __name__ == "__main__":
+    unittest.main()

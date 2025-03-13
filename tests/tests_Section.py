@@ -96,3 +96,7 @@ class TestsSection(unittest.TestCase):
             np.round(section_dir_exp, 4).tolist(),
             "Section direction was not correctly computed.",
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

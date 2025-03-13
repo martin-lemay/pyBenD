@@ -282,3 +282,7 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.axis("equal")
         plt.savefig(fig_path + "test_mirror_bend.png", dpi=150)
         plt.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

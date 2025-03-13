@@ -4,7 +4,6 @@
 
 from typing import Optional
 
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -117,7 +116,7 @@ def plot_centerline_collection(
     keys: npt.NDArray[np.int64] = _get_keys_to_plot(all_ages, nb_cl)
 
     # get color map
-    cmap: colors.Colormap = cm.get_cmap(cmap_name)
+    cmap: colors.Colormap = plt.colormaps[cmap_name]
     cmap_norm: colors.Normalize = colors.Normalize(vmin=keys[0], vmax=keys[-1])
 
     # create plot
@@ -381,7 +380,7 @@ def plot_bend_evol(
     keys: npt.NDArray[np.int64] = _get_keys_to_plot(bend_evol_all_iter, nb_cl)
 
     # get color map
-    cmap: colors.Colormap = cm.get_cmap(cmap_name)
+    cmap: colors.Colormap = plt.colormaps[cmap_name]
     cmap_norm = colors.Normalize(vmin=keys[0], vmax=keys[-1])
     # list of upstream and downstream bend indexes for plot_warping if needed
     indexes: dict[int, tuple[int, int]] = {}

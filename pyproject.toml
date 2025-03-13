@@ -139,10 +139,11 @@ python_files = "test*.py"
 python_functions = "test*"
 testpaths = ["tests"]
 norecursedirs = "bin"
+filterwarnings = ["ignore::DeprecationWarning:pybend.*", "ignore::DeprecationWarning:multiprocessing.*",]
 
 [tool.coverage.run]
 branch = true
-source = ["pybend, algorithms, bin, model"]
+source = ["pybend"]
 
 [tool.mypy]
 # Specify the target platform details in config, so your developers are

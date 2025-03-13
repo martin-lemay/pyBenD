@@ -1,9 +1,6 @@
 pybend.model package
 ====================
 
-Submodules
-----------
-
 pybend.model.Bend module
 ------------------------
 
@@ -84,10 +81,3 @@ pybend.model.enumerations module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: pybend.model
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,9 +1,6 @@
 pybend.algorithms package
 =========================
 
-Submodules
-----------
-
 pybend.algorithms.centerline\_process\_function module
 ------------------------------------------------------
 
@@ -36,10 +33,3 @@ pybend.algorithms.synthetic\_bends module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: pybend.algorithms
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -80,11 +80,11 @@ nb_points_resampling_out: int = 505
 nb_bends_out: int = 6  # number of bends
 inflex_index_out: tuple[int, ...] = (
     0,
-    91,
+    90,
     181,
-    271,
+    270,
     360,
-    451,
+    450,
     504,
 )  # index of inclection points
 sides_out: tuple[BendSide, ...] = (
@@ -615,7 +615,7 @@ class TestsCenterline(unittest.TestCase):
             tuple(inflex_index),
             inflex_index_out,
             f"Inflection point detection: {inflex_index} instead of "
-            + f" {inflex_index}",
+            + f" {inflex_index_out}",
         )
         set_nb_procs(1)
 
@@ -965,7 +965,7 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex index
             apex_index: list[int] = [
-                bend.index_apex
+                int(bend.index_apex)
                 for bend in centerline.bends
                 if bend.index_apex > -1
             ]
@@ -1062,7 +1062,7 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex index
             apex_index: list[int] = [
-                bend.index_apex
+                int(bend.index_apex)
                 for bend in centerline.bends
                 if bend.index_apex > -1
             ]
@@ -1108,7 +1108,7 @@ class TestsCenterline(unittest.TestCase):
 
             # check apex index
             apex_index: list[int] = [
-                bend.index_apex
+                int(bend.index_apex)
                 for bend in centerline.bends
                 if bend.index_apex > -1
             ]

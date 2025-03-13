@@ -169,3 +169,7 @@ module = [
 ]
 ignore_errors = true
 
+[project.urls]
+Homepage = "https://github.com/GEOS-DEV/martin-lemay/pyBenD"
+Documentation = ""
+Repository = "https://github.com/martin-lemay/pyBenD.git"

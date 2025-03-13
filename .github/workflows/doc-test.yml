@@ -1,0 +1,17 @@
+name: "Pull Request Docs Check"
+on: 
+- pull_request
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+    - uses: ammaraskar/sphinx-action@dev
+      with:
+        docs-folder: "docs/"
+        build-command: "sphinx-build -b html . _build"

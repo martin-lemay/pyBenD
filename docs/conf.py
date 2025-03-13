@@ -41,7 +41,7 @@ release = u'0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.imgmath',
+    'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.imgmath',
     'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinxcontrib.programoutput'
 ]
 

@@ -37,8 +37,7 @@ class Isoline:
     ) -> None:
         """Store points of the same age (for instance channel cross-section).
 
-        Parameters:
-        ----------
+        Args:
             age (int): age of the points
             cl_pt_ref (ClPoint): reference ClPoint
             isoline_type (str): isoline type (currently only 'Channel')
@@ -55,8 +54,7 @@ class ChannelCrossSection(Isoline):
     def __init__(self: Self, age: int, cl_pt_ref: ClPoint) -> None:
         """Isoline for channel cross-section.
 
-        Parameters:
-        ----------
+        Args:
             age (int): age of the points
             cl_pt_ref (npt.NDArray[np.float64]): reference ClPoint
         """
@@ -65,8 +63,7 @@ class ChannelCrossSection(Isoline):
     def complete_channel_shape(self: Self, nb_pts: int = 11) -> None:
         """Create channel cross-section assuming parabolic shape.
 
-        Parameters:
-        ----------
+        Args:
             nb_pts (int, optional): Number of points.
 
                 Defaults to 11.

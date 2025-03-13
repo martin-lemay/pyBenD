@@ -49,8 +49,7 @@ def plot_centerline_collection(
 ) -> None:
     """Function to plot CenterlineCollection object.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): path to export figures if not empty.
         cl_collec (CenterlineCollection): CenterlineCollection object to plot
         domain (tuple[tuple[float, float],tuple[float, float]]): display domain
@@ -199,8 +198,7 @@ def plot_centerline_single(
 ) -> None:
     """Plot a single centerline.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): path to export figures if not empty.
         cl_points (tuple[list[ClPoint]]): list of ClPoint objects.
         bends (list[Bend]): list of Bend objects to plot
@@ -316,8 +314,7 @@ def plot_bend_evol(
 ) -> None:
     """Plot BendEvolution object.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot.
         cl_collec (tuple[CenterlineCollection]): CenterlineCollection object
         bend_evol (BendEvolution): BendEvolution object to plot.
@@ -727,8 +724,7 @@ def plot_section(
 ) -> None:
     """Plot Section object.
 
-    Parameters:
-    -----------
+    Args:
         section (Section): Section object to plot
         ax (Axes): Axes where to plot
         norm_hor (float, optional): Horizontal normalization.
@@ -797,8 +793,7 @@ def plot_versus_curvilinear(
 ) -> None:
     """Plot 2 set of properties against abscissa.
 
-    Parameters:
-    -----------
+    Args:
         work_dir (str): file name to save the figure if not empty.
         abscissa (npt.NDArray[np.float64]): abscissa values
         curves1 (list[npt.NDArray[np.float64]]): first set of curves
@@ -881,13 +876,11 @@ def _get_keys_to_plot(
 ) -> npt.NDArray[np.int64]:
     """Get keys to plot according to the number of centerlines.
 
-    Parameters:
-    -----------
+    Args:
         all_keys (npt.NDArray[np.int64]): All centerline ages
         nb_cl (int): Number of centerlines
 
     Returns:
-    --------
         npt.NDArray[np.int64]: list of centerline ages to plot
 
     """
@@ -913,8 +906,7 @@ def _plot_bend_evol_trajectories(
 ) -> None:
     """Plot BendEvolution characteristic point trajectories if needed.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot
         bend_evol (BendEvolution): BendEvolution object
         plot_apex_trajec (bool, optional): if True, plot bend apex trajectory.
@@ -950,8 +942,7 @@ def _plot_warping(
 ) -> None:
     """Plot centerline warping.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot
         cl_collec (CenterlineCollection): CenterlineCollection object
         indexes (dict[int, tuple[int, int]]): dictionnary containing a list of
@@ -1003,8 +994,7 @@ def _update_plot_properties(
 ) -> None:
     """Update plot properties.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): directory where to export figure if not empty
         domain (tuple[tuple[float, float], tuple[float, float]]): plot limits
             ((xmin, xmax), (ymin, ymax))

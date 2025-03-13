@@ -61,12 +61,10 @@ class CustomLoggerFormatter(logging.Formatter):
     def format(self: Self, record: logging.LogRecord) -> str:
         """Return the format according to input record.
 
-        Parameters:
-        ----------
+        Args:
             record (logging.LogRecord): record
 
         Returns:
-        ----------
             str: format as a string
         """
         log_fmt: Optional[str] = self.FORMATS.get(record.levelno)
@@ -94,12 +92,10 @@ def getLogger(title: str) -> Logger:
         logger.error("error message")
         logger.critical("critical message")
 
-    Parameters:
-        ----------
+    Args:
         title (str): Name of the logger.
 
     Returns:
-        ----------
         Logger: logger
     """
     logger: Logger = logging.getLogger(title)

@@ -17,13 +17,11 @@ def mirror(
 ) -> npt.NDArray[np.float64]:
     """Function to add points at the beginning and end of the list.
 
-    Parameters:
-    ----------
+    Args:
         coords (npt.NDArray[np.float64]): input coordinates
         nb_pts (int): number of points to add
 
     Returns:
-    -------
         npt.NDArray[np.float64]: new coordinates with added points
 
     """
@@ -49,15 +47,13 @@ def mirror(
 def circular_bend(nb_pts: int, ampl: float = 1.0) -> npt.NDArray[np.float64]:
     """Create a circular bend.
 
-    Parameters:
-    ----------
+    Args:
         nb_pts (int): number of points along bend centerline
         ampl (float, optional): amplitude of bends.
 
             Defaults to 1.
 
     Returns:
-    -------
         npt.NDArray[np.float64]: point coordinates
 
     """
@@ -80,20 +76,23 @@ def kinoshita_bend(
     r"""Create a Kinoshita bend.
 
     Bend centerline follows the Kinoshita curve (Kinoshita, 1961):
+    .. math::
+
     $\Teta=\Teta_0.\cos(\frac{2\pi.s}{\lambda})+\Teta_0^3(Js\sin(3\frac{2\pi.s}{\lambda})-Jf\cos(3\frac{2\pi.s}{\lambda}))$
 
-    *where $\Teta$ is the local angle from x axis, $\Teta_0$ the maximum angle,
-    $s$ the curvilinear coordinate, $\lambda$ the wavelength, $Js$ the skewness
-    coefficient, and $Jf$ the flattening coefficient.*
+    *where :math:`$\Teta$` is the local angle from x axis, $\Teta_0$ the
+    maximum angle, :math:`$s$` the curvilinear coordinate, :math:`$\lambda$`
+    the wavelength, :math:`$Js$` the skewness coefficient, and :math:`$Jf$`
+    the flattening coefficient.*
 
     Inflection point may be downstream the first point at teta=teta0, then the
     bend between inflection points is determined from:
+
     1. compute point coordinates over a bit more than a wavelength,
     2. find inflection points
     3. return coords in-between inflection points
 
-    Parameters:
-    ----------
+    Args:
         nb_pts (int): number of points along bend centerline
         teta_max (float): maximum angle (rad) from horizontal axis
         Js (float): skewness coefficient. If positive, bends are left skewed,
@@ -102,7 +101,6 @@ def kinoshita_bend(
             elongated, if negative bends are more flat.
 
     Returns:
-    -------
         npt.NDArray[np.float64]: point coordinates
 
     """

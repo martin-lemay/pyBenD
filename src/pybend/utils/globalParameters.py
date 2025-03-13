@@ -21,7 +21,6 @@ def get_nb_procs() -> int:
     of available processors.
 
     Returns:
-    --------
         int: Number of processors.
 
     """
@@ -34,8 +33,7 @@ def get_nb_procs() -> int:
 def set_nb_procs(nb: int) -> None:
     """Set the number of desired processors.
 
-    Parameters:
-    ----------
+    Args:
         nb (int): Number of desired processors.
 
     """

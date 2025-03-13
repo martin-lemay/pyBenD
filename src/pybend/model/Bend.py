@@ -20,8 +20,8 @@ Bend module defines Bend object and associated utils.
 Let's Suppose a sinuous channel centerline. Bends are defined as the channel
 path comprised between 2 consecutive inflection points (o). A Bend contains an
 apex whose definition may vary according to bend shape:
-    - kinoshita-like bends: maximum curvature (see
-        Kinoshita (1961);
+
+    - kinoshita-like bends: maximum curvature (see Kinoshita (1961);
         `Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
         `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_
     - circular bend (constant curvature): equidistance from inflection points
@@ -30,6 +30,7 @@ By convention Bend is UP if curvature is positive -clockwise rotation along
 flow direction- and is DOWN if curvature is negative -counter-clockwise
 rotation along flow direction.
 
+.. code-block:: bash
 
                          UP                    DOWN
                          x
@@ -38,6 +39,7 @@ rotation along flow direction.
        -->          .    b    .              .       .
     Direction      o     m     o               .   .
                                                  x
+
 
 *Elementary Bends are defined by upstream and downstream inflection points (o).
 Bends contains distinctive points including the apex (x), the middle (m) and
@@ -54,13 +56,11 @@ uid_module: int = int(1e4)
 def get_bend_uid(bend_id: int, age: int) -> int:
     """Get bend unique id from bend id and age.
 
-    Parameters:
-        ----------
+    Args:
         bend_id (int): bend index
         age (int): age
 
     Returns:
-        ----------
         int: unique id
     """
     return int(uid_module * age + bend_id)
@@ -69,12 +69,10 @@ def get_bend_uid(bend_id: int, age: int) -> int:
 def parse_bend_uid(uid: int) -> tuple[int, int]:
     """Parse bend unique id to get back bend index and age.
 
-    Parameters:
-        ----------
+    Args:
         uid (int): bend unique id
 
     Returns:
-        ----------
         tuple[float, int]: tuple containing bend age and index.
     """
     ide: int = uid % uid_module
@@ -94,8 +92,7 @@ class Bend:
     ) -> None:
         """Store bend parameters associated to a Centerline object.
 
-        Parameters:
-        ----------
+        Args:
             bend_id (int): bend id
             index_inflex_up (int): index of the upstream inflection point along
                 the centerline
@@ -171,7 +168,6 @@ class Bend:
         """Returned string.
 
         Returns:
-        --------
             str: description of the object.
         """
         return str(self.age) + "-" + str(self.id)
@@ -181,12 +177,10 @@ class Bend:
     def __add__(self: Self, bend: Bend) -> Bend:
         """Add current bend to another bend.
 
-        Parameters:
-        ----------
+        Args:
             bend (Bend): another Bend object
 
         Returns:
-        ----------
             Bend: new bend
         """
         new_bend = Bend(
@@ -202,12 +196,10 @@ class Bend:
     def __eq__(self: Self, other: object) -> bool:
         """Equality method.
 
-        Parameters:
-        ----------
+        Args:
             other (object): another object
 
         Returns:
-        ----------
             bool: True if bend unique id are equal.
         """
         if not isinstance(other, Bend):
@@ -218,7 +210,6 @@ class Bend:
         """Hash method.
 
         Returns:
-        ----------
             int: hash
         """
         return int(self.uid)
@@ -227,7 +218,6 @@ class Bend:
         """Get the number of points of the bend.
 
         Returns:
-        ----------
             int: number of points
 
         """
@@ -236,8 +226,7 @@ class Bend:
     def add_bend_connection_next(self: Self, bend_uid: int) -> None:
         """Add bend connection with bend in the next centerline.
 
-        Parameters:
-        ----------
+        Args:
             bend_uid (int): unique index of the bend connected to itself.
         """
         if self.bend_uid_next is None:
@@ -249,8 +238,7 @@ class Bend:
     def add_bend_connection_prev(self: Self, bend_uid: int) -> None:
         """Add bend connection with bend in the previous centerline.
 
-        Parameters:
-        ----------
+        Args:
             bend_uid (int): unique index of the bend connected to itself.
         """
         if self.bend_uid_prev is None:
@@ -262,8 +250,7 @@ class Bend:
     def add_intersected_section_index(self: Self, i: int) -> None:
         """Add the section index of intersected section with itself.
 
-        Parameters:
-        ----------
+        Args:
             i (int): section index
         """
         if not self.intersected_section_indexes:
@@ -275,8 +262,7 @@ class BendClPointIndexIter:
     def __init__(self: Self, bend: Bend) -> None:
         """Itetator on bend channel point indexes.
 
-        Parameters:
-        ----------
+        Args:
             bend (Bend): Bend to iterate to.
         """
         #: bend
@@ -288,7 +274,6 @@ class BendClPointIndexIter:
         """Iterator.
 
         Returns:
-        ----------
             BendClPointIndexIter: self
         """
         self.index = self.bend.index_inflex_up
@@ -301,7 +286,6 @@ class BendClPointIndexIter:
             StopIteration: stop when index_inflex_down is reached.
 
         Returns:
-        ----------
             int: channel point index
         """
         if self.index <= self.bend.get_nb_points():

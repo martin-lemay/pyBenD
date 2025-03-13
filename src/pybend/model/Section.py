@@ -75,8 +75,7 @@ class Section:
 
         ..WARNING: Code implementation in progress...
 
-        Parameters:
-        ----------
+        Args:
             ide (str): section id
             bend_id (str): bend id crossed by the section
             pt_start (npt.NDArray[np.float64]): start point coordinates
@@ -133,14 +132,12 @@ class Section:
     ) -> list[tuple[float, float]]:
         """Compute Isoline coordinates along the section from reference point.
 
-        Parameters:
-        ----------
+        Args:
             flow_dir (npt.NDArray[np.float64], optional): Flow direction.
 
                 Defaults to np.array([1, 0]).
 
         Returns:
-        ----------
             list[tuple[float, float]]: isoline coordinates along the section
         """
         isolines_origin: list[tuple[float, float]] = []
@@ -182,8 +179,7 @@ class Section:
     ) -> StackingPatternType:
         """Get the channel stacking pattern of isolines on the section.
 
-        Parameters:
-        ----------
+        Args:
             mig_threshold (float): lateral migration threshold (m)
             frac_threshold (float, optional): fraction of the total number of
                 isolines.
@@ -195,7 +191,6 @@ class Section:
                 Defaults to 0.1.
 
         Returns:
-        ----------
             StackingPatternType: Stacking pattern type
         """
         mig_steps: list[int] = []
@@ -289,8 +284,7 @@ class Section:
     ) -> None:
         """Compute channel apparent displacements along the section.
 
-        Parameters:
-        ----------
+        Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
 
@@ -341,8 +335,7 @@ class Section:
     ) -> None:
         """Compute section-averaged channel displacement.
 
-        Parameters:
-        ----------
+        Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
 
@@ -390,8 +383,7 @@ class Section:
             * Bcb_on_Hcb: channel belt aspect ratio
             * Msb: Stratigraphic Mobility number
 
-        Parameters:
-        ----------
+        Args:
             width (float): channel width (m)
             depth (float): channel depth (m)
             whole_trajec (bool): if True, compute channel displacements from
@@ -399,7 +391,6 @@ class Section:
                 last channel of the last migration phase.
 
         Returns:
-        ----------
             npt.NDArray[np.float64]: Averaged displacement metrics including in
                 order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
 

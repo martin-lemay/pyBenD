@@ -171,5 +171,5 @@ ignore_errors = true
 
 [project.urls]
 Homepage = "https://github.com/GEOS-DEV/martin-lemay/pyBenD"
-Documentation = ""
+Documentation = "https://mlemay-pybend.readthedocs.io/en/latest/index.html"
 Repository = "https://github.com/martin-lemay/pyBenD.git"

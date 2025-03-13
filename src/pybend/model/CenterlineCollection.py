@@ -215,6 +215,7 @@ class CenterlineCollection:
                 assert centerline is not None, (
                     f"Centerline {age} is undefined."
                 )
+
                 centerlines[age] = centerline
 
             self.centerlines = dict(sorted(centerlines.items()))
@@ -882,7 +883,7 @@ class CenterlineCollection:
                     ):
                         # compute the distance between apex points
                         index_apex_prev: Optional[int] = bend_saved[
-                            1
+                            -1
                         ].index_apex
                         if index_apex_prev is None:
                             continue

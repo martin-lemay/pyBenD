@@ -8,7 +8,7 @@ from typing_extensions import Self
 __doc__ = """
 Logging module manages logging tools.
 
-Code was modified from <https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output>
+Code was modified from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
 """
 
 # types redefinition to import logging.* from this module

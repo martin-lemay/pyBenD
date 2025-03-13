@@ -15,9 +15,9 @@ Python Bend Dynamics - pyBenD
 Installation
 -------------
 
-To install pyBenD, you may either clone the ``GitHub`` `repository <https://github.com/martin-lemay/pyBenD.git>`
+To install pyBenD, you may either clone the ``GitHub`` `repository <https://github.com/martin-lemay/pyBenD.git>`_
 or download the `wheel`<>. In both cases, it is recommended to use a 
-`virtual Python environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`.
+`virtual Python environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`_.
 
 If you downloaded the wheel, install the package from the following commands:
 

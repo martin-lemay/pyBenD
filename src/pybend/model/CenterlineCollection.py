@@ -480,7 +480,7 @@ class CenterlineCollection:
             dmax (float, optional): Maximal allowed distance (m) between
               connected channel point.
 
-              Defaults to np.inf.
+                Defaults to np.inf.
             distance_weight (float, optional): Weight [0, 1] on channel point
                 distance.
 

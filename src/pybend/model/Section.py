@@ -19,7 +19,7 @@ Section module defines Section object allowing to represent the stratigraphic
 The stratigraphic architecture is characterized by the stacking pattern.
  Stacking pattern types are defined from StackingPatternType enumeration.
 
-..Warning: this class is under construction...
+.. Warning: this class is under construction...
 
 """
 
@@ -30,7 +30,7 @@ class StackingPatternType(Enum):
     Let's suppose a section across a meander bend. The channel moves laterally
     and vertically through time. According to channel basal point trajectory,
     4 stacking pattern types are defined
-    (see `Lemay et al., 2024 <https://doi.org/10.1144/SP540-2022-143>`_):
+    (see `Lemay et al., 2024<https://doi.org/10.1144/SP540-2022-143>`_):
 
     .. code-block:: bash
 

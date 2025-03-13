@@ -35,15 +35,15 @@ Metrics include:
 
  .. code-block:: bash
 
-                             .   x  .
-                         .      /|    .
-                      .        / |     +
-   Flow             .      Ex /  | Am  .
-    -->            .         /   |    .
- Direction        .         /    |   .
-                 o --------c------- o
-                  <---------------->
-                           W
+                                 .   x  .
+                             .      /|    .
+                          .        / |     +
+        Flow            .      Ex /  | Am  .
+        -->            .         /   |    .
+    Direction         .         /    |   .
+                     o --------c------- o
+                     <---------------->
+                            W
 
 
 To use it:
@@ -276,7 +276,7 @@ class Morphometry:
     def compute_bend_roundness(self: Self, bend_id: int) -> float:
         """Compute bend roundness.
 
-        Roundness coefficient from Schwenk et al. (2015) (https://doi.org/10.1002/2014JF003252)
+        Roundness coefficient from `Schwenk et al. (2015)<https://doi.org/10.1002/2014JF003252)>`_
 
         Args:
             bend_id (int): bend index
@@ -295,7 +295,7 @@ class Morphometry:
     def compute_bend_asymmetry(self: Self, bend_id: int) -> float:
         """Compute bend asymmetry coefficient.
 
-        Asymmetry coefficient from Howard and Hemberger (1991) (https://doi.org/10.1016/0169-555X(91)90002-R)
+        Asymmetry coefficient from `Howard and Hemberger (1991)<https://doi.org/10.1016/0169-555X(91)90002-R>`_
 
         Args:
             bend_id (int): bend index
@@ -327,8 +327,7 @@ class Morphometry:
     def compute_bend_wavelength_leopold(self: Self, bend_id: int) -> float:
         """Compute bend wavelength according to Leopold method.
 
-        Leopold method is described in Leopold and Wolman (1957 -
-        https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)
+        Leopold method is described in `Leopold and Wolman (1957)<https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)>`_
 
         Args:
             bend_id (int): bend index.
@@ -350,8 +349,7 @@ class Morphometry:
     def compute_bend_amplitude_leopold(self: Self, bend_id: int) -> float:
         """Compute bend ampltiude according to Leopold method.
 
-        Leopold method is described in Leopold and Wolman (1957 -
-        https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)
+        Leopold method is described in `Leopold and Wolman (1957)<https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2>`_
 
         Args:
             bend_id (int): bend index.

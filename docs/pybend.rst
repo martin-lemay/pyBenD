@@ -9,9 +9,9 @@ pyBenD project contains:
 
 * docs: documentation source
 * notebooks: Jupyter notebooks used for related publications that show how to 
-use pyBenD features
+   use pyBenD features
 * tests: unit and integrated tests. Tests files contain numerous examples on 
-how to use pyBenD.
+   how to use pyBenD.
 * src: pyBenD source code
 
 

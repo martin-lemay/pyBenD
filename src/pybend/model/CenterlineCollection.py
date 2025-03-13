@@ -2,17 +2,16 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 import functools
-import sys
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor as Pool
 from typing import Optional, Self, cast
 
-import dtw  # type: ignore[import-untyped]
+import dtw  # type: ignore[import-not-found]
 import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
 from scipy.signal import savgol_filter  # type: ignore[import-untyped]
-from shapely import affinity
+from shapely import affinity  # type: ignore
 from shapely.geometry import (  # type: ignore
     LineString,
     MultiPoint,
@@ -34,7 +33,11 @@ from pybend.model.enumerations import (
 from pybend.model.Isoline import ChannelCrossSection, Isoline
 from pybend.model.Section import Section
 from pybend.utils.globalParameters import get_nb_procs
-from pybend.utils.logging import logger
+from pybend.utils.logging import ERROR, logger
+
+# disable info and warnings
+logger.setLevel(ERROR)
+
 
 __doc__ = r"""
 This module defines CenterlineCollection objet that stores the successive
@@ -58,41 +61,43 @@ class CenterlineCollection:
         interpol_props: bool = True,
         find_bends: bool = True,
     ) -> None:
-        """Store all the successive Centerline objects from a single channel-belt.
+        """Store the successive Centerline objects from a single channel-belt.
 
         Parameters:
         ----------
             map_centerline_data (dict[int, pd.DataFrame]): dictionnary
-              containing for each age a dataframe containing centerline data
+                containing for each age a dataframe containing centerline data
             spacing (float): Target distance  (m) between two consecutive
-              channel points after resampling, or number of points if
-              use_fix_nb_points is True
+                channel points after resampling, or number of points if
+                use_fix_nb_points is True
             smooth_distance (float): smoothing distance for channel point
-              location and curvature
+                location and curvature
             use_fix_nb_points (bool): if True, spacing is the number of points
-              of the resampled centerline, otherwise it is the target distance.
+                of resampled centerline, otherwise it is the target distance.
             curvature_filtering_window (int, optional): Number of points to
-              consider for curvature filtering window.
+                consider for curvature filtering window.
 
-              Defaults to 5.
-            sinuo_thres (float, optional): threshold above which bends are valid.
+                Defaults to 5.
+            sinuo_thres (float, optional): threshold above which bends are
+                valid.
 
-              Defaults to 1.05.
+                Defaults to 1.05.
             n (float): exponent of the curvature distribution function.
 
                 Defaults to 2.
-            compute_curvature (bool, optional): if True, recompute channel point
-              curvature after resampling.
+            compute_curvature (bool, optional): if True, recompute channel
+                point curvature after resampling.
 
-              Defaults to True.
+                Defaults to True.
             interpol_props (bool, optional): if True, interpolate channel point
-              properties along channel points after resampling.
+                properties along channel points after resampling.
 
-              Defaults to True.
-            find_bends (bool, optional): if True, automatically compute curvature
-              and interpolate properties and detect bends along each centerline.
+                Defaults to True.
+            find_bends (bool, optional): if True, automatically compute
+                curvature and interpolate properties and detect bends along
+                each centerline.
 
-              Defaults to True.
+                Defaults to True.
         """
         #: dictionnary to store Centerline object at each age
         self.centerlines: dict[int, Centerline] = {}
@@ -143,7 +148,7 @@ class CenterlineCollection:
                 find_bends,
             )
 
-        logger.info("Centerline_collection instanciated.")
+        logger.info("CenterlineCollection instanciated.")
 
     def initialize_multiproc(
         self: Self,
@@ -180,7 +185,7 @@ class CenterlineCollection:
             interpol_props (bool): if True, interpolate channel point
               properties along channel points after resampling.
             find_bends (bool): if True, automatically compute curvature
-              and interpolate properties and detect bends along each centerline.
+              and interpolate properties and detect bends along each centerline
 
         Returns:
         ----------
@@ -210,9 +215,9 @@ class CenterlineCollection:
 
             centerlines: dict[int, Centerline] = {}
             for age, centerline in zip(inputs, outputs, strict=False):
-                assert (
-                    centerline is not None
-                ), f"Centerline {age} is undefined."
+                assert centerline is not None, (
+                    f"Centerline {age} is undefined."
+                )
                 centerlines[age] = centerline
 
             self.centerlines = dict(sorted(centerlines.items()))
@@ -253,7 +258,7 @@ class CenterlineCollection:
             interpol_props (bool): if True, interpolate channel point
               properties along channel points after resampling.
             find_bends (bool): if True, automatically compute curvature
-              and interpolate properties and detect bends along each centerline.
+              and interpolate properties and detect bends along each centerline
 
         Returns:
         ----------
@@ -285,7 +290,7 @@ class CenterlineCollection:
         use_fix_nb_points: bool,
         curvature_filtering_window: int,
         sinuo_thres: float,
-        n :float,
+        n: float,
         compute_curvature: bool,
         interpol_props: bool,
         find_bends: bool,
@@ -293,9 +298,9 @@ class CenterlineCollection:
     ) -> Centerline:
         """Create self.centerlines dictionnary.
 
-        Centerline_collection object initialization consists in creating the
-        dictionnary self.centerlines containing ages a keys and Centerline object
-        as values.
+        CenterlineCollection object initialization consists in creating the
+        dictionnary self.centerlines containing ages a keys and Centerline
+        object as values.
 
         Parameters:
         ----------
@@ -305,7 +310,7 @@ class CenterlineCollection:
             smooth_distance (float): smoothing distance for channel point
                 location and curvature
             use_fix_nb_points (bool): if True, spacing is the number of points
-                of the resampled centerline, otherwise it is the target distance.
+                of resampled centerline, otherwise it is the target distance.
             curvature_filtering_window (int): Number of points to
                 consider for curvature smoothing window.
             sinuo_thres (float): threshold above which bends are valid.
@@ -314,8 +319,8 @@ class CenterlineCollection:
                 curvature after resampling.
             interpol_props (bool): if True, interpolate channel point
                 properties along channel points after resampling.
-            find_bends (bool): if True, automatically compute curvature
-                and interpolate properties and detect bends along each centerline.
+            find_bends (bool): if True, automatically compute curvature and
+                interpolate properties and detect bends along each centerline.
             age (int): centerline age
             data (pd.DataFrame: centerline properties data
             queue (mp.Queue): queue where to dump created Centerline
@@ -340,7 +345,7 @@ class CenterlineCollection:
         )
 
     def get_all_ages(self: Self) -> npt.NDArray[np.int64]:
-        """Get all centerline ages stored in the Centerline_collection.
+        """Get all centerline ages stored in the CenterlineCollection.
 
         Returns:
         ----------
@@ -360,7 +365,8 @@ class CenterlineCollection:
 
         Returns:
         ----------
-          NDArray[float]: Array containing the values of the property for each channel point.
+          NDArray[float]: Array containing the values of the property for
+            each channel point.
 
         """
         if age in self.get_all_ages():
@@ -423,7 +429,7 @@ class CenterlineCollection:
         return len(self.bends_evol)
 
     def get_nb_valid_bends_evol(self: Self) -> int:
-        """Get the number of valid BendEvolution stored in self.bends_evol list.
+        """Get the number of valid BendEvolution stored in bends_evol list.
 
         Returns:
         ----------
@@ -481,8 +487,8 @@ class CenterlineCollection:
     ) -> None:
         """Public method to compute centerline matching.
 
-        Centerline matching consists in applying Dynamic Time Warping on each pair
-        of consecutive Centerline to connect channel points together.
+        Centerline matching consists in applying Dynamic Time Warping on each
+        pair of consecutive Centerline to connect channel points together.
 
         Parameters:
         ----------
@@ -613,12 +619,7 @@ class CenterlineCollection:
         """
         all_iter: npt.NDArray[np.int64] = self.get_all_ages()
         with Pool(max_workers=nb_procs) as pool:
-            inputs = [
-                (key, prev_key)
-                for key, prev_key in zip(
-                    all_iter[1:], all_iter[0:-1], strict=False
-                )
-            ]
+            inputs = np.column_stack((all_iter[1:], all_iter[0:-1]))
             partial_apply_centerline_warping = functools.partial(
                 self._apply_centerline_warping,
                 dmax,
@@ -682,7 +683,7 @@ class CenterlineCollection:
             key
         ].get_all_curvature_filtered()
 
-        vel_perturb_prop_name :str = PropertyNames.VELOCITY_PERTURBATION.value
+        vel_perturb_prop_name: str = PropertyNames.VELOCITY_PERTURBATION.value
         lvel_perturb1: npt.NDArray[np.float64] = np.zeros_like(lx1)
         if vel_perturb_prop_name in self.centerlines[key].get_property_list():
             lvel_perturb1 = savgol_filter(
@@ -859,8 +860,9 @@ class CenterlineCollection:
     ) -> bool:
         """Connect bends from the successive centerlines using apex distance.
 
-        Connect bends from the successive centerlines of the collection by searching
-        for the closests apex points that belongs to bends of same side
+        Connect bends from the successive centerlines of the collection by
+        searching for the closests apex points that belongs to bends of same
+        side.
 
         Parameters:
         ----------
@@ -924,7 +926,8 @@ class CenterlineCollection:
                         )
                         dist[k] = cpf.distance(pt1, pt2)
 
-                # take the index of the minimum distance if this distance is lower than dmax
+                # take the index of the minimum distance if this distance is
+                # lower than dmax
                 if np.isfinite(dist).any() and np.nanmin(dist) < dmax:
                     index = int(np.nanargmin(dist))
 
@@ -939,7 +942,10 @@ class CenterlineCollection:
 
         for bend_evol_id, bends in enumerate(bends_evol):
             bend_indexes: dict[int, list[int]] = {
-                bend.age: [bend.id,] for bend in bends
+                bend.age: [
+                    bend.id,
+                ]
+                for bend in bends
             }
             if len(bend_indexes) > 1:
                 self.centerlines[bend.age].bends[
@@ -947,7 +953,10 @@ class CenterlineCollection:
                 ].bend_evol_id = bend_evol_id
                 self.bends_evol += [
                     BendEvolution(
-                        bend_indexes, i, 0, len(bend_indexes) > bend_evol_validity
+                        bend_indexes,
+                        i,
+                        0,
+                        len(bend_indexes) > bend_evol_validity,
                     )
                 ]
 
@@ -961,8 +970,8 @@ class CenterlineCollection:
         """Connect bends from the successive centerlines using apex centroids.
 
         Connect bends from the successive centerlines of the collection by
-        searching for the closests centroids points that belongs to bends of same
-        side.
+        searching for the closests centroids points that belongs to bends of
+        same side.
 
         Parameters:
         ----------
@@ -982,7 +991,9 @@ class CenterlineCollection:
         for i, key in enumerate(self.get_all_ages()[::-1]):
             if i == 0:
                 bends_evol += [
-                    [bend] for bend in self.centerlines[key].bends if bend.isvalid
+                    [bend]
+                    for bend in self.centerlines[key].bends
+                    if bend.isvalid
                 ]
                 prev_key = key
                 continue
@@ -1002,18 +1013,20 @@ class CenterlineCollection:
                         and bend_saved[-1].age == prev_key
                         and bend_saved[-1].side == bend.side
                     ):
-                        # compute the distance between upstream inflex points (more stable than apex)
-                        assert (
-                            bend_saved[-1].pt_centroid is not None
-                        ), "Centroid is undefined"
-                        assert (
-                            bend.pt_centroid is not None
-                        ), "Centroid is undefined"
+                        # compute the distance between upstream inflex points
+                        # (more stable than apex)
+                        assert bend_saved[-1].pt_centroid is not None, (
+                            "Centroid is undefined"
+                        )
+                        assert bend.pt_centroid is not None, (
+                            "Centroid is undefined"
+                        )
                         dist[k] = cpf.distance(
                             bend_saved[-1].pt_centroid, bend.pt_centroid
                         )
 
-                # take the index of the minimum distance if this distance is lower than dmax
+                # take the index of the minimum distance if this distance is
+                # lower than dmax
                 if np.isfinite(dist).any() and np.nanmin(dist) < dmax:
                     index = int(np.nanargmin(dist))
 
@@ -1028,7 +1041,10 @@ class CenterlineCollection:
 
         for bends in bends_evol:
             bend_indexes: dict[int, list[int]] = {
-                bend.age: [bend.id, ] for bend in bends
+                bend.age: [
+                    bend.id,
+                ]
+                for bend in bends
             }
             self.bends_evol += [
                 BendEvolution(
@@ -1044,7 +1060,7 @@ class CenterlineCollection:
         bend_evol_validity: int,
         weighting_func_type: str = "uniform",
     ) -> bool:
-        """Connect bends from the successive centerlines using matching results.
+        """Connect bends from the successive centerlines using matching result.
 
         Connect bends from the successive centerlines of the collection by
         searching for the greatest number of connected channel points between
@@ -1089,7 +1105,8 @@ class CenterlineCollection:
                 # TODO: to take into account weigths
                 # next_bend_index = Counter(counts).most_common(1)[0][0]
                 # if next_bend_index is not None:
-                #   self._add_bend_connection(key, next_key, bend_index, next_bend_index)
+                #   self._add_bend_connection(
+                #       key, next_key, bend_index, next_bend_index)
 
                 # keep all bend index with more than 50% connected cl_points
                 for next_bend_index, cnt in Counter(counts).items():
@@ -1117,7 +1134,7 @@ class CenterlineCollection:
         cur_bend_index: int,
         next_bend_index: int,
     ) -> int:
-        """Register the reciprocal connection of bends of ages key and next_key.
+        """Register the reciprocal connection of bends of age key and next_key.
 
         Parameters:
         ----------
@@ -1165,7 +1182,8 @@ class CenterlineCollection:
 
         """
         counts: list[int | None] = []
-        # does not consider inflection points since they are part of both neighboring bends
+        # does not consider inflection points since they are part of both
+        # neighboring bends
         for index in range(
             bend.index_inflex_up + 1, bend.index_inflex_down, 1
         ):
@@ -1179,7 +1197,7 @@ class CenterlineCollection:
                 )
 
             if pts_index_next is None:
-                counts += [None] # type: ignore[unreachable]
+                counts += [None]  # type: ignore[unreachable]
                 continue
 
             for pt_index_next in pts_index_next:
@@ -1276,7 +1294,7 @@ class CenterlineCollection:
         pts_start: list[tuple[float, float]],
         pts_end: list[tuple[float, float]],
     ) -> None:
-        """Manually set section lines across Centerline_collection.
+        """Manually set section lines across CenterlineCollection.
 
         Parameters:
         ----------
@@ -1318,17 +1336,16 @@ class CenterlineCollection:
             case CreateSectionMethod.CENTROID:
                 self._create_section_lines_from_bend(point_name)
             case _:
-                methods = [str(meth) for meth in list(CreateSectionMethod)] # type: ignore[unreachable]
+                methods = [str(meth) for meth in list(CreateSectionMethod)]  # type: ignore[unreachable]
                 raise TypeError(
-                    "Unkown method for section line creation. Methods are either: ".join(
-                        methods
-                    )
+                    "Unkown method for section line creation. Methods are "
+                    + "either: ".join(methods)
                 )
 
     def _create_section_lines_from_bend(
         self: Self, point_name: CreateSectionMethod
     ) -> None:
-        """Create section lines across BendEvolution using MIDDLE or CENTROID methods.
+        """Create section lines across BendEvolution.
 
         Automatically create section lines across BendEvolution objects such as
         lines goes by the middle or centroid point of the last bend of each
@@ -1357,7 +1374,7 @@ class CenterlineCollection:
             key = self.get_all_ages()[-1]
             pt_end = None
             if point_name == CreateSectionMethod.MIDDLE:
-                pt_end = bend.pt_middle
+                pt_end = bend.pt_center
             elif point_name == CreateSectionMethod.CENTROID:
                 pt_end = bend.pt_centroid
             else:
@@ -1366,13 +1383,12 @@ class CenterlineCollection:
                     str(CreateSectionMethod.CENTROID),
                 ]
                 raise TypeError(
-                    "Unkown method for section line creation. Methods are either: ".join(
-                        methods
-                    )
+                    "Unkown method for section line creation. Methods are "
+                    + "either: ".join(methods)
                 )
-            assert (
-                pt_end is not None
-            ), "Undefined end point for section line creation"
+            assert pt_end is not None, (
+                "Undefined end point for section line creation"
+            )
             assert bend.index_apex > -1, "Bend apex is undefined."
             pt_apex: npt.NDArray[np.float64] = (
                 self.centerlines[key].cl_points[bend.index_apex].pt
@@ -1431,14 +1447,15 @@ class CenterlineCollection:
             section_line = LineString((pt_apex, pt_end))
             self.section_lines += [section_line]
 
-    def _create_all_channel_sections(self: Self,
-                                     section_line: LineString
-                                    ) ->tuple[list[Isoline], list[int]]:
+    def _create_all_channel_sections(
+        self: Self, section_line: LineString
+    ) -> tuple[list[Isoline], list[int]]:
         # list of isoline instances to store channel locations
         isolines: list[Isoline] = []
         cl_pt_indexes: list[int] = []
 
-        # research window area defined by the square whose the section is a diagonal
+        # research window area defined by the square whose the section is a
+        # diagonal
         line2 = affinity.rotate(section_line, 90)  # take the perpendicular
         window = Polygon(
             (
@@ -1457,12 +1474,13 @@ class CenterlineCollection:
                 if (window.contains(Point(cl_pt.pt))) and (
                     j < len(self.centerlines[key].cl_points) - 2
                 ):
-                    cl_pt2: ClPoint = self.centerlines[key].cl_points[j+1]
+                    cl_pt2: ClPoint = self.centerlines[key].cl_points[j + 1]
                     cl_line = LineString([cl_pt.pt, cl_pt2.pt])
                     intersect = section_line.intersection(cl_line)
                     # if the intersection exists
                     if not intersect.is_empty:
-                        # interpolate channel points properties to the intersection point
+                        # interpolate channel points properties to the
+                        # intersection point
                         d: float = (
                             intersect.distance(Point(cl_pt.pt))
                             / cl_line.length
@@ -1484,22 +1502,22 @@ class CenterlineCollection:
         flow_dir: npt.NDArray[np.float64] = np.array([1.0, 0]),
         cl_collec_id: int = 0,
     ) -> bool:
-        """Collect channels from Centerline_collection that are intersected by section lines.
+        """Collect channels that are intersected by sections.
 
-        This method create the Section objects with intersected channel geometry
-        and store them in the list self.sections.
+        This method create the Section objects with intersected channel
+        geometry and store them in the list self.sections.
 
         Parameters:
         ----------
-            thres (int, optional): Minimum number of intersected lines to create
-                the Section object.
+            thres (int, optional): Minimum number of intersected lines to
+                create the Section object.
 
                 Defaults to 1.
             flow_dir (NDArray[float], optional): Direction vector of the flow
                 used to orientate the Sections.
 
                 Defaults to np.array([1,0]).
-            cl_collec_id (int, optional): Centerline_collection id used in the
+            cl_collec_id (int, optional): CenterlineCollection id used in the
                 Section id.
 
                 Defaults to 0.
@@ -1520,8 +1538,10 @@ class CenterlineCollection:
             # list of isoline instances to store channel locations
             isolines: list[Isoline]
             cl_pt_indexes: list[int]
-            isolines, cl_pt_indexes = self._create_all_channel_sections(section_line)
- 
+            isolines, cl_pt_indexes = self._create_all_channel_sections(
+                section_line
+            )
+
             # create the section
             if len(isolines) > thres:
                 for isoline, cl_pt_index in zip(
@@ -1539,8 +1559,12 @@ class CenterlineCollection:
                 ide: str = f"{cl_collec_id}-{i}"
 
                 bounds: MultiPoint = section_line.boundary
-                pt_start: npt.NDArray[np.float64] = np.array(bounds.geoms[0].coords[0])  # type: ignore
-                pt_stop: npt.NDArray[np.float64] = np.array(bounds.geoms[1].coords[0])  # type: ignore
+                pt_start: npt.NDArray[np.float64] = np.array(
+                    bounds.geoms[0].coords[0]
+                )  # type: ignore
+                pt_stop: npt.NDArray[np.float64] = np.array(
+                    bounds.geoms[1].coords[0]
+                )  # type: ignore
                 self.sections += [
                     Section(
                         ide,
@@ -1564,7 +1588,8 @@ class CenterlineCollection:
         Parameters:
         ----------
             cl_pt_index (int): Index of the channel point.
-            age (float): Age of the Centerline where the channel point belongs to.
+            age (float): Age of the Centerline where the channel point
+                belongs to.
 
         Returns:
         ----------
@@ -1586,7 +1611,7 @@ class CenterlineCollection:
     def find_all_bend_middle(
         self: Self, smooth_trajectory: bool = False
     ) -> None:
-        """Compute the middle points of all bends of the Centerline_collection.
+        """Compute the middle points of all bends of the CenterlineCollection.
 
         Parameters:
         ----------
@@ -1598,7 +1623,7 @@ class CenterlineCollection:
 
         """
         for age in self.get_all_ages():
-            self.centerlines[age].compute_all_bend_middle()
+            self.centerlines[age].compute_all_bend_center()
 
         if smooth_trajectory:
             assert self.bends_tracking_computed, (
@@ -1633,15 +1658,15 @@ class CenterlineCollection:
         ly: list[float] = []
         for age in bend_evol.get_all_ages():
             bend_id: int = bend_evol.bend_indexes[age][0]
-            pt_middle: Optional[npt.NDArray[np.float64]] = (
-                self.centerlines[age].bends[bend_id].pt_middle
+            pt_center: Optional[npt.NDArray[np.float64]] = (
+                self.centerlines[age].bends[bend_id].pt_center
             )
-            assert pt_middle is not None, "Middle point is undefined"
-            lx += [pt_middle[0]]
-            ly += [pt_middle[1]]
+            assert pt_center is not None, "Middle point is undefined"
+            lx += [pt_center[0]]
+            ly += [pt_center[1]]
 
-        print(np.round(lx,4).tolist())
-        print(np.round(ly,4).tolist())
+        print(np.round(lx, 4).tolist())
+        print(np.round(ly, 4).tolist())
         lx_new, ly_new = cpf.resample_path(
             np.array(lx), np.array(ly), len(bend_evol.get_all_ages()), 0.5
         )
@@ -1650,7 +1675,7 @@ class CenterlineCollection:
     def find_all_bend_centroid(
         self: Self, smooth_trajectory: bool = False
     ) -> None:
-        """Compute the centroid points of all bends of the Centerline_collection.
+        """Compute the centroid point of each bend of the CenterlineCollection.
 
         Parameters:
         ----------
@@ -1718,7 +1743,7 @@ class CenterlineCollection:
         apex_proba_weights: tuple[float, float, float],
         smooth_trajectory: bool = False,
     ) -> None:
-        """Find the apex of all bends of the Centerline_collection.
+        """Find the apex of all bends of the CenterlineCollection.
 
         Parameters:
         ----------
@@ -1752,7 +1777,7 @@ class CenterlineCollection:
     def find_all_bend_apex(
         self: Self, n: float, smooth_trajectory: bool = False
     ) -> None:
-        """Find the apex of all bends of the Centerline_collection.
+        """Find the apex of all bends of the CenterlineCollection.
 
         Parameters:
         ----------

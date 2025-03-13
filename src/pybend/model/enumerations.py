@@ -11,6 +11,7 @@ This module defines enumerations used in pyBenD.
 # TODO replace property name in the code with this enum
 class PropertyNames(Enum):
     """Enumeration of usual ChannelPoint property names."""
+
     AGE = "Age"
     CURVILINEAR_ABSCISSA = "Curv_abscissa"
     CARTESIAN_ABSCISSA = "Cart_abscissa"
@@ -31,23 +32,25 @@ class PropertyNames(Enum):
 class AmplitudeType(Enum):
     """Method to compute amplitude.
 
-    * MIDDLE: use the distance between the given point and the middle of the line
-        defined by inflection points.
-    * ORTHOGONAL: use the orthogonal distance between the given point and the line
-        defined by inflection points.
+    * MIDDLE: use the distance between the given point and the middle of the
+        line defined by inflection points.
+    * ORTHOGONAL: use the orthogonal distance between the given point and the
+        line defined by inflection points.
 
     """
+
     MIDDLE = "Middle"
     ORTHOGONAL = "Orthogonal"
 
 
 class BendConnectionMethod(Enum):
-    """Enumeration of methods that can be used to create BendEvolution objects."""
-    #: Connected bends are the same side and shows tje shortest distance between apexes.
+    """Enumeration defining bend connection method."""
+
+    #: Connected bends: same side and shortest distance between apexes.
     APEX = "From Apex"
-    #: Connected bends are the same side and shows tje shortest distance between centroids.
+    #: Connected bends: same side and shortest distance between centroids.
     CENTROID = "From Centroid"
-    #: Connected bends are shows the greatest number of cnnected channel points.
+    #: Connected bends: greatest number of cnnected channel points.
     MATCHING = "From Matching"
 
 
@@ -56,6 +59,7 @@ class BendSide(Enum):
 
     Bend is UP if curvature is positive and is DOWN if curvature is negative.
     """
+
     #: positive curvature bend
     UP = "up"
     #: negative curvature bend
@@ -65,7 +69,8 @@ class BendSide(Enum):
 
 
 class CreateSectionMethod(Enum):
-    """Enumeration of methods that can be used to automatically create cross-sections."""
+    """Enumeration of methods to use to automatically create cross-sections."""
+
     #: Section goes by the middle point of the last bend of BendEvolution
     MIDDLE = "From middle"
     #: Section goes by the centroid point of the last bend of BendEvolution
@@ -76,13 +81,16 @@ class CreateSectionMethod(Enum):
 
 class FilterName(Enum):
     """Enumeration for filter names."""
+
     #: Uniform filter
     UNIFORM = "Uniform filter"
     #: Savitsky-Golay filter
     SAVITSKY = "Savitsky-Golay filter"
 
+
 class MorphometricNames(Enum):
     """Enumeration for morphometric names."""
+
     ARC_LENGTH = "Arc_length"
     WAVELENGTH = "Wavelength"
     SINUOSITY = "Sinuosity"

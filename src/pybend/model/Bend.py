@@ -9,7 +9,7 @@ from typing import Optional
 import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Polygon  # type: ignore
 from typing_extensions import Self
 
 from pybend.model.enumerations import BendSide
@@ -104,8 +104,8 @@ class Bend:
             age (int, optional): age of the bend.
 
                 Defaults to 0..
-            side (Bend_side, optional): bend side (Bend_side.UP, Bend_side.DOWN,
-                Bend_side.UNKNWON).
+            side (Bend_side, optional): bend side (Bend_side.UP,
+                Bend_side.DOWN, Bend_side.UNKNWON).
 
                 Defaults to Bend_side.UNKNWON.
             isvalid (bool, optional): bend is valid if its sinuosity is greater
@@ -139,12 +139,12 @@ class Bend:
         #: smoothed apex probability values for each point of the bend
         self.apex_probability_smooth: Optional[npt.NDArray[np.float64]] = None
 
-        #: middle point coordinates. Middle point is defined as the point at equal
-        #: distance from inflection points.
-        self.pt_middle: Optional[npt.NDArray[np.float64]] = None
-        #: Bend centroid is the barycenter of the polygon defined by the centerline
-        #: between upstream and downstream inflection points and is closed between
-        #: these points.
+        #: center point coordinates. Center point is defined as the point at
+        #: equal distance from inflection points.
+        self.pt_center: Optional[npt.NDArray[np.float64]] = None
+        #: Bend centroid is the barycenter of the polygon defined by the
+        #: centerline between upstream and downstream inflection points and is
+        #: closed between these points.
         self.pt_centroid: Optional[npt.NDArray[np.float64]] = None
         #: polygon defined by the centerline between upstream and downstream
         #: inflection points and is closed between these points
@@ -159,7 +159,8 @@ class Bend:
 
         self.intersected_section_indexes: Optional[list[int]] = None
 
-        # Sinuosity, Length, half-wavelength, Amplitude perpendicular, Amplitude middle
+        # Sinuosity, Length, half-wavelength, Amplitude perpendicular,
+        # Amplitude middle
         # individual meander geometry
         self.params: Optional[pd.Series] = None
 

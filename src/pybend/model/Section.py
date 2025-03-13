@@ -12,6 +12,17 @@ import pybend.algorithms.centerline_process_function as cpf
 from pybend.model.ClPoint import ClPoint
 from pybend.model.Isoline import Isoline
 
+__doc__ = r"""
+Section module defines Section object allowing to represent the stratigraphic
+ architecture.
+
+The stratigraphic architecture is characterized by the stacking pattern.
+ Stacking pattern types are defined from StackingPatternType enumeration.
+
+..Warning: this class is under construction...
+
+"""
+
 
 class StackingPatternType(Enum):
     """Channel stacking pattern type.
@@ -34,6 +45,7 @@ class StackingPatternType(Enum):
     channel basal point. ':' stands for aggradation phase.*
 
     """
+
     #: pure aggradation
     AGGRADATION = "Aggradation Only"
     #: one way migration
@@ -47,6 +59,7 @@ class StackingPatternType(Enum):
     #: undefined
     UNDEFINED = "Undefined"
 
+
 class Section:
     def __init__(
         self: Self,
@@ -58,7 +71,7 @@ class Section:
         same_bend: Optional[list[bool]] = None,
         flow_dir: npt.NDArray[np.float64] = np.array([1, 0]),
     ) -> None:
-        """Section object to store 2D stratigraphy composed of multiple Isolines.
+        """Object to store 2D stratigraphy composed of multiple Isolines.
 
         ..WARNING: Code implementation in progress...
 
@@ -95,9 +108,9 @@ class Section:
         #: list of isolines
         self.isolines: list[Isoline] = isolines
         if len(self.isolines) > 0:
-            #: list of isoline origin coordinates from first isoline of the list
-            self.isolines_origin: list[tuple[float, float]] = self._compute_origin(
-                flow_dir
+            #: list of isoline origin coordinates from 1st isoline of the list
+            self.isolines_origin: list[tuple[float, float]] = (
+                self._compute_origin(flow_dir)
             )
 
         #: list of boolean, True if isoline at the same index belongs to the
@@ -108,7 +121,7 @@ class Section:
 
         #: list of displacements betweeen each pair of successive isolines
         self.local_disp: npt.NDArray[np.float64] = np.empty(0)
-        #: list of average displacements between first and last isoline of the section
+        #: list of average displacements between first and last isolines
         self.averaged_disp: dict[str, npt.NDArray[np.float64]] = {}
         #: stacking pattern type
         self.stacking_pattern_type: StackingPatternType = (
@@ -118,7 +131,7 @@ class Section:
     def _compute_origin(
         self: Self, flow_dir: npt.NDArray[np.float64] = np.array([1, 0])
     ) -> list[tuple[float, float]]:
-        """Compute isoline coordinates along the section from reference ClPoint.
+        """Compute Isoline coordinates along the section from reference point.
 
         Parameters:
         ----------
@@ -292,18 +305,15 @@ class Section:
                 Defaults to False.
 
         """
-        l_pt: list[npt.NDArray[np.float64]] = [
-            np.array(pt_origin) for pt_origin in self.isolines_origin
-        ]
+        l_pt: npt.NDArray[np.float64] = np.array(
+            [np.array(pt_origin) for pt_origin in self.isolines_origin]
+        )
         # smooth isolines loc
         if smooth:
             ages: npt.NDArray[np.float64] = np.array(
                 [isoline.age for isoline in self.isolines]
             ).astype(float)
             l_pt = cpf.resample_path(l_pt, ages, 0).T
-            #l_pt = cpf.coords2points(
-            #     cpf.resample_path(l_pt, ages, 0)#cpf.points2coords(l_pt), ages, 0)
-            # )
 
         self.local_disp = np.full((len(l_pt) - 1, 3), np.nan)
         pt_origin_prev: npt.NDArray[np.float64] = np.array((0.0, 0.0))
@@ -344,7 +354,8 @@ class Section:
             write_results (bool, optional): if True, write results in a file.
 
                 Defaults to False.
-            filepath (str, optional): Full nae of the file to export the results.
+            filepath (str, optional): Full name of the file to export the
+                results.
 
                 Defaults to "".
         """
@@ -390,7 +401,7 @@ class Section:
         Returns:
         ----------
             npt.NDArray[np.float64]: Averaged displacement metrics including in
-                the order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
+                order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
 
         """
         pt_apex: tuple[float, float] = self.isolines_origin[-1]
@@ -405,7 +416,7 @@ class Section:
                 )
             )
         ):
-            # reference point from which to compute 'bend' averaged displacements
+            # reference point from which to compute 'bend' mean displacements
             pt_ref = pt_apex
             dmax: float = 0
             cpt: int = 0

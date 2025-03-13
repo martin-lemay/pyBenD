@@ -2,9 +2,8 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-from typing import Any, Optional
+from typing import Optional
 
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +11,6 @@ import numpy.typing as npt
 from matplotlib.axes import Axes
 from matplotlib.markers import MarkerStyle
 
-import pybend.algorithms.centerline_process_function as cpf
 from pybend.model.Bend import Bend
 from pybend.model.BendEvolution import BendEvolution
 from pybend.model.Centerline import Centerline
@@ -21,6 +19,10 @@ from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import BendSide
 from pybend.model.Section import Section
 from pybend.utils.logging import logger
+
+__doc__ = """
+Plot methods.
+"""
 
 
 def plot_centerline_collection(
@@ -44,14 +46,14 @@ def plot_centerline_collection(
     plot_section: bool = False,
     plot_warping: bool = True,
     cmap_name: str = "Blues",
-) ->None:
+) -> None:
     """Function to plot CenterlineCollection object.
 
     Parameters:
     -----------
         filepath (str): path to export figures if not empty.
         cl_collec (CenterlineCollection): CenterlineCollection object to plot
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         nb_cl (int, optional): Number of centerline to show.
 
             Defaults to 999 (i.e., plot all centerlines).
@@ -114,7 +116,7 @@ def plot_centerline_collection(
     keys: npt.NDArray[np.int64] = _get_keys_to_plot(all_ages, nb_cl)
 
     # get color map
-    cmap: colors.Colormap = cm.get_cmap(cmap_name)
+    cmap: colors.Colormap = plt.colormaps[cmap_name]
     cmap_norm: colors.Normalize = colors.Normalize(vmin=keys[0], vmax=keys[-1])
 
     # create plot
@@ -202,7 +204,7 @@ def plot_centerline_single(
         filepath (str): path to export figures if not empty.
         cl_points (tuple[list[ClPoint]]): list of ClPoint objects.
         bends (list[Bend]): list of Bend objects to plot
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         show (bool, optional): if True, show the figure.
 
             Defaults to False.
@@ -221,7 +223,7 @@ def plot_centerline_single(
         plot_centroid (bool, optional): if True, plot bend centroid.
 
             Defaults to False.
-        plot_pt_start (bool, optional): if True, plot centerline starting point.
+        plot_pt_start (bool, optional): if True, plot centerline starting point
 
             Defaults to False.
         plot_apex_proba (bool, optional): If True, color channel points with
@@ -295,7 +297,7 @@ def plot_bend_evol(
     cl_collec: tuple[CenterlineCollection],
     bend_evol: BendEvolution,
     nb_cl: int = 999,
-    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()), # type: ignore
+    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()),  # type: ignore
     annotate: bool = False,
     plot_apex: bool = True,
     plot_inflex: bool = False,
@@ -322,7 +324,7 @@ def plot_bend_evol(
         nb_cl (int, optional): Number of centerline to plot.
 
             Defaults to 999 (i.e., plot all centerlines).
-        domain (tuple[tuple[float, float], tuple[float, float]]): display domain
+        domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         annotate (bool, optional): if True, add bend ids.
 
             Defaults to False.
@@ -378,7 +380,7 @@ def plot_bend_evol(
     keys: npt.NDArray[np.int64] = _get_keys_to_plot(bend_evol_all_iter, nb_cl)
 
     # get color map
-    cmap: colors.Colormap = cm.get_cmap(cmap_name)
+    cmap: colors.Colormap = plt.colormaps[cmap_name]
     cmap_norm = colors.Normalize(vmin=keys[0], vmax=keys[-1])
     # list of upstream and downstream bend indexes for plot_warping if needed
     indexes: dict[int, tuple[int, int]] = {}
@@ -454,7 +456,7 @@ def plot_bends(
     ax: Axes,
     cl_points: tuple[list[ClPoint]],
     bends: list[Bend],
-    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()), # type: ignore
+    domain: tuple[tuple[float, float], tuple[float, float]] = ((), ()),  # type: ignore
     annotate: bool = False,
     plot_apex: bool = True,
     plot_inflex: bool = False,
@@ -515,8 +517,8 @@ def plot_bends(
 
         Defaults to 1.
     markersize (float, optional): Marker size.
-    cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to True,
-        centerline color is overwrite.
+    cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to
+        True, centerline color is overwrite.
 
         Defaults to None.
     plot_apex_proba (bool, optional): If True, color channel points with
@@ -616,13 +618,13 @@ def plot_bends(
                 markersize=1.5 * markersize,
             )
 
-        if plot_middle and bend.isvalid and bend.pt_middle is not None:
-            pt_middle: npt.NDArray[np.float64] = bend.pt_middle
+        if plot_middle and bend.isvalid and bend.pt_center is not None:
+            pt_center: npt.NDArray[np.float64] = bend.pt_center
             if rotate:
-                pt_middle = (coords[-1] + coords[0]) / 2.0
+                pt_center = (coords[-1] + coords[0]) / 2.0
             ax.plot(
-                pt_middle[0],
-                pt_middle[1],
+                pt_center[0],
+                pt_center[1],
                 marker="o",
                 color="k",
                 markersize=0.8 * markersize,
@@ -669,14 +671,15 @@ def plot_bends(
                 )
 
         if plot_property:
-            prop: npt.NDArray[np.float64] = np.zeros(bend.get_nb_points())
-            # prop :list[float] = []
-            for i, cl_pt in enumerate(
-                cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
-            ):
-                prop[i] = cl_pt.get_property(property_name)
-                # prop += [cl_pt.get_property(property_name)]
-                # vp_color = vp_colormap(vp_colormap_norm(cl_pt.get_property(property_name)))
+            prop = np.array(
+                [
+                    cl_pt.get_property(property_name)
+                    for cl_pt in cl_points[0][
+                        bend.index_inflex_up : bend.index_inflex_down + 1
+                    ]
+                ]
+            )
+
             vmax = np.max(np.abs(prop))
             ax.scatter(
                 coords[:, 0],
@@ -745,10 +748,14 @@ def plot_section(
     """
     # get color map
     colors_norm: Optional[colors.Normalize] = None
-    cmap: Optional[colors.Normalize] = None
+    cmap: Optional[colors.Colormap] = None
     if not color_same_bend:
         colors_norm = colors.Normalize(vmin=0, vmax=len(section.isolines))
-        cmap = colors.Colormap(cmap_name) if len(cmap_name) > 0 else colors.Colormap("Blues")
+        cmap = (
+            colors.Colormap(cmap_name)
+            if len(cmap_name) > 0
+            else colors.Colormap("Blues")
+        )
 
     for i, isoline in enumerate(section.isolines):
         # coordinates to plot
@@ -756,7 +763,7 @@ def plot_section(
         # print(isoline.points)
         # print(origin)
         coords = np.array(isoline.points).T
-        #print(coords[0])
+        # print(coords[0])
         lx: npt.NDArray[np.float64] = (origin[0] + coords[0]) / norm_hor
         ly: npt.NDArray[np.float64] = (origin[1] + coords[1]) / norm_vert
         # print(ly)
@@ -822,18 +829,18 @@ def plot_versus_curvilinear(
         "hotpink",
     ]
 
-    assert len(curves1) == len(
-        labels1
-    ), "The number of Curves and labels from first set is different"
-    assert len(curves2) == len(
-        labels2
-    ), "The number of Curves and labels from second set is different"
-    assert len(curves1) > len(
-        colors1
-    ), "Too many curves to plot from first set."
-    assert len(curves2) > len(
-        colors2
-    ), "Too many curves to plot from second set."
+    assert len(curves1) == len(labels1), (
+        "The number of Curves and labels from first set is different"
+    )
+    assert len(curves2) == len(labels2), (
+        "The number of Curves and labels from second set is different"
+    )
+    assert len(curves1) > len(colors1), (
+        "Too many curves to plot from first set."
+    )
+    assert len(curves2) > len(colors2), (
+        "Too many curves to plot from second set."
+    )
 
     _, ax1 = plt.subplots()
 
@@ -918,15 +925,21 @@ def _plot_bend_evol_trajectories(
 
     """
     if plot_apex_trajec and (len(bend_evol.apex_trajec_smooth) > 0):
-        coords0: npt.NDArray[np.float64] = np.array(bend_evol.apex_trajec_smooth) #cpf.points2coords(bend_evol.apex_trajec_smooth)
+        coords0: npt.NDArray[np.float64] = np.array(
+            bend_evol.apex_trajec_smooth
+        )  # cpf.points2coords(bend_evol.apex_trajec_smooth)
         ax.plot(coords0[:, 0], coords0[:, 1], "r-", linewidth=1)
 
     if plot_middle_trajec and (len(bend_evol.middle_trajec_smooth) > 0):
-        coords1: npt.NDArray[np.float64] = np.array(bend_evol.middle_trajec_smooth) #cpf.points2coords(bend_evol.middle_trajec_smooth)
+        coords1: npt.NDArray[np.float64] = np.array(
+            bend_evol.middle_trajec_smooth
+        )  # cpf.points2coords(bend_evol.middle_trajec_smooth)
         ax.plot(coords1[:, 0], coords1[:, 1], "b-", linewidth=1)
 
     if plot_centroid_trajec and (len(bend_evol.centroid_trajec_smooth) > 0):
-        coords2: npt.NDArray[np.float64] = np.array(bend_evol.centroid_trajec_smooth) #cpf.points2coords(bend_evol.centroid_trajec_smooth)
+        coords2: npt.NDArray[np.float64] = np.array(
+            bend_evol.centroid_trajec_smooth
+        )  # cpf.points2coords(bend_evol.centroid_trajec_smooth)
         ax.plot(coords2[:, 0], coords2[:, 1], "-", color="orange", linewidth=1)
 
 
@@ -1001,11 +1014,11 @@ def _update_plot_properties(
 
     """
     if (len(domain) == 0) or (len(domain[0]) == 0) or (len(domain[1]) == 0):
-        plt.axis("equal") # type: ignore[unreachable]
+        plt.axis("equal")  # type: ignore[unreachable]
     elif len(domain[0]) > 0:
-        plt.xlim(domain[0]) # type: ignore[unreachable]
-    elif len(domain[1]) > 0: # type: ignore[unreachable]
-        plt.ylim(domain[1]) # type: ignore[unreachable]
+        plt.xlim(domain[0])  # type: ignore[unreachable]
+    elif len(domain[1]) > 0:  # type: ignore[unreachable]
+        plt.ylim(domain[1])  # type: ignore[unreachable]
 
     plt.grid(True, which="both", axis="both")
     plt.xlabel("X (m)")

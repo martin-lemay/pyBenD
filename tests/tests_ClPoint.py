@@ -67,12 +67,13 @@ def create_cl_point(dataset: pd.Series, ide: str, age: int) -> ClPoint:
 
 
 class TestsClPoint(unittest.TestCase):
-    def test_create_cl_point(self: Self) ->None:
+    def test_create_cl_point(self: Self) -> None:
         """Test of create_cl_point function."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt: ClPoint = create_cl_point(dataset, ide, age)
             self.assertTrue(
@@ -80,36 +81,39 @@ class TestsClPoint(unittest.TestCase):
                 "Channel_point must be instantiated and not null",
             )
 
-    def test_id(self: Self) ->None:
+    def test_id(self: Self) -> None:
         """Test of cl_point if."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt: ClPoint = create_cl_point(dataset, ide, age)
             self.assertEqual(
                 cl_pt._id, ide, f"Id test: Channel point id must be {ide}"
             )
 
-    def test_age(self: Self) ->None:
+    def test_age(self: Self) -> None:
         """Test of create_cl_point age."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt: ClPoint = create_cl_point(dataset, ide, age)
             self.assertEqual(
                 cl_pt._age, age, f"Age test: Channel point age must be {age}"
             )
 
-    def test_coordinates(self: Self) ->None:
+    def test_coordinates(self: Self) -> None:
         """Test of create_cl_point coordinates."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt = create_cl_point(dataset, ide, age)
             self.assertEqual(
@@ -137,12 +141,13 @@ class TestsClPoint(unittest.TestCase):
                 % dataset[PropertyNames.ELEVATION.value],
             )
 
-    def test_properties(self: Self) ->None:
+    def test_properties(self: Self) -> None:
         """Test of create_cl_point properties."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt = create_cl_point(dataset, ide, age)
             self.assertEqual(
@@ -158,7 +163,7 @@ class TestsClPoint(unittest.TestCase):
                 % dataset[PropertyNames.VELOCITY.value],
             )
             self.assertEqual(
-                cl_pt.depth(),
+                cl_pt.depth_mean(),
                 dataset[PropertyNames.DEPTH_MEAN.value],
                 "Properties test: Mean_depth must be equal to %.3f"
                 % dataset[PropertyNames.DEPTH_MEAN.value],
@@ -183,15 +188,17 @@ class TestsClPoint(unittest.TestCase):
             )
             self.assertFalse(
                 np.isfinite(cl_pt.curvature_filtered()),
-                "Properties test: curvature_filtered function must return finite values.",
+                "Properties test: curvature_filtered function must return "
+                + "finite values.",
             )
 
-    def test_repr(self: Self) ->None:
+    def test_repr(self: Self) -> None:
         """Test of cl point repr function."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt = create_cl_point(dataset, ide, age)
             rep = str(
@@ -208,7 +215,7 @@ class TestsClPoint(unittest.TestCase):
                 "Repr test: channel point must be printed: %s" % rep,
             )
 
-    def test_add(self: Self) ->None:
+    def test_add(self: Self) -> None:
         """Test of cl point add function."""
         cl_pt1 = create_cl_point(dataset1, ide1, age1)
         cl_pt2 = create_cl_point(dataset2, ide2, age2)
@@ -224,12 +231,13 @@ class TestsClPoint(unittest.TestCase):
             "Add test: width must be equal to %.2f" % expected,
         )
 
-    def test_multiply(self: Self) ->None:
+    def test_multiply(self: Self) -> None:
         """Test of cl point multiply function."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt = create_cl_point(dataset, ide, age)
             cl_pt11 = cl_pt * 2.0
@@ -270,12 +278,13 @@ class TestsClPoint(unittest.TestCase):
                 % expected,
             )
 
-    def test_divide(self: Self) ->None:
+    def test_divide(self: Self) -> None:
         """Test of cl point divide function."""
         for ide, age, dataset in zip(
             (ide1, ide2, ide3),
             (age1, age2, age3),
-            (dataset1, dataset2, dataset3), strict=True
+            (dataset1, dataset2, dataset3),
+            strict=True,
         ):
             cl_pt = create_cl_point(dataset, ide, age)
             cl_pt11 = cl_pt / 2.0
@@ -292,7 +301,7 @@ class TestsClPoint(unittest.TestCase):
                 "Divide test: Width must be equal to %.2f" % expected,
             )
 
-    def test_eq(self: Self) ->None:
+    def test_eq(self: Self) -> None:
         """Test of cl point eq function."""
         cl_pt1 = create_cl_point(dataset1, ide1, age1)
         cl_pt2 = create_cl_point(dataset2, ide2, age2)

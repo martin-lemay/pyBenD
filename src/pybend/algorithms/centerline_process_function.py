@@ -16,6 +16,10 @@ from scipy.signal import find_peaks  # type: ignore[import-untyped]
 from pybend.model.ClPoint import ClPoint
 from pybend.utils.logging import logger
 
+__doc__ = """
+Usefull methods.
+"""
+
 
 def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
     """Transform a list of ClPoint into a numpy array (1 point per row).
@@ -30,6 +34,7 @@ def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
 
     """
     return np.array([cl_pt.pt for cl_pt in cl_pts])
+
 
 def compute_cuvilinear_abscissa(
     XY: npt.NDArray[np.float64],
@@ -123,7 +128,9 @@ def distance(
     pt2Array: npt.NDArray[np.float64] = np.array(pt2)
 
     dim: int = min(pt1Array.size, pt2Array.size)
-    d: float = float(np.linalg.norm(pt2Array[:dim] - pt1Array[:dim]).astype(float))
+    d: float = float(
+        np.linalg.norm(pt2Array[:dim] - pt1Array[:dim]).astype(float)
+    )
     return round(d, prec)
 
 
@@ -195,14 +202,14 @@ def seg_intersect(
     pt21: npt.NDArray[np.float64],
     pt22: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
-    """Compute the intersection point to the segments (pt11, pt12), (pt21, pt22).
+    """Compute the intersection point to the segments (pt11,pt12), (pt21,pt22).
 
     Parameters:
     ----------
-        pt11 (NDArray[float]): Coordinates of the first point of the first line.
-        pt12 (NDArray[float]): Coordinates of the second point of the first line.
-        pt21 (NDArray[float]): Coordinates of the first point of the second line.
-        pt22 (NDArray[float]): Coordinates of the first second of the second line.
+        pt11 (NDArray[float]): Coordinates of the 1st point of the first line
+        pt12 (NDArray[float]): Coordinates of the 2nd point of the first line
+        pt21 (NDArray[float]): Coordinates of the 1st point of the second line
+        pt22 (NDArray[float]): Coordinates of the 2nd second of the second line
 
     Returns:
     -------
@@ -270,8 +277,9 @@ def project_point(
 
     Returns:
     -------
-        tuple[npt.NDArray[np.float64], int]: tuple containing the coordinates of the
-            projected point and an int if the closest point is before (-1) or after (+1).
+        tuple[npt.NDArray[np.float64], int]: tuple containing the coordinates
+            of the projected point and an int if the closest point is before
+            (-1) or after (+1).
 
     """
     pt_proj: npt.NDArray[np.float64] = np.copy(pt1)
@@ -296,10 +304,10 @@ def project_point(
             raise AssertionError("Both projected points are undefined.")
 
         if pt_proj0 is None:
-            j2 = -1 # type: ignore[unreachable]
+            j2 = -1  # type: ignore[unreachable]
             pt_proj = pt_proj2
         elif pt_proj2 is None:
-            j2 = 1 # type: ignore[unreachable]
+            j2 = 1  # type: ignore[unreachable]
             pt_proj = pt_proj0
         else:
             d: float = distance(pt_new1, pt_proj0) - distance(
@@ -336,6 +344,7 @@ def project_point(
         )
     return pt_proj, j2
 
+
 def resample_path(
     x: npt.NDArray[np.float64],
     y: npt.NDArray[np.float64],
@@ -358,19 +367,21 @@ def resample_path(
 
     Returns:
     -------
-        NDArray[float]: Coordinates of the new points.
+        NDArray[float] | tuple[NDArray[float], NDArray[float]]: Coordinates
+            of the new points.
 
     """
     assert x.size == y.size, "x and y must have the same size."
     if x.size < 3:
         logger.warning("Too few number of points. No resampling is applied.")
-        return x, y
+        return np.column_stack((x, y))
 
-    k = min(x.size-1, 3)
+    k = min(x.size - 1, 3)
     tck, u = splprep([x, y], s=s, k=k)
     if nb_pts:
         u = np.linspace(0.0, 1.0, nb_pts)
     return splev(u, tck)
+
 
 def find_2_closest_points_multi_proc(
     dataset1: pd.DataFrame,
@@ -379,12 +390,13 @@ def find_2_closest_points_multi_proc(
     y_prop: str = "Y",
     nb_procs: int = 1,
 ) -> pd.DataFrame:
-    """Find the 2 closest points from dataset1 in dataset2 using multiprocessing.
+    """Find the 2 closest points from dataset1 in dataset2 using multiproc.
 
     Parameters:
     ----------
         dataset1 (DataFrame): DataFrame containing x,y coordinates
-        dataset2 (DataFrame): DataFrame containing x,y coordinates where to find the closest points.
+        dataset2 (DataFrame): DataFrame containing x,y coordinates where to
+            find the closest points.
         x_prop (str, optional): Column name of x coordinate.
 
             Defaults to "X".
@@ -433,7 +445,7 @@ def find_2_closest_points_mono_proc(
     x_prop: str = "X",
     y_prop: str = "Y",
 ) -> pd.DataFrame:
-    """Find the 2 closest points from dataset1 in dataset2 using monoprocessing.
+    """Find the 2 closest points from dataset1 in dataset2 using monoproc.
 
     Parameters:
     ----------
@@ -511,7 +523,8 @@ def find_2_closest_points(
     d1: float = np.inf  # minimum distance
     d_prev: float = np.inf
     for j, row in dataset2.iterrows():
-        # optimization and prevent to find a point ahead of another point already found
+        # optimization and prevent to find a point ahead of another point
+        # already found
         if j < j1:  # type: ignore
             continue
 
@@ -591,7 +604,7 @@ def find_inflection_points(
         + "curvature before inflection points"
     )
 
-     # duplicate first and last values for calculation
+    # duplicate first and last values for calculation
     curvature1: npt.NDArray[np.float64] = np.zeros(curvature.size + 2)
     curvature1[1:-1] = curvature
     curvature1[0], curvature1[-1] = curvature1[1], curvature1[-2]
@@ -606,8 +619,9 @@ def find_inflection_points(
     ).flatten("A")
     return filter_consecutive_indices(inflex_pts, lag)
 
+
 def find_inflection_points_from_peaks(
-    curvature: npt.NDArray[np.float64], curv_threshold: float=0.1
+    curvature: npt.NDArray[np.float64], curv_threshold: float = 0.1
 ) -> npt.NDArray[np.int64]:
     r"""Find inflection points from curvature array.
 
@@ -640,8 +654,9 @@ def find_inflection_points_from_peaks(
     curv1[curv1 > -1e-6] = -1e-6
 
     # normalizes curvature must be < 0.001
-    peak_indexes, _ = find_peaks(curv1, height=(-1.*curv_threshold, 0))
+    peak_indexes, _ = find_peaks(curv1, height=(-1.0 * curv_threshold, 0))
     return peak_indexes
+
 
 def filter_consecutive_indices(
     values: npt.NDArray[np.int64], lag: int
@@ -752,7 +767,7 @@ def compute_curvature_at_point_Menger(
     pt2: npt.NDArray[np.float64],
     pt3: npt.NDArray[np.float64],
 ) -> float:
-    """Compute absolute value of curvature from 3 points according to Menger formula.
+    """Compute curvature from 3 points according to Menger formula.
 
     Parameters:
     ----------
@@ -817,7 +832,8 @@ def compute_curvature_at_point_flumy(
     # Compute curvature -- begin
     det: float = M1M2[0] * M2M3[1] - M1M2[1] * M2M3[0]
 
-    # avoid a division by 0 when the distance between the 2 last points is very small
+    # avoid a division by 0 when the distance between the 2 last points is very
+    # small
     if abs(det) > 1e-6:
         a: float = M2sq - M3sq
         xc: float = -a * y1
@@ -844,7 +860,7 @@ def compute_curvature_at_point_flumy(
 def compute_median_curvature_index(
     curvature: npt.NDArray[np.float64], n: float
 ) -> int:
-    """Find the median abscissa using curvature distribution as weighting function.
+    """Get median abscissa using curvature distribution as weighting function.
 
     Parameters:
     ----------
@@ -868,7 +884,7 @@ def compute_esperance(
     curv_abscissa: npt.NDArray[np.float64],
     n: float,
 ) -> float:
-    """Compute the average abscissa using curvature distribution as weighting function.
+    """Get average abscissa using curvature distribution as weighting function.
 
     Parameters:
     ----------
@@ -892,7 +908,7 @@ def compute_variance(
     curv_abscissa: npt.NDArray[np.float64],
     n: float,
 ) -> tuple[float, float]:
-    """Compute the variance and standard deviation of abscissa using curvature distribution as weighting function.
+    """Get variance abscissa from curvature distribution as weighting function.
 
     Parameters:
     ----------
@@ -902,7 +918,7 @@ def compute_variance(
 
     Returns:
     ----------
-        tuple[float, float]: tuple containing the variance and stanard deviation.
+        tuple[float, float]: tuple containing the variance and std deviation.
     """
     mean = compute_esperance(curvature, curv_abscissa, n)
     abs2 = (curv_abscissa - mean) ** 2
@@ -915,7 +931,7 @@ def compute_skewness(
     curv_abscissa: npt.NDArray[np.float64],
     n: float,
 ) -> float:
-    """Compute the Pearson's skewness coefficient of curvature distribution function.
+    """Compute Pearson's skewness coeff of curvature distribution function.
 
     Parameters:
     ----------
@@ -1142,7 +1158,7 @@ def sort_key(labels: list[str], reverse: bool = False) -> list[str]:
 
     Parameters:
     ----------
-        labels (list[str]): List of labels that can be cast to int/float values.
+        labels (list[str]): List of labels that can be cast to int/float values
         reverse (bool, optional): if True, sorting is descending.
 
             Defaults to False.

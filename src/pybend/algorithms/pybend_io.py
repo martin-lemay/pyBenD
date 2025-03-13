@@ -11,6 +11,10 @@ import pybend.algorithms.centerline_process_function as cpf
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import PropertyNames
 
+__doc__ = """
+IO methods for pyBenD.
+"""
+
 
 def load_centerline_dataset_from_csv(
     filepath: str,
@@ -47,26 +51,29 @@ def load_centerline_dataset_from_csv(
 
     Returns:
     -------
-        pd.DataFrame: DataFrame containing centerline coordinates and properties
-            of each channel point
+        pd.DataFrame: DataFrame containing centerline coordinates and
+            properties of each channel point
 
     """
     dataset: pd.DataFrame = pd.read_csv(
         filepath, sep=sep, float_precision="round_trip"
     )
 
-    assert (
-        x_prop in dataset.columns
-    ), "X coordinate column indexes was not found."
-    assert (
-        y_prop in dataset.columns
-    ), "Y coordinate column indexes was not found."
+    assert x_prop in dataset.columns, (
+        "X coordinate column indexes was not found."
+    )
+    assert y_prop in dataset.columns, (
+        "Y coordinate column indexes was not found."
+    )
 
     for col in drop_columns:
         dataset.drop(columns=col, inplace=True)
 
     dataset.rename(
-        columns={x_prop: PropertyNames.CARTESIAN_ABSCISSA.value, y_prop: PropertyNames.CARTESIAN_ORDINATE.value},
+        columns={
+            x_prop: PropertyNames.CARTESIAN_ABSCISSA.value,
+            y_prop: PropertyNames.CARTESIAN_ORDINATE.value,
+        },
         inplace=True,
         copy=False,
     )
@@ -81,8 +88,16 @@ def load_centerline_dataset_from_csv(
     else:
         dataset[PropertyNames.ELEVATION.value] = 0.0
 
-    dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = cpf.compute_cuvilinear_abscissa(
-        dataset.loc[:, (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value)].to_numpy()  # type: ignore
+    dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
+        cpf.compute_cuvilinear_abscissa(
+            dataset.loc[
+                :,
+                (
+                    PropertyNames.CARTESIAN_ABSCISSA.value,
+                    PropertyNames.CARTESIAN_ORDINATE.value,
+                ),
+            ].to_numpy()  # type: ignore
+        )
     )
     return dataset
 
@@ -102,17 +117,32 @@ def load_centerline_dataset_from_Flumy_csv(
     Returns:
     --------
         tuple[int, pd.DataFrame]: tuple containing the age as first component
-            and a DataFrame containing centerline point coordinates and properties.
+            and a DataFrame containing centerline point coordinates and
+            properties.
 
     """
     data: pd.DataFrame = pd.read_csv(filepath, sep=sep)
 
-    mess: str = " property is missing. Try to use load_dataset_from_csv loader instead."
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, PropertyNames.CARTESIAN_ORDINATE.value + mess
-    assert PropertyNames.ELEVATION.value in data.columns, PropertyNames.ELEVATION.value + mess
-    assert PropertyNames.CURVATURE.value in data.columns, PropertyNames.CURVATURE.value + mess
+    mess: str = (
+        " property is missing. Try to use load_dataset_from_csv loader "
+        + "instead."
+    )
+
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, (
+        PropertyNames.CARTESIAN_ORDINATE.value + mess
+    )
+    assert PropertyNames.ELEVATION.value in data.columns, (
+        PropertyNames.ELEVATION.value + mess
+    )
+    assert PropertyNames.CURVATURE.value in data.columns, (
+        PropertyNames.CURVATURE.value + mess
+    )
     assert "Iteration" in data.columns, "Iteration" + mess
 
     assert data["Iteration"].unique().size == 1, (
@@ -162,7 +192,11 @@ def load_centerline_dataset_from_kml(
                     coords = elt.split(",")
                     coords_all += [coords]
 
-    columns = (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value, PropertyNames.ELEVATION.value)
+    columns = (
+        PropertyNames.CARTESIAN_ABSCISSA.value,
+        PropertyNames.CARTESIAN_ORDINATE.value,
+        PropertyNames.ELEVATION.value,
+    )
     nb_pts = len(coords_all)
     assert nb_pts > 0, "Point coordinates were not found."
 
@@ -175,8 +209,16 @@ def load_centerline_dataset_from_kml(
     dataset = pd.DataFrame(data, columns=columns[:nb_col])
     if nb_col == 2:
         dataset[PropertyNames.ELEVATION.value] = 0.0
-    dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = cpf.compute_cuvilinear_abscissa(
-        dataset.loc[:, (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value)].to_numpy()  # type: ignore
+    dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
+        cpf.compute_cuvilinear_abscissa(
+            dataset.loc[
+                :,
+                (
+                    PropertyNames.CARTESIAN_ABSCISSA.value,
+                    PropertyNames.CARTESIAN_ORDINATE.value,
+                ),
+            ].to_numpy()  # type: ignore
+        )
     )
     return dataset
 
@@ -195,7 +237,9 @@ def dump_centerline_to_csv(
             Defaults to ";".
 
     """
-    columns = centerline.cl_points[0].get_data().index.tolist() + [PropertyNames.AGE.value]
+    columns = centerline.cl_points[0].get_data().index.tolist() + [
+        PropertyNames.AGE.value
+    ]
     nrows = len(centerline.cl_points)
     data = pd.DataFrame(np.zeros((nrows, len(columns))), columns=columns)
     data[PropertyNames.AGE.value] = centerline.age
@@ -224,12 +268,25 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     """
     data: pd.DataFrame = pd.read_csv(filepath, sep=sep)
 
-    mess: str = " property is missing. Try to use load_centerline_evolution_from_multiple_xy_csv loader instead."
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, PropertyNames.CARTESIAN_ABSCISSA.value + mess
-    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, PropertyNames.CARTESIAN_ORDINATE.value + mess
-    assert PropertyNames.ELEVATION.value in data.columns, PropertyNames.ELEVATION.value + mess
-    assert PropertyNames.CURVATURE.value in data.columns, PropertyNames.CURVATURE.value + mess
+    mess: str = (
+        " property is missing. Try to use load_centerline_evolution_"
+        + "from_multiple_xy_csv loader instead."
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ABSCISSA.value in data.columns, (
+        PropertyNames.CARTESIAN_ABSCISSA.value + mess
+    )
+    assert PropertyNames.CARTESIAN_ORDINATE.value in data.columns, (
+        PropertyNames.CARTESIAN_ORDINATE.value + mess
+    )
+    assert PropertyNames.ELEVATION.value in data.columns, (
+        PropertyNames.ELEVATION.value + mess
+    )
+    assert PropertyNames.CURVATURE.value in data.columns, (
+        PropertyNames.CURVATURE.value + mess
+    )
     assert "Iteration" in data.columns, "Iteration" + mess
 
     assert data["Iteration"].unique().size > 1, (
@@ -275,7 +332,8 @@ def load_centerline_evolution_from_single_xy_csv(
         age_prop (str, optional): name of the column for centerline age
 
             Defaults to "Age".
-        drop_columns (tuple[str,...], optional): list of the names of the columns to drop
+        drop_columns (tuple[str,...], optional): list of the names of the
+            columns to drop
 
             Defaults is empty.
         sep (str, optional): separator of the csv files
@@ -285,7 +343,8 @@ def load_centerline_evolution_from_single_xy_csv(
     Returns:
     ----------
         dict[int, pd.DataFrame]: dictionary where ages are keys and
-            DataFrame with centerline point coordinates and properties are values.
+            DataFrame with centerline point coordinates and properties are
+            values.
     """
     data: pd.DataFrame = pd.read_csv(filepath, sep=sep)
 
@@ -322,8 +381,16 @@ def load_centerline_evolution_from_single_xy_csv(
             inplace=True,
             copy=False,
         )
-        sub_data[PropertyNames.CURVILINEAR_ABSCISSA.value] = cpf.compute_cuvilinear_abscissa(
-            sub_data.loc[:, (PropertyNames.CARTESIAN_ABSCISSA.value, PropertyNames.CARTESIAN_ORDINATE.value)].to_numpy()  # type: ignore
+        sub_data[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
+            cpf.compute_cuvilinear_abscissa(
+                sub_data.loc[
+                    :,
+                    (
+                        PropertyNames.CARTESIAN_ABSCISSA.value,
+                        PropertyNames.CARTESIAN_ORDINATE.value,
+                    ),
+                ].to_numpy()  # type: ignore
+            )
         )
         print(sub_data.columns)
         # sub_data.drop(columns=age_prop, inplace=True)
@@ -343,7 +410,8 @@ def load_centerline_evolution_from_multiple_xy_csv(
 
     Parameters:
     ----------
-        map_file (dict[int, str]): dictionnary of age and file name in the directory
+        map_file (dict[int, str]): dictionnary of age and file name in the
+            directory.
         x_prop (str, optional): name of the column for x coordinate
 
             Defaults to "X".
@@ -353,7 +421,8 @@ def load_centerline_evolution_from_multiple_xy_csv(
         z_prop (str, optional): name of the column for elevation
 
             Defaults to "Z".
-        drop_columns (tuple[str,...], optional): list of the names of the columns to drop
+        drop_columns (tuple[str,...], optional): list of the names of the
+            columns to drop
 
             Defaults is empty.
         sep (str, optional): separator of the csv files
@@ -363,7 +432,8 @@ def load_centerline_evolution_from_multiple_xy_csv(
     Returns:
     ----------
         dict[int, pd.DataFrame]: dictionary where ages are keys and
-            DataFrame with centerline point coordinates and properties are values.
+            DataFrame with centerline point coordinates and properties are
+            values.
     """
     assert len(map_file) > 0, "The map of files is empty."
 
@@ -387,7 +457,8 @@ def load_centerline_evolution_from_multiple_kml(
     Parameters:
     ----------
         directory (str): directory where the kml files are
-        map_file (dict[int, str]): dictionnary of age and file name in the directory
+        map_file (dict[int, str]): dictionnary of age and file name in the
+            directory
         keyword (str, optional): keyword to search for coordinate line.
 
             Defaults to "coordinates".
@@ -410,9 +481,9 @@ def load_centerline_evolution_from_multiple_kml(
 
 
 @deprecated("Use load_centerline_dataset_from_csv instead.")
-def create_dataset_from_xy(X: npt.NDArray[np.float64],
-                           Y: npt.NDArray[np.float64]
-                          ) ->pd.DataFrame:
+def create_dataset_from_xy(
+    X: npt.NDArray[np.float64], Y: npt.NDArray[np.float64]
+) -> pd.DataFrame:
     """Create a dataset from X and Y 1D arrays.
 
     Parameters:
@@ -422,7 +493,8 @@ def create_dataset_from_xy(X: npt.NDArray[np.float64],
 
     Returns:
     --------
-        pd.DataFrame: DataFrame with centerline point coordinates and properties.
+        pd.DataFrame: DataFrame with centerline point coordinates and
+            properties.
 
     """
     data = np.zeros((X.size, 5))
@@ -446,4 +518,3 @@ def create_dataset_from_xy(X: npt.NDArray[np.float64],
         ),
     )
     return dataset
-

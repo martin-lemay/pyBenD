@@ -73,9 +73,9 @@ class ClPoint:
         #: channel point data (curvature, height, velocity, etc.)
         self._data: pd.Series = dataset
 
-        #: list of channel point indexes in the centerline at previous time step
+        #: list of channel point index in the centerline at previous time step
         self.cl_pt_index_prev: list[int] = []
-        #: list of channel point indexes in the centerline at next time step
+        #: list of channel point index in the centerline at next time step
         self.cl_pt_index_next: list[int] = []
 
     def __repr__(self: Self) -> str:

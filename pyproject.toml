@@ -39,10 +39,10 @@ dependencies = [
     "matplotlib >= 3.9.2",
     "dtw-python >= 1.5.3",
     "psutil >= 6.1.0" ,
-    "statsmodels => 0.14.4",
-    "seaborn => 0.13.2"
+    "seaborn >= 0.13.2",
+    "statsmodels >= 0.14.4",
 ]
-requires-python = ">= 3.12"
+requires-python = ">= 3.12.2"
 
 [project.optional-dependencies]
 build = [
@@ -96,7 +96,7 @@ select = [
 ]
 
 ignore = [
-    "E501",  # line too long, handled by black
+#    "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
     "W191", # indentation contains tabs
@@ -139,10 +139,11 @@ python_files = "test*.py"
 python_functions = "test*"
 testpaths = ["tests"]
 norecursedirs = "bin"
+filterwarnings = ["ignore::DeprecationWarning:pybend.*", "ignore::DeprecationWarning:multiprocessing.*",]
 
 [tool.coverage.run]
 branch = true
-source = ["pybend, algorithms, bin, model"]
+source = ["pybend"]
 
 [tool.mypy]
 # Specify the target platform details in config, so your developers are

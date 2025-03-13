@@ -42,7 +42,7 @@ class BendEvolution:
         order: int,
         isvalid: bool = False,
     ) -> None:
-        """Store bend indexes in each Centerline that belong to a BendEvolution.
+        """Store bend indexes in each Centerline that belongs to BendEvolution.
 
         Parameters:
         ----------
@@ -56,7 +56,7 @@ class BendEvolution:
                 Defaults to False.
 
         """
-        #: indexes of bends in each centerline that belongs to the bend evolution
+        #: indexes of bends in each centerline that belongs to bend evolution
         self.bend_indexes: dict[int, list[int]] = bend_indexes
         #: bend evolution id
         self.id: int = ide

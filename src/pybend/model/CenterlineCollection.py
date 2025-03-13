@@ -298,6 +298,8 @@ class CenterlineCollection:
         object as values.
 
         Args:
+            map_centerline_data (dict[int, pd.DataFrame]): dictionnary of ages
+                and dataframe defining channel point location and properties.
             spacing (float): Target distance  (m) between two consecutive
                 channel points after resampling, or number of points if
                 use_fix_nb_points is True
@@ -375,8 +377,8 @@ class CenterlineCollection:
 
         Args:
             age (float): Age of the Centerline.
-        property_map (dict[str, float]): Dictionnary containings property names
-            as keys and property values as values.
+            property_map (dict[str, float]): Dictionnary containings property
+                names as keys and property values as values.
 
         """
         if age in self.get_all_ages():
@@ -395,8 +397,8 @@ class CenterlineCollection:
 
         Args:
             age (float): Age of the Centerline.
-        property_map (dict[str, NDArray[float]]): Dictionnary containings
-            property names as keys and array of property values as values.
+            property_map (dict[str, NDArray[float]]): Dictionnary containings
+                property names as keys and array of property values as values.
 
         """
         if age in self.get_all_ages():
@@ -1182,6 +1184,7 @@ class CenterlineCollection:
         Args:
             bend_evol_validity (int): Minimum number of bends in the
                 BendEvolution to be considered as valid.
+            bend_uids (list[int]): list of bend uids.
 
         """
         bend_evol_all: list[list[int]] = []
@@ -1279,10 +1282,10 @@ class CenterlineCollection:
         Section lines are created
 
         Args:
-            point_name (Create_section_method, optional) Name of the point to
+            point_name (CreateSectionMethod, optional): Name of the point to
                 use to create the section.
 
-                Defaults to Create_section_method.MIDDLE.
+                Defaults to CreateSectionMethod.MIDDLE.
 
         Raises:
             TypeError: in case of wrong method
@@ -1312,9 +1315,9 @@ class CenterlineCollection:
         BendEvolution.
 
         Args:
-            method (Create_section_method): Name of point to use.
-                It can be either Create_section_method.MIDDLE or
-                Create_section_method.CENTROID.
+            point_name (CreateSectionMethod): Name of point to use.
+                It can be either CreateSectionMethod.MIDDLE or
+                CreateSectionMethod.CENTROID.
 
         """
         self.section_lines = []

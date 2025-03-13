@@ -306,10 +306,8 @@ def plot_bend_evol(
     plot_middle_trajec: bool = False,
     plot_section: bool = False,
     plot_warping: bool = False,
-    annot_text_size: float = 10,
     color_bend: bool = False,
-    linewidth: float = 1,
-    markersize0: float = 2,
+    markersize: float = 2,
     cmap_name: str = "Blues",
 ) -> None:
     """Plot BendEvolution object.
@@ -392,9 +390,9 @@ def plot_bend_evol(
             continue
 
         cl_color: tuple[float, float, float, float] = cmap(cmap_norm(age))
-        markersize: float = markersize0
+        markersize0: float = markersize
         if age == np.max(keys):
-            markersize = 2.0 * markersize0
+            markersize0 = 2.0 * markersize
 
         plot_bends(
             ax,
@@ -410,7 +408,7 @@ def plot_bend_evol(
             color_bend=color_bend,
             alpha=1,
             linewidth=2,
-            markersize=markersize,
+            markersize=markersize0,
             cl_color=cl_color,
         )
 

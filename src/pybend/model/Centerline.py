@@ -169,7 +169,8 @@ class Centerline:
         Args:
             dataset (DataFrame): DataFrame that contains channel point
                 coordinates and properties. Points must be ordered according to
-                flow direction. age (int): Age of the centerline.
+                flow direction.
+            age (int): Age of the centerline.
             spacing (float): Target distance (m) between channel points after
                 resampling. If spacing equals 0, centreline is not resampled.
             smooth_distance (float): Smoothing distance (m) for Savitsky-Golay
@@ -431,7 +432,7 @@ class Centerline:
 
         Args:
             property_name (str): Property name.
-            value (NDArray[float]): Array of value of the property.
+            values (NDArray[float]): Array of value of the property.
 
         """
         if values.size > self.get_nb_points():
@@ -634,6 +635,7 @@ class Centerline:
         Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
+            nb_procs (int): number of processors.
 
         """
         cart_abscissa_prop_name: str = PropertyNames.CARTESIAN_ABSCISSA.value
@@ -1011,7 +1013,7 @@ class Centerline:
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
                 bends.
             n (float): exponent value
-            bend_index (int) Bend index.
+            bend_index (int): Bend index.
 
         Returns:
             tuple[BendSide, bool, int, npt.NDArray[np.float64]]: tuple
@@ -1026,7 +1028,7 @@ class Centerline:
         )
         return side, isvalid, index_apex, pt_center
 
-    # work in progress
+    # TODO: work in progress
     def gather_consecutive_invalid_bends(
         self: Self, sinuo_thres: float
     ) -> None:

@@ -962,16 +962,15 @@ def compute_point_displacements(
     """Compute the displacements of a serie of points.
 
     Args:
-        l_pt (list[NDArray[float]]: List of point coordinates.
+        l_pt (list[NDArray[float]]): List of point coordinates.
         dir_trans (NDArray[float], optional): Direction.
-
             Defaults to np.array((1., 0.)).
         ref (NDArray[float], optional): Reference direction.
-
             Defaults to np.array((1., 0.)).
 
     Returns:
         tuple[NDArray[float], NDArray[float]]: tuple containing:
+
             - Displacement in-between each successive points of the serie.
             - Displacement between first and last points of the serie.
 
@@ -1049,7 +1048,6 @@ def sort_key(labels: list[str], reverse: bool = False) -> list[str]:
     Args:
         labels (list[str]): List of labels that can be cast to int/float values
         reverse (bool, optional): if True, sorting is descending.
-
             Defaults to False.
 
     Returns:
@@ -1073,13 +1071,10 @@ def get_keys_from_to(
     Args:
         all_keys (list[str]): List of keys that can be cast to int values.
         key_min (int, optional): Minimum key.
-
             Defaults to 0.
         key_max (int, optional): Maximum key.
-
             Defaults to 999999.
         sort_reverse (bool, optional): If True, sorting is descending.
-
             Defaults to False.
 
     Returns:

@@ -15,7 +15,7 @@ smaller order bends. This is why Bend collection stores a list of bend index at
 each time step. In addition BendEvolution order increases with the number of
 individual bends it includes.
 
-
+.. code-block:: bash
 
                                    X
                               x °      °
@@ -27,6 +27,8 @@ individual bends it includes.
                     .                   .
                         O                      O
                    o                     o
+
+
 *A BendEvolution contains the successvive state of a same bend that evolves
 through time, for instance here the bend has tranlated between age t (o..x..o)
 and t+1 (O°°X°°O)*

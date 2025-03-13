@@ -1,6 +1,12 @@
 pybend.utils package
 =========================
 
+This package provides:
+
+* project global parameter definition including the number of processors
+* logging tools
+
+
 pybend.utils.globalParameters
 ------------------------------------------------------
 

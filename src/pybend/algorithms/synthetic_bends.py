@@ -76,9 +76,9 @@ def kinoshita_bend(
     r"""Create a Kinoshita bend.
 
     Bend centerline follows the Kinoshita curve (Kinoshita, 1961):
-    .. math::
 
-    $\Teta=\Teta_0.\cos(\frac{2\pi.s}{\lambda})+\Teta_0^3(Js\sin(3\frac{2\pi.s}{\lambda})-Jf\cos(3\frac{2\pi.s}{\lambda}))$
+    .. math::
+        $\Teta=\Teta_0.\cos(\frac{2\pi.s}{\lambda})+\Teta_0^3(Js\sin(3\frac{2\pi.s}{\lambda})-Jf\cos(3\frac{2\pi.s}{\lambda}))$
 
     *where :math:`$\Teta$` is the local angle from x axis, $\Teta_0$ the
     maximum angle, :math:`$s$` the curvilinear coordinate, :math:`$\lambda$`
@@ -88,9 +88,9 @@ def kinoshita_bend(
     Inflection point may be downstream the first point at teta=teta0, then the
     bend between inflection points is determined from:
 
-    1. compute point coordinates over a bit more than a wavelength,
-    2. find inflection points
-    3. return coords in-between inflection points
+        1. compute point coordinates over a bit more than a wavelength,
+        2. find inflection points
+        3. return coords in-between inflection points
 
     Args:
         nb_pts (int): number of points along bend centerline

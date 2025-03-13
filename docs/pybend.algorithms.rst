@@ -1,6 +1,14 @@
 pybend.algorithms package
 =========================
 
+This package provides:
+
+* a set of computational methods
+* plotting functions compliant with pyBenD datastructures
+* IO methods to import/export centerlines data
+* methods to generate synthetic bend centerlines
+
+
 pybend.algorithms.centerline\_process\_function module
 ------------------------------------------------------
 

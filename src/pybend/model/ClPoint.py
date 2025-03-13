@@ -20,6 +20,8 @@ These properties include channel point cartesian and curvilinear coordinates,
 channel geometry (width, mean and maximal depth, curvature, etc.), and flow
 properties (velocity, velocity perturbation, etc.).
 
+.. code-block:: bash
+
              .                         .                        .
           .     .                    .    .                   .    .
         .         .                .        .               .        .
@@ -30,16 +32,19 @@ properties (velocity, velocity perturbation, etc.).
                         .    .                    .   .
                            .                        .
 
+
 *Sinuous channel centerline discretized into a series avec channel points (.).*
 
 
 To use it:
 
-..code-block::
+..code-block:: python
+
     ide :int
     age :int
     data :pd.Series
     clPt :ClPoint = ClPoint(ide, age, data)
+
 """
 
 

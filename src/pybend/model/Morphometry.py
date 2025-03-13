@@ -22,6 +22,7 @@ Bends are defined as the channel path comprised between 2 consecutive
  apex (x) whose definition may vary.
 
 Metrics include:
+
 * arc length: curvilinear distance between inflection points
 * wavelength (W): euclidean distance between inflection points
 * amplitude (Am): orthogonal distance between bend apex and chord
@@ -32,6 +33,8 @@ Metrics include:
  bend apex and upstream and downstream inflection point respectively, and L
  is the bend arc length.
 
+ .. code-block:: bash
+ 
                              .   x  .
                          .      /|    .
                       .        / |     +

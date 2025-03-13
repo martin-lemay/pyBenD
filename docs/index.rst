@@ -1,14 +1,12 @@
 Python Bend Dynamics - pyBenD
 =============================
 
-``pyBenD``, which stands for ``Python`` Bend Dynamics, is a Python package dedicated to meandering system morphodynamic analysis. 
+``pyBenD``, which stands for Python Bend Dynamics, is a ``Python`` package dedicated to meandering system morphodynamic analysis. 
 
 ``pyBenD`` consists in:
 
-* a data structure that stores individual channel centerlines and successive centerlines of a same channel 
-   migrating over time from various input file format (csv, kml, etc.)
-* tools that automatically detect meander bends and characteristics points such 
-   as inflection points, bend apex, or bend center
+* a data structure that stores individual channel centerlines and successive centerlines of a same channel migrating over time from various input file format (csv, kml, etc.)
+* tools that automatically detect meander bends and characteristics points such as inflection points, bend apex, or bend center
 * tools to compute meander bend morphometric parameters
 * tools to compute channel lateral migration rates
 * tools to compute meander bend kinematics parameters.
@@ -17,9 +15,9 @@ Python Bend Dynamics - pyBenD
 Installation
 -------------
 
-To install pyBenD, you may either clone the ``GitHub`` `repository`<https://github.com/martin-lemay/pyBenD.git>   
+To install pyBenD, you may either clone the ``GitHub`` `repository <https://github.com/martin-lemay/pyBenD.git>`
 or download the `wheel`<>. In both cases, it is recommended to use a 
-`virtual Python environment`<https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>.
+`virtual Python environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`.
 
 If you downloaded the wheel, install the package from the following commands:
 

@@ -232,97 +232,6 @@ def project_orthogonal(
     return compute_colinear(pt1, pt2, k)
 
 
-# not used anymore
-def project_point(
-    pt_new0: npt.NDArray[np.float64],
-    pt_new1: npt.NDArray[np.float64],
-    pt_new2: npt.NDArray[np.float64],
-    pt0: npt.NDArray[np.float64],
-    pt1: npt.NDArray[np.float64],
-    pt2: npt.NDArray[np.float64],
-) -> tuple[npt.NDArray[np.float64], int]:
-    """Compute the coordinates of the projected point of pt_new1.
-
-    Args:
-        pt_new0 (NDArray[float]): Coordinates of the first point of the line.
-        pt_new1 (NDArray[float]): Coordinates of the point to project.
-        pt_new2 (NDArray[float]): Coordinates of the second point of the line.
-        pt0 (NDArray[float]): Coordinates of the first point of the line
-            (pt0, pt1).
-        pt1 (NDArray[float]): Coordinates of the common point of the 2 lines
-            (pt0, pt1) and (pt2, pt1).
-        pt2 (NDArray[float]): Coordinates of the first point of the line
-            (pt2, pt1).
-
-    Returns:
-        tuple[npt.NDArray[np.float64], int]: tuple containing the coordinates
-            of the projected point and an int if the closest point is before
-            (-1) or after (+1).
-
-    """
-    pt_proj: npt.NDArray[np.float64] = np.copy(pt1)
-    j2: int = 0
-
-    try:
-        # vector along which to project pt_new1
-        pt_new12: npt.NDArray[np.float64] = pt_new2 - pt_new0
-        pt_new12 = pt_new1 + perp(pt_new12)
-
-        # projection onto the segment pt0, pt1
-        pt_proj0: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt0, pt1
-        )
-        # projection onto the segment pt2, pt1
-        pt_proj2: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt2, pt1
-        )
-
-        # keep the closest pojected point when they exist
-        if (pt_proj0 is None) & (pt_proj2 is None):
-            raise AssertionError("Both projected points are undefined.")
-
-        if pt_proj0 is None:
-            j2 = -1  # type: ignore[unreachable]
-            pt_proj = pt_proj2
-        elif pt_proj2 is None:
-            j2 = 1  # type: ignore[unreachable]
-            pt_proj = pt_proj0
-        else:
-            d: float = distance(pt_new1, pt_proj0) - distance(
-                pt_new1, pt_proj2
-            )
-            if d < 0:
-                j2 = -1
-                pt_proj = pt_proj0
-            else:
-                j2 = 1
-                pt_proj = pt_proj2
-
-        # if (pt_proj0 is not None) and (pt_proj2 is not None):
-        #     d: float = distance(pt_new1, pt_proj0) - distance(
-        #         pt_new1, pt_proj2
-        #     )
-        #     if d < 0:
-        #         j2 = -1
-        #         pt_proj = pt_proj0
-        #     else:
-        #         j2 = 1
-        #         pt_proj = pt_proj2
-        # elif pt_proj2 is not None:
-        #     j2 = -1
-        #     pt_proj = pt_proj0
-        # elif pt_proj0 is not None:
-        #     j2 = 1
-        #     pt_proj = pt_proj2
-        # else:
-        #     raise AssertionError("No projection")
-    except AssertionError:
-        logger.error(
-            "Error when projecting the point to the former centerline"
-        )
-    return pt_proj, j2
-
-
 def resample_path(
     x: npt.NDArray[np.float64],
     y: npt.NDArray[np.float64],
@@ -334,8 +243,9 @@ def resample_path(
     Args:
         x (NDArray[float]): x coordinates
         y (NDArray[float]): y coordinates
-        nb_pts (int, optional): Number of points to return. If nb_pts equals 0,
-            return (x,y) points without resampling.
+        nb_pts (int, optional): Number of points to return.
+
+            If nb_pts equals 0, return (x,y) points without resampling.
 
             Defaults to 0.
         s (float, optional): smoothing parameter of B-spline interpolation
@@ -557,7 +467,7 @@ def find_inflection_points(
 
     Inflection points are determine such as the curvature change of sign. A
     given point at index i is an inflection point if the following condition
-    is met: $sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})$.
+    is met: :math:`$sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})$`.
 
     Args:
         curvature(NDArray[np.float64]): List of inflection point indexes.
@@ -964,8 +874,10 @@ def compute_point_displacements(
     Args:
         l_pt (list[NDArray[float]]): List of point coordinates.
         dir_trans (NDArray[float], optional): Direction.
+
             Defaults to np.array((1., 0.)).
         ref (NDArray[float], optional): Reference direction.
+
             Defaults to np.array((1., 0.)).
 
     Returns:
@@ -1048,6 +960,7 @@ def sort_key(labels: list[str], reverse: bool = False) -> list[str]:
     Args:
         labels (list[str]): List of labels that can be cast to int/float values
         reverse (bool, optional): if True, sorting is descending.
+
             Defaults to False.
 
     Returns:
@@ -1071,10 +984,13 @@ def get_keys_from_to(
     Args:
         all_keys (list[str]): List of keys that can be cast to int values.
         key_min (int, optional): Minimum key.
+
             Defaults to 0.
         key_max (int, optional): Maximum key.
+
             Defaults to 999999.
         sort_reverse (bool, optional): If True, sorting is descending.
+
             Defaults to False.
 
     Returns:

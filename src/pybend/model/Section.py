@@ -32,6 +32,8 @@ class StackingPatternType(Enum):
     4 stacking pattern types are defined
     (see `Lemay et al., 2024 <https://doi.org/10.1144/SP540-2022-143>`_):
 
+    .. code-block:: bash
+
        One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
 
                  .                    .           .                  .
@@ -40,6 +42,7 @@ class StackingPatternType(Enum):
           .                  .                        .                .
       .                     :                      .                 :
     .                       :                    .                       .
+
 
     *Channel Stacking pattern types. Each point represents the position of the
     channel basal point. ':' stands for aggradation phase.*
@@ -374,6 +377,7 @@ class Section:
 
         Metrics include
         (see `Jobe et al., 2016<https://doi.org/10.1130/G38158.1>`_):
+
             * Dx: lateral displacement
             * Dy: vertical displacement
             * Bcb: channel belt with

@@ -34,6 +34,7 @@ Centerline object also provides multiple methods to compute centerline
 attributes like inflection point locations, meander bends, bend apex,
 middle and barycenter point locations.
 
+.. code-block:: bash
 
              x                         x                         x
           .     .                    .    .                   .    .
@@ -44,6 +45,8 @@ middle and barycenter point locations.
                       .        .                .       .
                         .    .                    .   .
                            x                        x
+
+
 
 *Sinuous channel centerline discretized into a series avec channel points (.)
 where bends are defined by upstream and downstream inflection points (o). Bends
@@ -159,6 +162,7 @@ class Centerline:
         """Initialize Centerline object.
 
         Centerline intialization includes:
+
             - resampling the centerline with a parametric spline function
             - if spacing > 0, smoothing centerline path
             - if interpol_props is True, interpolating centerline properties to

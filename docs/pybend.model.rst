@@ -1,6 +1,9 @@
 pybend.model package
 ====================
 
+This package provides the data structure and process functions.
+
+
 pybend.model.Bend module
 ------------------------
 

@@ -23,7 +23,7 @@ apex whose definition may vary according to bend shape:
 
     - kinoshita-like bends: maximum curvature (see Kinoshita (1961);
         `Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
-         `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_
+        `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_
     - circular bend (constant curvature): equidistance from inflection points
 
 By convention Bend is UP if curvature is positive -clockwise rotation along

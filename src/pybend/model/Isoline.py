@@ -12,12 +12,12 @@ from pybend.model.ClPoint import ClPoint
 
 __doc__ = r"""
 Isoline module define Isoline abstract object and children objects including
- ChannelCrossSection. Children objects specified the type IsolineType and the
- geometry from parametric function.
+ChannelCrossSection. Children objects specified the type IsolineType and the
+geometry from parametric function.
 
 An Isoline object corresponds to a line defined by an isovalue (such as the
- age). ChannelCrossSection object allows to represent channel section geometry
- from a reference point and a paramteric shape.
+age). ChannelCrossSection object allows to represent channel section geometry
+from a reference point and a paramteric shape.
 
 """
 

@@ -15,11 +15,11 @@ from pybend.model.enumerations import MorphometricNames, PropertyNames
 
 __doc__ = r"""
 This module defines the Morphometry class that compute meander bend
- morphometric parameters from a Centerline object.
+morphometric parameters from a Centerline object.
 
 Bends are defined as the channel path comprised between 2 consecutive
- inflection points (o). A Bend contains a maximum curvature point (+) and an
- apex (x) whose definition may vary.
+inflection points (o). A Bend contains a maximum curvature point (+) and an
+apex (x) whose definition may vary.
 
 Metrics include:
 
@@ -30,8 +30,8 @@ Metrics include:
 * asymmetry coefficient: A=(Lup-Ldown) / L, where Lup and Ldown are arc length
 * radius of curvature: inverse of bend apex curvature
 * roundess: ratio of maximum to mean curvature along the bend distances between
- bend apex and upstream and downstream inflection point respectively, and L
- is the bend arc length.
+bend apex and upstream and downstream inflection point respectively, and L
+is the bend arc length.
 
  .. code-block:: bash
 
@@ -277,7 +277,7 @@ class Morphometry:
     def compute_bend_roundness(self: Self, bend_id: int) -> float:
         """Compute bend roundness.
 
-        Roundness coefficient from `Schwenk et al. (2015)<https://doi.org/10.1002/2014JF003252)>`_
+        Roundness coefficient from `Schwenk et al. (2015) <https://doi.org/10.1002/2014JF003252)>`_
 
         Args:
             bend_id (int): bend index
@@ -296,7 +296,7 @@ class Morphometry:
     def compute_bend_asymmetry(self: Self, bend_id: int) -> float:
         """Compute bend asymmetry coefficient.
 
-        Asymmetry coefficient from `Howard and Hemberger (1991)<https://doi.org/10.1016/0169-555X(91)90002-R>`_
+        Asymmetry coefficient from `Howard and Hemberger (1991) <https://doi.org/10.1016/0169-555X(91)90002-R>`_
 
         Args:
             bend_id (int): bend index
@@ -328,7 +328,7 @@ class Morphometry:
     def compute_bend_wavelength_leopold(self: Self, bend_id: int) -> float:
         """Compute bend wavelength according to Leopold method.
 
-        Leopold method is described in `Leopold and Wolman (1957)<https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)>`_
+        Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)>`_
 
         Args:
             bend_id (int): bend index.
@@ -348,7 +348,7 @@ class Morphometry:
     def compute_bend_amplitude_leopold(self: Self, bend_id: int) -> float:
         """Compute bend ampltiude according to Leopold method.
 
-        Leopold method is described in `Leopold and Wolman (1957)<https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2>`_
+        Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2>`_
 
         Args:
             bend_id (int): bend index.

@@ -50,6 +50,11 @@ extensions = [
 ]
 
 #autodoc_mock_imports = [ "pybend", ]
+autodoc_default_options = {
+    'members': True,
+    'special-members': '__init__',
+    'exclude-members': '__weakref__'
+}
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:

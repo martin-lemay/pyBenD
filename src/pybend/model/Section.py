@@ -14,12 +14,13 @@ from pybend.model.Isoline import Isoline
 
 __doc__ = r"""
 Section module defines Section object allowing to represent the stratigraphic
- architecture.
+architecture.
 
 The stratigraphic architecture is characterized by the stacking pattern.
- Stacking pattern types are defined from StackingPatternType enumeration.
+Stacking pattern types are defined from StackingPatternType enumeration.
 
-.. Warning: this class is under construction...
+.. Warning::
+    this class is under construction...
 
 """
 
@@ -30,24 +31,24 @@ class StackingPatternType(Enum):
     Let's suppose a section across a meander bend. The channel moves laterally
     and vertically through time. According to channel basal point trajectory,
     4 stacking pattern types are defined
-    (see `Lemay et al., 2024<https://doi.org/10.1144/SP540-2022-143>`_):
+    (see `Lemay et al., 2024 <https://doi.org/10.1144/SP540-2022-143>`_):
 
     .. code-block:: bash
 
-       One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
+    Aggradation only    |   One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
 
-                 .                    .           .                  .
-                .                 .                   .                 .
-             .                 .                        :                 :
-          .                  .                        .                .
-      .                     :                      .                 :
-    .                       :                    .                       .
+          :                            .                    .           .                  .
+          :                           .                 .                   .                 .
+          :                        .                 .                        :                 :
+          :                     .                  .                        .                .
+          :                 .                     :                      .                 :
+          :                .                       :                    .                       .
 
 
     *Channel Stacking pattern types. Each point represents the position of the
     channel basal point. ':' stands for aggradation phase.*
 
-    """
+    """  # noqa: E501
 
     #: pure aggradation
     AGGRADATION = "Aggradation Only"
@@ -376,7 +377,7 @@ class Section:
         """Compute section-averaged channel displacement metrics.
 
         Metrics include
-        (see `Jobe et al., 2016<https://doi.org/10.1130/G38158.1>`_):
+        (see `Jobe et al., 2016 <https://doi.org/10.1130/G38158.1>`_):
 
             * Dx: lateral displacement
             * Dy: vertical displacement

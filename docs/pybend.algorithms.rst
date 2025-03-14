@@ -1,8 +1,13 @@
 pybend.algorithms package
 =========================
 
-Submodules
-----------
+This package provides:
+
+* a set of computational methods
+* plotting functions compliant with pyBenD datastructures
+* IO methods to import/export centerlines data
+* methods to generate synthetic bend centerlines
+
 
 pybend.algorithms.centerline\_process\_function module
 ------------------------------------------------------
@@ -36,10 +41,3 @@ pybend.algorithms.synthetic\_bends module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: pybend.algorithms
-   :members:
-   :undoc-members:
-   :show-inheritance:

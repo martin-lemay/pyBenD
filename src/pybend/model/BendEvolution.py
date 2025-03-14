@@ -15,7 +15,7 @@ smaller order bends. This is why Bend collection stores a list of bend index at
 each time step. In addition BendEvolution order increases with the number of
 individual bends it includes.
 
-
+.. code-block:: bash
 
                                    X
                               x °      °
@@ -27,6 +27,8 @@ individual bends it includes.
                     .                   .
                         O                      O
                    o                     o
+
+
 *A BendEvolution contains the successvive state of a same bend that evolves
 through time, for instance here the bend has tranlated between age t (o..x..o)
 and t+1 (O°°X°°O)*
@@ -44,8 +46,7 @@ class BendEvolution:
     ) -> None:
         """Store bend indexes in each Centerline that belongs to BendEvolution.
 
-        Parameters:
-        ----------
+        Args:
             bend_indexes (dict[int, list[int]]): dictionnary that contains
                 indexes of bends that belongs to this BendEvolution in each
                 centerline
@@ -86,7 +87,6 @@ class BendEvolution:
         """Representation of bend evolution.
 
         Returns:
-        ----------
             str: representation
         """
         to_return = "last bend id: {} \n".format(self.id)
@@ -97,8 +97,7 @@ class BendEvolution:
     def set_is_valid(self: Self, nb: int) -> None:
         """Update isvalid according to input number of bends.
 
-        Parameters:
-        ----------
+        Args:
             nb (int): minimum number of bends
 
         """
@@ -107,8 +106,7 @@ class BendEvolution:
     def _check_is_valid(self: Self, nb: int) -> bool:
         """Check bend validity according to input number of bends.
 
-        Parameters:
-        ----------
+        Args:
             nb (int): minimum number of bends
 
         """
@@ -118,7 +116,6 @@ class BendEvolution:
         """Get the ages of all the bends that belong to the bend evolution.
 
         Returns:
-        ----------
             npt.NDArray[np.int64]: ages of bends
 
         """
@@ -128,7 +125,6 @@ class BendEvolution:
         """Get the number of bends.
 
         Returns:
-        ----------
             int: number of bends
 
         """

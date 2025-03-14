@@ -30,16 +30,11 @@ class PropertyNames(Enum):
 
 
 class AmplitudeType(Enum):
-    """Method to compute amplitude.
+    """Method to compute amplitude."""
 
-    * MIDDLE: use the distance between the given point and the middle of the
-        line defined by inflection points.
-    * ORTHOGONAL: use the orthogonal distance between the given point and the
-        line defined by inflection points.
-
-    """
-
+    #: use the distance between the given point and bend center.
     MIDDLE = "Middle"
+    #: use the orthogonal distance between the given point and bend chord.
     ORTHOGONAL = "Orthogonal"
 
 

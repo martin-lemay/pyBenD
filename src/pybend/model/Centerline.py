@@ -34,6 +34,7 @@ Centerline object also provides multiple methods to compute centerline
 attributes like inflection point locations, meander bends, bend apex,
 middle and barycenter point locations.
 
+.. code-block:: bash
 
              x                         x                         x
           .     .                    .    .                   .    .
@@ -44,6 +45,8 @@ middle and barycenter point locations.
                       .        .                .       .
                         .    .                    .   .
                            x                        x
+
+
 
 *Sinuous channel centerline discretized into a series avec channel points (.)
 where bends are defined by upstream and downstream inflection points (o). Bends
@@ -77,8 +80,7 @@ class Centerline:
     ) -> None:
         """Store channel centerline as a collection of ClPoint.
 
-        Parameters:
-        ----------
+        Args:
             age (int): Age of the centerline.
             dataset (pd.DataFrame): DataFrame that contains channel point
                 coordinates and properties. Points must be ordered according
@@ -160,6 +162,7 @@ class Centerline:
         """Initialize Centerline object.
 
         Centerline intialization includes:
+
             - resampling the centerline with a parametric spline function
             - if spacing > 0, smoothing centerline path
             - if interpol_props is True, interpolating centerline properties to
@@ -167,11 +170,11 @@ class Centerline:
             - if compute_curvature is True, computing and filtering curvatures
             - fill the list of channel point self.cl_points
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point
                 coordinates and properties. Points must be ordered according to
-                flow direction. age (int): Age of the centerline.
+                flow direction.
+            age (int): Age of the centerline.
             spacing (float): Target distance (m) between channel points after
                 resampling. If spacing equals 0, centreline is not resampled.
             smooth_distance (float): Smoothing distance (m) for Savitsky-Golay
@@ -282,7 +285,6 @@ class Centerline:
         """Get the number of channel points.
 
         Returns:
-        ----------
             int: number of channel points
         """
         return len(self.cl_points)
@@ -291,7 +293,6 @@ class Centerline:
         """Get the number of bends along the centerline.
 
         Returns:
-        ----------
             int: Number of bends
 
         """
@@ -301,7 +302,6 @@ class Centerline:
         """Get the number of valid bends along the centerline.
 
         Returns:
-        ----------
             int: Number of valid bends
 
         """
@@ -311,7 +311,6 @@ class Centerline:
         """Get the list of valid bend indexes along the centerline.
 
         Returns:
-        ----------
             list[int]: List of valid bends index
 
         """
@@ -321,7 +320,6 @@ class Centerline:
         """Get the list of property name stored on channel points.
 
         Returns:
-        --------
             tuple[str]: tuple of property names.
         """
         return tuple(self.cl_points[0].get_data().index)
@@ -329,12 +327,10 @@ class Centerline:
     def get_property(self: Self, prop_name: str) -> npt.NDArray[np.float64]:
         """Get the property of channel points along the centerline.
 
-        Parameters:
-        ----------
+        Args:
             prop_name (str): Property name
 
         Returns:
-        ----------
             NDArray[float]: Array with property values
 
         """
@@ -354,13 +350,11 @@ class Centerline:
     ) -> npt.NDArray[np.float64]:
         """Get the property of channel points along the bend with id bend_id.
 
-        Parameters:
-        ----------
+        Args:
             bend_id (int): Bend id.
             prop_name ( str): Property name.
 
         Returns:
-        ----------
             NDArray[float]: Array with property values
 
         """
@@ -384,7 +378,6 @@ class Centerline:
         """Get the array of filtered curvature property along the centerline.
 
         Returns:
-        ----------
             NDArray[float]: Array with smoothed curvature values.
 
         """
@@ -396,7 +389,6 @@ class Centerline:
         """Get the array of filtered curvature property along the bend bend_id.
 
         Returns:
-        ----------
             NDArray[float]: Array with smoothed curvature values.
 
         """
@@ -408,7 +400,6 @@ class Centerline:
         """Get the array of curvature property along the centerline.
 
         Returns:
-        ----------
             NDArray[float]: Array with curvature values.
 
         """
@@ -420,7 +411,6 @@ class Centerline:
         """Get the array of curvature property along the bend if id bend_id.
 
         Returns:
-        ----------
             NDArray[float]: Array with curvature values.
 
         """
@@ -431,8 +421,7 @@ class Centerline:
     ) -> None:
         """Set the property value of input point at index cl_pt_index.
 
-        Parameters:
-        ----------
+        Args:
             cl_pt_index (int): Channel point index in self.cl_points.
             property_name (str): Property name.
             value (float): Value of the property at the given channel point.
@@ -445,10 +434,9 @@ class Centerline:
     ) -> None:
         """Set the property values of all channel points.
 
-        Parameters:
-        ----------
+        Args:
             property_name (str): Property name.
-            value (NDArray[float]): Array of value of the property.
+            values (NDArray[float]): Array of value of the property.
 
         """
         if values.size > self.get_nb_points():
@@ -464,8 +452,7 @@ class Centerline:
     ) -> None:
         """Compute curvilinear abscissa of channel points along the centerline.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
 
@@ -485,8 +472,7 @@ class Centerline:
     def _compute_normal_to_points(self: Self, dataset: pd.DataFrame) -> None:
         """Compute the normal to channel points along the centerline.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
 
@@ -543,8 +529,7 @@ class Centerline:
     def _compute_curvature(self: Self, dataset: pd.DataFrame) -> None:
         """Compute the curvature of channel points along the centerline.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
 
@@ -569,8 +554,7 @@ class Centerline:
 
         Input DataFrame is updated with the computed property.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
             window (int): Number of points used for filtering curvature.
             method (FilterName): Filter to use, either
@@ -614,8 +598,7 @@ class Centerline:
     def _compute_curvature_monoproc(self: Self, dataset: pd.DataFrame) -> None:
         """Compute the curvature of channel points using monoprocessing.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
 
@@ -653,10 +636,10 @@ class Centerline:
     ) -> None:
         """Compute the curvature of channel points using multirocessing.
 
-        Parameters:
-        ----------
+        Args:
             dataset (DataFrame): DataFrame that contains channel point data.
                 Input DataFrame is updated with the computed property.
+            nb_procs (int): number of processors.
 
         """
         cart_abscissa_prop_name: str = PropertyNames.CARTESIAN_ABSCISSA.value
@@ -696,13 +679,11 @@ class Centerline:
     ) -> Optional[int]:
         """Get bend index that contains the ClPoint at index cl_pt_index.
 
-        Parameters:
-        ----------
+        Args:
             cl_pt_index (Optional[int]): Index of the channel point in the list
                     self.cl_points.
 
         Returns:
-        ----------
             int: Index of the bend in the list self.bends, or np.nan if no
                 bend was found.
 
@@ -721,14 +702,12 @@ class Centerline:
     ) -> bool:
         """Interpolate properties from dataset to dataset_new.
 
-        Parameters:
-        ----------
+        Args:
             dataset_new (DataFrame): DataFrame with resampled centerline data
                 where to interpolate properties.
             dataset (DataFrame): Original DataFrame from which come properties.
 
         Returns:
-        ----------
             bool: True if interpolation successfully ended.
                 Input DataFrame dataset_new is updated with the computed
                 properties.
@@ -790,7 +769,7 @@ class Centerline:
         """Compute interpolated properties at index i in dataset_new.
 
         Paramers:
-        ---------
+
             dataset (DataFrame): Original DataFrame from which properties come
                 from.
 
@@ -832,7 +811,6 @@ class Centerline:
         of sign next to it.
 
         Returns:
-        ----------
             NDArray[np.int64]: List of inflection point indexes.
 
         """
@@ -855,14 +833,12 @@ class Centerline:
         Bends are defined as the points between two consecutive inflection
         points.
 
-        Parameters:
-        ----------
+        Args:
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
                 bends.
             n (float): exponent value
 
         Returns:
-        ----------
             bool: True if calculation successfully ended.
 
         """
@@ -896,14 +872,12 @@ class Centerline:
     ) -> Bend:
         """Create a Bend object.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): Id of the bend.
             inflex_index_up (int): Index of upstream inflection point.
             inflex_index_down (int): Index of downstream inflection point.
 
         Returns:
-        ----------
             Bend: Created Bend object.
 
         """
@@ -917,8 +891,7 @@ class Centerline:
     ) -> None:
         """Create all Bend objects and add them in self.bends using monoproc.
 
-        Parameters:
-        ----------
+        Args:
             inflex_pts_index (npt.NDArray[np.int64]): List of inflection point
                 indexes.
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
@@ -946,8 +919,7 @@ class Centerline:
     ) -> None:
         """Create all Bend objects add them in self.bends using multiproc.
 
-        Parameters:
-        ----------
+        Args:
             inflex_pts_index (npt.NDArray[np.int64]): List of inflection point
                 indexes.
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
@@ -1004,8 +976,7 @@ class Centerline:
     ) -> None:
         """Update bend properties (side, validity, apex and middle points).
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Bend index.
             side (BendSide, optional): bend side
 
@@ -1042,15 +1013,13 @@ class Centerline:
     ) -> tuple[BendSide, bool, int, npt.NDArray[np.float64]]:
         """Compute bend properties (side, validity, apex and middle points).
 
-        Parameters:
-        ----------
+        Args:
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
                 bends.
             n (float): exponent value
-            bend_index (int) Bend index.
+            bend_index (int): Bend index.
 
         Returns:
-        -------
             tuple[BendSide, bool, int, npt.NDArray[np.float64]]: tuple
                 containing side, isvalid, apex_index, and pt_center
 
@@ -1063,14 +1032,13 @@ class Centerline:
         )
         return side, isvalid, index_apex, pt_center
 
-    # work in progress
+    # TODO: work in progress
     def gather_consecutive_invalid_bends(
         self: Self, sinuo_thres: float
     ) -> None:
         """Gather consecutive bends when some are unvalid.
 
-        Parameters:
-        ---------
+        Args:
             sinuo_thres (float): sinuosity threshold
         """
         new_bends: list[Bend] = []
@@ -1091,7 +1059,6 @@ class Centerline:
         """Filter bends when some are unvalid.
 
         Returns:
-        ----------
             bool: True when filtering sucessfully ended.
         """
         k = 0
@@ -1216,8 +1183,7 @@ class Centerline:
          point. The result is stored in Bend.apex_probability and as a property
          of channel points.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
             curvature_weight (float): Weight [0, 1] used for curvature
                 property.
@@ -1227,7 +1193,6 @@ class Centerline:
                 inflection points.
 
         Returns:
-        ----------
             npt.NDArray[np.float64]: Apex probability of each channel point.
 
         """
@@ -1325,8 +1290,7 @@ class Centerline:
     ) -> None:
         """Set bend apex probability using user-defined weights.
 
-        Parameters:
-        ----------
+        Args:
             apex_proba_weights (tuple[float, float, float]): Weights for apex
                 probability calculation. Apex probability depends on channel
                 point curvature, bend amplitude (m), and the distance from
@@ -1355,14 +1319,12 @@ class Centerline:
     ) -> bool:
         """Check if a bend is valid.
 
-        Parameters:
-        ----------
+        Args:
             sinuo_thres (float): Sinuosity threshold used to discriminate valid
                 bends.
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        ----------
             bool: True if the bend is valid, False otherwise.
 
         """
@@ -1384,12 +1346,10 @@ class Centerline:
     def get_bend_side(self: Self, bend_index: int) -> BendSide:
         """Compute bend side.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        ----------
             Bend_side: Bend side, either Bend_side.UP or Bend_side.DOWN.
 
         """
@@ -1405,12 +1365,10 @@ class Centerline:
     def find_bend_apex_from_weights(self: Self, bend_index: int) -> int:
         """Find bend apex.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        ----------
             int: Bend apex index.
 
         """
@@ -1437,14 +1395,12 @@ class Centerline:
     def find_bend_apex(self: Self, n: float, bend_index: int) -> int:
         """Find bend apex from cummulative curvature function.
 
-        Parameters:
-        ----------
+        Args:
             n (float): exponent value
 
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        ----------
             int: Bend apex index.
 
         """
@@ -1460,8 +1416,7 @@ class Centerline:
     ) -> None:
         """Find bend apex and update Bend for all bends of the centerline.
 
-        Parameters:
-        ----------
+        Args:
             apex_proba_weights (tuple[float, float, float]): Weights for apex
                 probability calculation. Apex probability depends on channel
                 point curvature, bend amplitude (m), and the distance from
@@ -1487,8 +1442,7 @@ class Centerline:
     def find_all_bend_apex(self: Self, n: float) -> None:
         """Find bend apex and update Bend for all bends of the centerline.
 
-        Parameters:
-        ----------
+        Args:
             n (float): exponent value
 
         """
@@ -1530,12 +1484,10 @@ class Centerline:
     ) -> npt.NDArray[np.float64]:
         """Compute bend middle point and update Bend.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        -------
             npt.NDArray[np.float64]: middle point coordinates
 
         """
@@ -1580,12 +1532,10 @@ class Centerline:
     ) -> npt.NDArray[np.float64]:
         """Compute bend centroid point and update Bend.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        -------
             npt.NDArray[np.float64]: bend centroid point coordinates
 
         """
@@ -1600,12 +1550,10 @@ class Centerline:
         Bend polygon defined by the centerline between upstream and downstream
         inflection points and is closed between these points.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-        -------
             Polygon | LineString: bend polygon
 
         """
@@ -1630,13 +1578,11 @@ class Centerline:
 
         .. WARNING:: Channel point must belongs to the bend.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
             cl_pt_index (int): Index of the channel point.
 
         Returns:
-        ----------
             float: Distance (m) if channel point belongs to the bend.
 
         """
@@ -1665,13 +1611,11 @@ class Centerline:
 
         .. WARNING:: Channel point must belongs to the bend.
 
-        Parameters:
-        ----------
+        Args:
             bend_index (int): Index of the bend to treat.
             cl_pt_index (int): Index of the channel point.
 
         Returns:
-        ----------
             float: Distance (m) if channel point belongs to the bend.
 
         """

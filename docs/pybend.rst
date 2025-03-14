@@ -1,19 +1,24 @@
-pybend package
-==============
+###############################################################################
+pyBenD Python Package
+###############################################################################
 
-Subpackages
+Content
 -----------
 
+pyBenD project contains:
+
+* docs: documentation source
+* notebooks: Jupyter notebooks used for related publications that show how to use pyBenD features
+* tests: unit and integrated tests. Tests files contain numerous examples on how to use pyBenD.
+* src: pyBenD source code
+
+
+Packages
+-----------
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    pybend.algorithms
    pybend.model
+   pybend.utils
 
-Module contents
----------------
-
-.. automodule:: pybend
-   :members:
-   :undoc-members:
-   :show-inheritance:

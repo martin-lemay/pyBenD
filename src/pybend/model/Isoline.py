@@ -12,12 +12,12 @@ from pybend.model.ClPoint import ClPoint
 
 __doc__ = r"""
 Isoline module define Isoline abstract object and children objects including
- ChannelCrossSection. Children objects specified the type IsolineType and the
- geometry from parametric function.
+ChannelCrossSection. Children objects specified the type IsolineType and the
+geometry from parametric function.
 
 An Isoline object corresponds to a line defined by an isovalue (such as the
- age). ChannelCrossSection object allows to represent channel section geometry
- from a reference point and a paramteric shape.
+age). ChannelCrossSection object allows to represent channel section geometry
+from a reference point and a paramteric shape.
 
 """
 
@@ -37,8 +37,7 @@ class Isoline:
     ) -> None:
         """Store points of the same age (for instance channel cross-section).
 
-        Parameters:
-        ----------
+        Args:
             age (int): age of the points
             cl_pt_ref (ClPoint): reference ClPoint
             isoline_type (str): isoline type (currently only 'Channel')
@@ -55,8 +54,7 @@ class ChannelCrossSection(Isoline):
     def __init__(self: Self, age: int, cl_pt_ref: ClPoint) -> None:
         """Isoline for channel cross-section.
 
-        Parameters:
-        ----------
+        Args:
             age (int): age of the points
             cl_pt_ref (npt.NDArray[np.float64]): reference ClPoint
         """
@@ -65,8 +63,7 @@ class ChannelCrossSection(Isoline):
     def complete_channel_shape(self: Self, nb_pts: int = 11) -> None:
         """Create channel cross-section assuming parabolic shape.
 
-        Parameters:
-        ----------
+        Args:
             nb_pts (int, optional): Number of points.
 
                 Defaults to 11.

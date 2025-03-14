@@ -49,8 +49,7 @@ def plot_centerline_collection(
 ) -> None:
     """Function to plot CenterlineCollection object.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): path to export figures if not empty.
         cl_collec (CenterlineCollection): CenterlineCollection object to plot
         domain (tuple[tuple[float, float],tuple[float, float]]): display domain
@@ -199,8 +198,7 @@ def plot_centerline_single(
 ) -> None:
     """Plot a single centerline.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): path to export figures if not empty.
         cl_points (tuple[list[ClPoint]]): list of ClPoint objects.
         bends (list[Bend]): list of Bend objects to plot
@@ -308,16 +306,13 @@ def plot_bend_evol(
     plot_middle_trajec: bool = False,
     plot_section: bool = False,
     plot_warping: bool = False,
-    annot_text_size: float = 10,
     color_bend: bool = False,
-    linewidth: float = 1,
-    markersize0: float = 2,
+    markersize: float = 2,
     cmap_name: str = "Blues",
 ) -> None:
     """Plot BendEvolution object.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot.
         cl_collec (tuple[CenterlineCollection]): CenterlineCollection object
         bend_evol (BendEvolution): BendEvolution object to plot.
@@ -395,9 +390,9 @@ def plot_bend_evol(
             continue
 
         cl_color: tuple[float, float, float, float] = cmap(cmap_norm(age))
-        markersize: float = markersize0
+        markersize0: float = markersize
         if age == np.max(keys):
-            markersize = 2.0 * markersize0
+            markersize0 = 2.0 * markersize
 
         plot_bends(
             ax,
@@ -413,7 +408,7 @@ def plot_bend_evol(
             color_bend=color_bend,
             alpha=1,
             linewidth=2,
-            markersize=markersize,
+            markersize=markersize0,
             cl_color=cl_color,
         )
 
@@ -477,68 +472,70 @@ def plot_bends(
 ) -> None:
     """Plot Bend objects.
 
-    ax (Axes): Axes where to plot.
-    cl_points (tuple[list[ClPoint]]): list of ClPoint objects
-    bends (list[Bend]): list of Bend objects to plot.
-    domain (tuple[tuple[float, float], tuple[float, float]]): display domain
-    annotate (bool, optional): if True, add bend ids.
+    Args:
+        ax (Axes): Axes where to plot.
+        cl_points (tuple[list[ClPoint]]): list of ClPoint objects
+        bends (list[Bend]): list of Bend objects to plot.
+        domain (tuple[tuple[float, float], tuple[float, float]]): display
+            domain
+        annotate (bool, optional): if True, add bend ids.
 
-        Defaults to False.
-    plot_apex (bool, optional): if True, plot bend apex.
+            Defaults to False.
+        plot_apex (bool, optional): if True, plot bend apex.
 
-        Defaults to True.
-    plot_inflex (bool, optional): if True, plot inflection points.
+            Defaults to True.
+        plot_inflex (bool, optional): if True, plot inflection points.
 
-        Defaults to False.
-    plot_middle (bool, optional): if True, plot bend middle point.
+            Defaults to False.
+        plot_middle (bool, optional): if True, plot bend middle point.
 
-        Defaults to False.
-    plot_centroid (bool, optional): if True, plot bend centroid.
+            Defaults to False.
+        plot_centroid (bool, optional): if True, plot bend centroid.
 
-        Defaults to False.
-    plot_normal (bool, optional): if True, plot normal vector of channel
-        points.
+            Defaults to False.
+        plot_normal (bool, optional): if True, plot normal vector of channel
+            points.
 
-        Defaults to False.
-    scale_normal (float, optional): Scale for normal vectors.
+            Defaults to False.
+        scale_normal (float, optional): Scale for normal vectors.
 
-        Defaults to 1.0.
-    annot_text_size (float, optional): Text size for annotations.
+            Defaults to 1.0.
+        annot_text_size (float, optional): Text size for annotations.
 
-        Defaults to 10.
-    color_bend (bool, optional): if True, bends are colored in blue and red
-        according to UP and DOWN side respectively.
+            Defaults to 10.
+        color_bend (bool, optional): if True, bends are colored in blue and red
+            according to UP and DOWN side respectively.
 
-        Defaults to True.
-    alpha (float, optional): Transparency.
+            Defaults to True.
+        alpha (float, optional): Transparency.
 
-        Defaults to 1.0.
-    linewidth (float, optional): Line width.
+            Defaults to 1.0.
+        linewidth (float, optional): Line width.
 
-        Defaults to 1.
-    markersize (float, optional): Marker size.
-    cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set to
-        True, centerline color is overwrite.
+            Defaults to 1.
+        markersize (float, optional): Marker size.
+        cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set
+            to True, centerline color is overwrite.
 
-        Defaults to None.
-    plot_apex_proba (bool, optional): If True, color channel points with
-        apex probability property values.
+            Defaults to None.
+        plot_apex_proba (bool, optional): If True, color channel points with
+            apex probability property values.
 
-        Defaults to False.
-    plot_property (bool, optional): If True, color channel points with
-        input property values.
+            Defaults to False.
+        plot_property (bool, optional): If True, color channel points with
+            input property values.
 
-        Defaults to False.
+            Defaults to False.
 
-    property_name (str, optional): If plot_property is True, name if the
-        property to plot.
+        property_name (str, optional): If plot_property is True, name if the
+            property to plot.
 
-        Defaults to "".
+            Defaults to "".
 
-    rotate (bool, optional): if True, rotate bend such as inflection points
-        are aligned along horizontal axis.
+        rotate (bool, optional): if True, rotate bend such as inflection points
+            are aligned along horizontal axis.
 
-        Defaults to False.
+            Defaults to False.
 
     """
     color: str | tuple[float, float, float, float] = "k"
@@ -727,8 +724,7 @@ def plot_section(
 ) -> None:
     """Plot Section object.
 
-    Parameters:
-    -----------
+    Args:
         section (Section): Section object to plot
         ax (Axes): Axes where to plot
         norm_hor (float, optional): Horizontal normalization.
@@ -797,8 +793,7 @@ def plot_versus_curvilinear(
 ) -> None:
     """Plot 2 set of properties against abscissa.
 
-    Parameters:
-    -----------
+    Args:
         work_dir (str): file name to save the figure if not empty.
         abscissa (npt.NDArray[np.float64]): abscissa values
         curves1 (list[npt.NDArray[np.float64]]): first set of curves
@@ -881,13 +876,11 @@ def _get_keys_to_plot(
 ) -> npt.NDArray[np.int64]:
     """Get keys to plot according to the number of centerlines.
 
-    Parameters:
-    -----------
+    Args:
         all_keys (npt.NDArray[np.int64]): All centerline ages
         nb_cl (int): Number of centerlines
 
     Returns:
-    --------
         npt.NDArray[np.int64]: list of centerline ages to plot
 
     """
@@ -913,8 +906,7 @@ def _plot_bend_evol_trajectories(
 ) -> None:
     """Plot BendEvolution characteristic point trajectories if needed.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot
         bend_evol (BendEvolution): BendEvolution object
         plot_apex_trajec (bool, optional): if True, plot bend apex trajectory.
@@ -950,8 +942,7 @@ def _plot_warping(
 ) -> None:
     """Plot centerline warping.
 
-    Parameters:
-    -----------
+    Args:
         ax (Axes): Axes where to plot
         cl_collec (CenterlineCollection): CenterlineCollection object
         indexes (dict[int, tuple[int, int]]): dictionnary containing a list of
@@ -1003,8 +994,7 @@ def _update_plot_properties(
 ) -> None:
     """Update plot properties.
 
-    Parameters:
-    -----------
+    Args:
         filepath (str): directory where to export figure if not empty
         domain (tuple[tuple[float, float], tuple[float, float]]): plot limits
             ((xmin, xmax), (ymin, ymax))

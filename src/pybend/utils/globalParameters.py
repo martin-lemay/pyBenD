@@ -6,9 +6,10 @@ import os
 
 from pybend.utils.logging import logger
 
-__doc__ = """
+__doc__ = r"""
 Defines global parameters such as the number of processors to use and
- functions to get and set these parameters.
+functions to get and set these parameters.
+
 """
 # number of processors for multiprocessing
 NB_PROCS: int = 1
@@ -21,7 +22,6 @@ def get_nb_procs() -> int:
     of available processors.
 
     Returns:
-    --------
         int: Number of processors.
 
     """
@@ -34,8 +34,7 @@ def get_nb_procs() -> int:
 def set_nb_procs(nb: int) -> None:
     """Set the number of desired processors.
 
-    Parameters:
-    ----------
+    Args:
         nb (int): Number of desired processors.
 
     """

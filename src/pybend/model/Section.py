@@ -14,12 +14,13 @@ from pybend.model.Isoline import Isoline
 
 __doc__ = r"""
 Section module defines Section object allowing to represent the stratigraphic
- architecture.
+architecture.
 
 The stratigraphic architecture is characterized by the stacking pattern.
- Stacking pattern types are defined from StackingPatternType enumeration.
+Stacking pattern types are defined from StackingPatternType enumeration.
 
-..Warning: this class is under construction...
+.. Warning::
+    this class is under construction...
 
 """
 
@@ -32,19 +33,22 @@ class StackingPatternType(Enum):
     4 stacking pattern types are defined
     (see `Lemay et al., 2024 <https://doi.org/10.1144/SP540-2022-143>`_):
 
-       One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
+    .. code-block:: bash
 
-                 .                    .           .                  .
-                .                 .                   .                 .
-             .                 .                        :                 :
-          .                  .                        .                .
-      .                     :                      .                 :
-    .                       :                    .                       .
+        Aggradation only    |   One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
+
+            :                            .                    .           .                  .
+            :                           .                 .                   .                 .
+            :                        .                 .                        :                 :
+            :                     .                  .                        .                .
+            :                  .                     :                      .                 :
+            :                .                       :                    .                       .
+
 
     *Channel Stacking pattern types. Each point represents the position of the
     channel basal point. ':' stands for aggradation phase.*
 
-    """
+    """  # noqa: E501
 
     #: pure aggradation
     AGGRADATION = "Aggradation Only"
@@ -75,8 +79,7 @@ class Section:
 
         ..WARNING: Code implementation in progress...
 
-        Parameters:
-        ----------
+        Args:
             ide (str): section id
             bend_id (str): bend id crossed by the section
             pt_start (npt.NDArray[np.float64]): start point coordinates
@@ -133,14 +136,12 @@ class Section:
     ) -> list[tuple[float, float]]:
         """Compute Isoline coordinates along the section from reference point.
 
-        Parameters:
-        ----------
+        Args:
             flow_dir (npt.NDArray[np.float64], optional): Flow direction.
 
                 Defaults to np.array([1, 0]).
 
         Returns:
-        ----------
             list[tuple[float, float]]: isoline coordinates along the section
         """
         isolines_origin: list[tuple[float, float]] = []
@@ -182,8 +183,7 @@ class Section:
     ) -> StackingPatternType:
         """Get the channel stacking pattern of isolines on the section.
 
-        Parameters:
-        ----------
+        Args:
             mig_threshold (float): lateral migration threshold (m)
             frac_threshold (float, optional): fraction of the total number of
                 isolines.
@@ -195,7 +195,6 @@ class Section:
                 Defaults to 0.1.
 
         Returns:
-        ----------
             StackingPatternType: Stacking pattern type
         """
         mig_steps: list[int] = []
@@ -289,8 +288,7 @@ class Section:
     ) -> None:
         """Compute channel apparent displacements along the section.
 
-        Parameters:
-        ----------
+        Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
 
@@ -341,8 +339,7 @@ class Section:
     ) -> None:
         """Compute section-averaged channel displacement.
 
-        Parameters:
-        ----------
+        Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
 
@@ -380,7 +377,8 @@ class Section:
         """Compute section-averaged channel displacement metrics.
 
         Metrics include
-        (see `Jobe et al., 2016<https://doi.org/10.1130/G38158.1>`_):
+        (see `Jobe et al., 2016 <https://doi.org/10.1130/G38158.1>`_):
+
             * Dx: lateral displacement
             * Dy: vertical displacement
             * Bcb: channel belt with
@@ -390,8 +388,7 @@ class Section:
             * Bcb_on_Hcb: channel belt aspect ratio
             * Msb: Stratigraphic Mobility number
 
-        Parameters:
-        ----------
+        Args:
             width (float): channel width (m)
             depth (float): channel depth (m)
             whole_trajec (bool): if True, compute channel displacements from
@@ -399,7 +396,6 @@ class Section:
                 last channel of the last migration phase.
 
         Returns:
-        ----------
             npt.NDArray[np.float64]: Averaged displacement metrics including in
                 order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
 

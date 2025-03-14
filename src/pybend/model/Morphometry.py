@@ -15,13 +15,14 @@ from pybend.model.enumerations import MorphometricNames, PropertyNames
 
 __doc__ = r"""
 This module defines the Morphometry class that compute meander bend
- morphometric parameters from a Centerline object.
+morphometric parameters from a Centerline object.
 
 Bends are defined as the channel path comprised between 2 consecutive
- inflection points (o). A Bend contains a maximum curvature point (+) and an
- apex (x) whose definition may vary.
+inflection points (o). A Bend contains a maximum curvature point (+) and an
+apex (x) whose definition may vary.
 
 Metrics include:
+
 * arc length: curvilinear distance between inflection points
 * wavelength (W): euclidean distance between inflection points
 * amplitude (Am): orthogonal distance between bend apex and chord
@@ -29,18 +30,20 @@ Metrics include:
 * asymmetry coefficient: A=(Lup-Ldown) / L, where Lup and Ldown are arc length
 * radius of curvature: inverse of bend apex curvature
 * roundess: ratio of maximum to mean curvature along the bend distances between
- bend apex and upstream and downstream inflection point respectively, and L
- is the bend arc length.
+bend apex and upstream and downstream inflection point respectively, and L
+is the bend arc length.
 
-                             .   x  .
-                         .      /|    .
-                      .        / |     +
-   Flow             .      Ex /  | Am  .
-    -->            .         /   |    .
- Direction        .         /    |   .
-                 o --------c------- o
-                  <---------------->
-                           W
+ .. code-block:: bash
+
+                                 .   x  .
+                             .      /|    .
+                          .        / |     +
+        Flow            .      Ex /  | Am  .
+        -->            .         /   |    .
+    Direction         .         /    |   .
+                     o --------c------- o
+                     <---------------->
+                            W
 
 
 To use it:
@@ -61,8 +64,7 @@ class Morphometry:
     ) -> None:
         """Class to compute morphometric parameters from Centerline object.
 
-        Parameters:
-        -----------
+        Args:
             centerline (Centerline): Centerline object
 
         """
@@ -86,15 +88,13 @@ class Morphometry:
     ) -> pd.DataFrame:
         """Compute all bend morphometric parameters.
 
-        Parameters:
-        -----------
+        Args:
             valid_bends (bool): if True, compute morphometry on valid bends
                 only
 
                 Defaults to True.
 
         Returns:
-        --------
             pd.DataFrame: dataframe with morphometric measurements.
         """
         n_rows: int = (
@@ -153,17 +153,16 @@ class Morphometry:
     def compute_bend_sinuosity(self: Self, bend_id: int) -> float:
         """Compute bend sinuosity.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend sinuosity
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
+
         den: float = self.compute_bend_wavelength(bend_id)
         sinuo: float = np.nan
         if den > 0:
@@ -174,15 +173,13 @@ class Morphometry:
     def compute_bend_wavelength(self: Self, bend_id: int) -> float:
         """Compute bend wavelength.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend wavelength
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
@@ -197,15 +194,13 @@ class Morphometry:
     def compute_bend_amplitude(self: Self, bend_id: int) -> float:
         """Compute bend amplitude.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend amplitude
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
@@ -223,15 +218,13 @@ class Morphometry:
     def compute_bend_extension(self: Self, bend_id: int) -> float:
         """Compute bend extension.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend extension
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
@@ -246,15 +239,13 @@ class Morphometry:
     def compute_bend_radius(self: Self, bend_id: int) -> float:
         """Compute bend radius.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend radius
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
@@ -269,15 +260,13 @@ class Morphometry:
     def compute_bend_arc_length(self: Self, bend_id: int) -> float:
         """Compute bend arc length.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend arc length
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
@@ -288,17 +277,15 @@ class Morphometry:
     def compute_bend_roundness(self: Self, bend_id: int) -> float:
         """Compute bend roundness.
 
-        Roundness coefficient from Schwenk et al. (2015) (https://doi.org/10.1002/2014JF003252)
+        Roundness coefficient from `Schwenk et al. (2015) <https://doi.org/10.1002/2014JF003252)>`_
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend roundness
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         curvature: npt.NDArray[np.float64] = np.abs(
@@ -309,17 +296,15 @@ class Morphometry:
     def compute_bend_asymmetry(self: Self, bend_id: int) -> float:
         """Compute bend asymmetry coefficient.
 
-        Asymmetry coefficient from Howard and Hemberger (1991) (https://doi.org/10.1016/0169-555X(91)90002-R)
+        Asymmetry coefficient from `Howard and Hemberger (1991) <https://doi.org/10.1016/0169-555X(91)90002-R>`_
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
 
         Returns:
-        --------
             float: bend asymmetry coefficient
         """
-        assert (bend_id > -1) and bend_id < self.centerline.get_nb_bends(), (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
@@ -343,20 +328,15 @@ class Morphometry:
     def compute_bend_wavelength_leopold(self: Self, bend_id: int) -> float:
         """Compute bend wavelength according to Leopold method.
 
-        Leopold method is described in Leopold and Wolman (1957 -
-        https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)
+        Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)>`_
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index.
 
         Returns:
-        --------
             float: Leopold wavelength.
         """
-        assert (
-            bend_id > 0
-        ) and bend_id < self.centerline.get_nb_bends() - 1, (
+        assert (bend_id > 0) and bend_id < self.centerline.get_nb_bends(), (
             "Bend index is undefined."
         )
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
@@ -368,22 +348,18 @@ class Morphometry:
     def compute_bend_amplitude_leopold(self: Self, bend_id: int) -> float:
         """Compute bend ampltiude according to Leopold method.
 
-        Leopold method is described in Leopold and Wolman (1957 -
-        https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)
+        Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2>`_
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index.
 
         Returns:
-        --------
             float: Leopold amplitude.
         """
-        assert (
-            bend_id > 0
-        ) and bend_id < self.centerline.get_nb_bends() - 1, (
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
         )
+
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         bend: Bend = self.centerline.bends[bend_id]
         next_bend: Bend = self.centerline.bends[bend_id + 1]
@@ -402,13 +378,11 @@ class Morphometry:
     ) -> float:
         """Compute bend sinuosity inside a moving window.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
             window_size (float): curvulinear length of the window [m].
 
         Returns:
-        --------
             float: sinuosity over the window.
 
         """
@@ -438,13 +412,11 @@ class Morphometry:
     ) -> pd.Series:
         """Compute average morphometrics inside a moving window.
 
-        Parameters:
-        -----------
+        Args:
             bend_id (int): bend index
             window_size (float): curvulinear length of the window [m].
 
         Returns:
-        --------
             pd.Series: Series containing average values of all metrics.
 
         """
@@ -469,13 +441,11 @@ class Morphometry:
     ) -> tuple[int, int]:
         """Compute the indexes of first and last bends included in the window.
 
-        Parameters:
-        -----------
+        Args:
             bend_index (int): current bend index
             window_size (float): curvilinear length of the window [m].
 
         Returns:
-        --------
             tuple[int, int]: indexes of first and last bends of the window.
 
         """

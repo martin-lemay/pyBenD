@@ -24,12 +24,10 @@ Usefull methods.
 def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
     """Transform a list of ClPoint into a numpy array (1 point per row).
 
-    Parameters:
-    ----------
+    Args:
         cl_pts (list[ClPoint]): List of ClPoint.
 
     Returns:
-    -------
         NDArray[float]: Array of point coordinates.
 
     """
@@ -41,12 +39,10 @@ def compute_cuvilinear_abscissa(
 ) -> npt.NDArray[np.float64]:
     """Compute curvilinear abscissa from cartesian XY coordinates.
 
-    Parameters:
-    ----------
+    Args:
         XY (NDArray[float]): 2D array with XY coordinates.
 
     Returns:
-    -------
         NDArray[float]: Array of curvilinear abscissa values.
 
     """
@@ -61,8 +57,7 @@ def compute_colinear(
 ) -> npt.NDArray[np.float64]:
     """Return a point which is k times (pt2-pt1) from pt1.
 
-    Parameters:
-    ----------
+    Args:
         pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
             the first point.
         pt2 (npt.NDArray[np.float64] | Sequence[float]):  Coordinates of
@@ -70,7 +65,6 @@ def compute_colinear(
         k (float): Factor
 
     Returns:
-    -------
         NDArray[float]: Array with computed coordinates.
 
     """
@@ -84,8 +78,7 @@ def distance_arrays(
 ) -> npt.NDArray[np.float64]:
     """Compute the distance between points.
 
-    Parameters:
-    ----------
+    Args:
         pts1 (NDArray[float]): 2D array with coordinates of the first points,
             1 point per row.
         pts2 (NDArray[float]): 2D array with coordinates of the second points,
@@ -96,7 +89,6 @@ def distance_arrays(
             Defaults to 4.
 
     Returns:
-    -------
         NDArray[float]: 1D array with computed distances between each pair of
             points.
     """
@@ -111,8 +103,7 @@ def distance(
 ) -> float:
     """Distance between pt1 and pt2.
 
-    Parameters:
-    ----------
+    Args:
         pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
             the first point.
         pt2 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
@@ -120,7 +111,6 @@ def distance(
         prec (int): Precision to round distances (i.e., number of decimals)
 
     Returns:
-    -------
         float: Distance between the 2 points.
 
     """
@@ -143,8 +133,7 @@ def orthogonal_distance(
 ) -> float:
     """Orthogonal distance between pt and its projection on segment.
 
-    Parameters:
-    ----------
+    Args:
         pt (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
             the point.
         seg_pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
@@ -154,7 +143,6 @@ def orthogonal_distance(
         prec (int): Precision to round distances (i.e., number of decimals)
 
     Returns:
-    -------
         float: Distance between the 2 points.
 
     """
@@ -165,12 +153,10 @@ def orthogonal_distance(
 def perp(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute the orthogonal vector to input.
 
-    Parameters:
-    ----------
+    Args:
         vec (NDArray[float]): Coordinates of the vector.
 
     Returns:
-    -------
         NDArray[float]: Coordinates of the orthogonal vector.
 
     """
@@ -182,12 +168,10 @@ def perp(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
 def normal(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute the normalized orthogonal vector to nput.
 
-    Parameters:
-    ----------
+    Args:
         vec (NDArray[float]): Coordinates of the vector.
 
     Returns:
-    -------
         NDArray[float]: Coordinates of the normalized orthogonal vector.
 
     """
@@ -204,15 +188,13 @@ def seg_intersect(
 ) -> npt.NDArray[np.float64]:
     """Compute the intersection point to the segments (pt11,pt12), (pt21,pt22).
 
-    Parameters:
-    ----------
+    Args:
         pt11 (NDArray[float]): Coordinates of the 1st point of the first line
         pt12 (NDArray[float]): Coordinates of the 2nd point of the first line
         pt21 (NDArray[float]): Coordinates of the 1st point of the second line
         pt22 (NDArray[float]): Coordinates of the 2nd second of the second line
 
     Returns:
-    -------
         NDArray[float]: Coordinates of the intersection point.
 
     """
@@ -233,14 +215,12 @@ def project_orthogonal(
 ) -> npt.NDArray[np.float64]:
     """Compute the point, image of pt projected on the vector vec=(pt2-pt1).
 
-    Parameters:
-    ----------
+    Args:
         pt (NDArray[float]): Coordinates of the point to project.
         pt1 (NDArray[float]): Coordinates of the first point of the line.
         pt2 (NDArray[float]): Coordinates of the second point of the line.
 
     Returns:
-    -------
         NDArray[float]: Coordinates of the projected point.
 
     """
@@ -252,99 +232,6 @@ def project_orthogonal(
     return compute_colinear(pt1, pt2, k)
 
 
-# not used anymore
-def project_point(
-    pt_new0: npt.NDArray[np.float64],
-    pt_new1: npt.NDArray[np.float64],
-    pt_new2: npt.NDArray[np.float64],
-    pt0: npt.NDArray[np.float64],
-    pt1: npt.NDArray[np.float64],
-    pt2: npt.NDArray[np.float64],
-) -> tuple[npt.NDArray[np.float64], int]:
-    """Compute the coordinates of the projected point of pt_new1.
-
-    Parameters:
-    ----------
-        pt_new0 (NDArray[float]): Coordinates of the first point of the line.
-        pt_new1 (NDArray[float]): Coordinates of the point to project.
-        pt_new2 (NDArray[float]): Coordinates of the second point of the line.
-        pt0 (NDArray[float]): Coordinates of the first point of the line
-            (pt0, pt1).
-        pt1 (NDArray[float]): Coordinates of the common point of the 2 lines
-            (pt0, pt1) and (pt2, pt1).
-        pt2 (NDArray[float]): Coordinates of the first point of the line
-            (pt2, pt1).
-
-    Returns:
-    -------
-        tuple[npt.NDArray[np.float64], int]: tuple containing the coordinates
-            of the projected point and an int if the closest point is before
-            (-1) or after (+1).
-
-    """
-    pt_proj: npt.NDArray[np.float64] = np.copy(pt1)
-    j2: int = 0
-
-    try:
-        # vector along which to project pt_new1
-        pt_new12: npt.NDArray[np.float64] = pt_new2 - pt_new0
-        pt_new12 = pt_new1 + perp(pt_new12)
-
-        # projection onto the segment pt0, pt1
-        pt_proj0: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt0, pt1
-        )
-        # projection onto the segment pt2, pt1
-        pt_proj2: npt.NDArray[np.float64] = seg_intersect(
-            pt_new1, pt_new12, pt2, pt1
-        )
-
-        # keep the closest pojected point when they exist
-        if (pt_proj0 is None) & (pt_proj2 is None):
-            raise AssertionError("Both projected points are undefined.")
-
-        if pt_proj0 is None:
-            j2 = -1  # type: ignore[unreachable]
-            pt_proj = pt_proj2
-        elif pt_proj2 is None:
-            j2 = 1  # type: ignore[unreachable]
-            pt_proj = pt_proj0
-        else:
-            d: float = distance(pt_new1, pt_proj0) - distance(
-                pt_new1, pt_proj2
-            )
-            if d < 0:
-                j2 = -1
-                pt_proj = pt_proj0
-            else:
-                j2 = 1
-                pt_proj = pt_proj2
-
-        # if (pt_proj0 is not None) and (pt_proj2 is not None):
-        #     d: float = distance(pt_new1, pt_proj0) - distance(
-        #         pt_new1, pt_proj2
-        #     )
-        #     if d < 0:
-        #         j2 = -1
-        #         pt_proj = pt_proj0
-        #     else:
-        #         j2 = 1
-        #         pt_proj = pt_proj2
-        # elif pt_proj2 is not None:
-        #     j2 = -1
-        #     pt_proj = pt_proj0
-        # elif pt_proj0 is not None:
-        #     j2 = 1
-        #     pt_proj = pt_proj2
-        # else:
-        #     raise AssertionError("No projection")
-    except AssertionError:
-        logger.error(
-            "Error when projecting the point to the former centerline"
-        )
-    return pt_proj, j2
-
-
 def resample_path(
     x: npt.NDArray[np.float64],
     y: npt.NDArray[np.float64],
@@ -353,12 +240,12 @@ def resample_path(
 ) -> npt.NDArray[np.float64]:
     """Resample coordinates with nb_pts points according to spline function.
 
-    Parameters:
-    ----------
+    Args:
         x (NDArray[float]): x coordinates
         y (NDArray[float]): y coordinates
-        nb_pts (int, optional): Number of points to return. If nb_pts equals 0,
-            return (x,y) points without resampling.
+        nb_pts (int, optional): Number of points to return.
+
+            If nb_pts equals 0, return (x,y) points without resampling.
 
             Defaults to 0.
         s (float, optional): smoothing parameter of B-spline interpolation
@@ -366,7 +253,6 @@ def resample_path(
             Defaults to 0
 
     Returns:
-    -------
         NDArray[float] | tuple[NDArray[float], NDArray[float]]: Coordinates
             of the new points.
 
@@ -392,8 +278,7 @@ def find_2_closest_points_multi_proc(
 ) -> pd.DataFrame:
     """Find the 2 closest points from dataset1 in dataset2 using multiproc.
 
-    Parameters:
-    ----------
+    Args:
         dataset1 (DataFrame): DataFrame containing x,y coordinates
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
@@ -408,7 +293,6 @@ def find_2_closest_points_multi_proc(
             Defaults to 1.
 
     Returns:
-    -------
         DataFrame: DataFrame of size (dataset1.shape[0], 4) where columns are:
             - index1: index of the closest (first) point in dataset2
             - index2: index of the second closest point in dataset2
@@ -447,8 +331,7 @@ def find_2_closest_points_mono_proc(
 ) -> pd.DataFrame:
     """Find the 2 closest points from dataset1 in dataset2 using monoproc.
 
-    Parameters:
-    ----------
+    Args:
         dataset1 (DataFrame): DataFrame containing x,y coordinates
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
@@ -460,7 +343,6 @@ def find_2_closest_points_mono_proc(
             Defaults to "Y".
 
     Returns:
-    -------
         DataFrame: DataFrame of size (dataset1.shape[0], 4) where columns are:
             - index1: index of the closest (first) point in dataset2
             - index2: index of the second closest point in dataset2
@@ -497,8 +379,7 @@ def find_2_closest_points(
 ) -> tuple[int, int, float, float]:
     """Find the 2 closest points from dataset1 in dataset2.
 
-    Parameters:
-    ----------
+    Args:
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
         x_prop (str, optional): Column name of x coordinate.
@@ -512,7 +393,6 @@ def find_2_closest_points(
             distances.
 
     Returns:
-    -------
         tuple[int, int, float, float]: tuple containing the following values:
             - index1: index of the closest (first) point in dataset2
             - index2: index of the second closest point in dataset2
@@ -587,15 +467,13 @@ def find_inflection_points(
 
     Inflection points are determine such as the curvature change of sign. A
     given point at index i is an inflection point if the following condition
-    is met: $sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})$.
+    is met: :math:`$sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})$`.
 
-    Parameters:
-    ----------
+    Args:
         curvature(NDArray[np.float64]): List of inflection point indexes.
         lag (int): number of points between two consecutive inflection points
 
     Returns:
-    ----------
         npt.NDArray[np.int64]: inflection point indices
 
     """
@@ -628,15 +506,13 @@ def find_inflection_points_from_peaks(
     Inflection points are determine such as the opposite of absolute values
     of curvature reach local maxima using scipy.signal.find_peaks function.
 
-    Parameters:
-    ----------
+    Args:
         curvature(NDArray[np.float64]): curvature of each point.
         curv_threshold (float): curvature threshold for peak detection.
 
             Defaults to 0.001.
 
     Returns:
-    ----------
         npt.NDArray[np.int64]: inflection point indices
 
     """
@@ -663,13 +539,11 @@ def filter_consecutive_indices(
 ) -> npt.NDArray[np.int64]:
     """Filter consecutive indices.
 
-    Parameters:
-    ----------
+    Args:
         values (npt.NDArray[np.int64]): indices to filter
         lag (int): lag between 2 consecutive indices
 
     Returns:
-    ----------
         npt.NDArray[np.int64]: filtered indices
     """
     # Compute differences between consecutive values
@@ -705,12 +579,10 @@ def filter_consecutive_indices(
 def compute_curvature(XY: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute curvature of an ensemble of points.
 
-    Parameters:
-    ----------
+    Args:
         XY (npt.NDArray[np.float64]): 2D array with XY coordinates.
 
     Returns:
-    -------
         npt.NDArray[np.float64]: curvature at each points
 
     """
@@ -730,14 +602,12 @@ def compute_curvature_at_point(
 ) -> float:
     """Compute curvature from 3 points.
 
-    Parameters:
-    ----------
+    Args:
         pt1 (NDArray[float]): Coordinates of the first point.
         pt2 (NDArray[float]): Coordinates of the second point.
         pt3 (NDArray[float]): Coordinates of the third point.
 
     Returns:
-    -------
         float: Value of the curvature.
 
     """
@@ -769,14 +639,12 @@ def compute_curvature_at_point_Menger(
 ) -> float:
     """Compute curvature from 3 points according to Menger formula.
 
-    Parameters:
-    ----------
+    Args:
         pt1 (NDArray[float]): Coordinates of the first point.
         pt2 (NDArray[float]): Coordinates of the second point.
         pt3 (NDArray[float]): Coordinates of the third point.
 
     Returns:
-    -------
         float: Absolute value of the curvature.
 
     """
@@ -805,14 +673,12 @@ def compute_curvature_at_point_flumy(
 ) -> float:
     """Compute the curvature according to the formula used in Flumy.
 
-    Parameters:
-    ----------
+    Args:
         pt1 (NDArray[float]): Coordinates of the first point.
         pt2 (NDArray[float]): Coordinates of the second point.
         pt3 (NDArray[float]): Coordinates of the third point.
 
     Returns:
-    -------
         float: Value of the curvature.
 
     """
@@ -862,13 +728,11 @@ def compute_median_curvature_index(
 ) -> int:
     """Get median abscissa using curvature distribution as weighting function.
 
-    Parameters:
-    ----------
+    Args:
         curvature (npt.NDArray[np.float64]): curvature array
         n (float): exponent value
 
     Returns:
-    -------
         int: index of median curvature
 
     """
@@ -886,14 +750,12 @@ def compute_esperance(
 ) -> float:
     """Get average abscissa using curvature distribution as weighting function.
 
-    Parameters:
-    ----------
+    Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function
         curv_abscissa (npt.NDArray[np.float64]): curvilinear abscissa
         n (float): exponent
 
     Returns:
-    ----------
         float: average abscissa.
     """
     curvature1: npt.NDArray[np.float64] = np.abs(curvature)
@@ -910,14 +772,12 @@ def compute_variance(
 ) -> tuple[float, float]:
     """Get variance abscissa from curvature distribution as weighting function.
 
-    Parameters:
-    ----------
+    Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function
         curv_abscissa (npt.NDArray[np.float64]): curvilinear abscissa
         n (float): exponent
 
     Returns:
-    ----------
         tuple[float, float]: tuple containing the variance and std deviation.
     """
     mean = compute_esperance(curvature, curv_abscissa, n)
@@ -933,14 +793,12 @@ def compute_skewness(
 ) -> float:
     """Compute Pearson's skewness coeff of curvature distribution function.
 
-    Parameters:
-    ----------
+    Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function
         curv_abscissa (npt.NDArray[np.float64]): curvilinear abscissa
         n (float): exponent
 
     Returns:
-    ----------
         float: skewness coefficient.
     """
     mean = compute_esperance(curvature, curv_abscissa, n)
@@ -956,14 +814,12 @@ def compute_kurtosis(
 ) -> float:
     """Compute the kurtosis coefficient of curvature distribution function.
 
-    Parameters:
-    ----------
+    Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function
         curv_abscissa (npt.NDArray[np.float64]): curvilinear abscissa
         n (float): exponent
 
     Returns:
-    ----------
         float: kurtosis coefficient.
     """
     mean = compute_esperance(curvature, curv_abscissa, n)
@@ -979,8 +835,7 @@ def get_MP(
 ) -> npt.NDArray[np.float64]:
     """Get the rotation 2D matrix between ref and dir_trans.
 
-    Parameters:
-    ----------
+    Args:
         dir_trans (NDArray[float], optional): Direction.
 
             Defaults to np.array((1., 0.)).
@@ -989,7 +844,6 @@ def get_MP(
             Defaults to np.array((1., 0.)).
 
     Returns:
-    -------
         NDArray[float]: Array corresponding to rotation 2D matrix.
 
     """
@@ -1017,9 +871,8 @@ def compute_point_displacements(
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """Compute the displacements of a serie of points.
 
-    Parameters:
-    ----------
-        l_pt (list[NDArray[float]]: List of point coordinates.
+    Args:
+        l_pt (list[NDArray[float]]): List of point coordinates.
         dir_trans (NDArray[float], optional): Direction.
 
             Defaults to np.array((1., 0.)).
@@ -1028,8 +881,8 @@ def compute_point_displacements(
             Defaults to np.array((1., 0.)).
 
     Returns:
-    -------
         tuple[NDArray[float], NDArray[float]]: tuple containing:
+
             - Displacement in-between each successive points of the serie.
             - Displacement between first and last points of the serie.
 
@@ -1079,66 +932,14 @@ def compute_point_displacements(
     return local_disp, whole_disp
 
 
-# to move to morphometry
-def compute_Leopold_parameters(
-    dataset: pd.DataFrame,
-    meand1: tuple[int, int],
-    meand2: tuple[int, int],
-    meand3: tuple[int, int],
-) -> tuple[float, float]:
-    """Compute meander morphology using Leopold methods.
-
-    Parameters:
-    ----------
-        dataset : pd.DataFrame): Dataframe
-        meand1 (tuple[float, float]):
-        meand2 (tuple[float, float]):
-        meand3 (tuple[float, float]):
-
-    Returns:
-    -------
-        tuple[float, float]: tuple containing the wavelength (m) and the
-            amplitude (m).
-
-    """
-    pt_apex1 = np.array(
-        (
-            dataset[meand1[0]]["Cart_abscissa"][meand1[1]],
-            dataset[meand1[0]]["Cart_ordinate"][meand1[1]],
-        )
-    )
-    pt_apex2 = np.array(
-        (
-            dataset[meand2[0]]["Cart_abscissa"][meand2[1]],
-            dataset[meand2[0]]["Cart_ordinate"][meand2[1]],
-        )
-    )
-    pt_apex3 = np.array(
-        (
-            dataset[meand3[0]]["Cart_abscissa"][meand3[1]],
-            dataset[meand3[0]]["Cart_ordinate"][meand3[1]],
-        )
-    )
-
-    pt: npt.NDArray[np.float64] = project_orthogonal(
-        pt_apex1, pt_apex3, pt_apex2
-    )
-    ampl: float = distance(pt, pt_apex2)
-    wavelength: float = distance(pt_apex1, pt_apex3)
-
-    return wavelength, ampl
-
-
 def barycenter(l_val: list[float], l_pond: list[float]) -> float:
     """Compute the weighted average of values in l_val.
 
-    Parameters:
-    ----------
+    Args:
         l_val (list[float]): List of values to compute the mean.
         l_pond (list[float]): List of weights for each value of l_val.
 
     Returns:
-    -------
         float: weighted mean.
 
     """
@@ -1156,15 +957,13 @@ def barycenter(l_val: list[float], l_pond: list[float]) -> float:
 def sort_key(labels: list[str], reverse: bool = False) -> list[str]:
     """Sort the labels.
 
-    Parameters:
-    ----------
+    Args:
         labels (list[str]): List of labels that can be cast to int/float values
         reverse (bool, optional): if True, sorting is descending.
 
             Defaults to False.
 
     Returns:
-    -------
         labels2 (list[str]): List of sorted labels.
 
     """
@@ -1182,8 +981,7 @@ def get_keys_from_to(
 ) -> list[str]:
     """Extract keys from key_min to key_max from the list all_keys.
 
-    Parameters:
-    ----------
+    Args:
         all_keys (list[str]): List of keys that can be cast to int values.
         key_min (int, optional): Minimum key.
 
@@ -1196,7 +994,6 @@ def get_keys_from_to(
             Defaults to False.
 
     Returns:
-    -------
         list: List of extracted keys.
 
     """

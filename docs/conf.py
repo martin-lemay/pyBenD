@@ -14,11 +14,14 @@
 #
 import os
 import sys
-import shutil
 
 # Add python modules to be documented
-python_root = '..'
-sys.path.insert( 0, os.path.abspath( os.path.join( python_root, 'src' ) ) )
+config_file_dir = os.path.dirname(__file__)
+project_root =  os.path.abspath( os.path.join( config_file_dir, '..' ) )
+src_dir = os.path.abspath( os.path.join( project_root, 'src' ) )
+
+sys.path.insert( 0,  project_root)
+sys.path.insert( 0, src_dir )
 
 # -- Project information -----------------------------------------------------
 
@@ -41,11 +44,21 @@ release = u'0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.imgmath',
-    'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinxcontrib.programoutput'
+    'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 
+    'sphinx.ext.imgmath', 'sphinxarg.ext', 'sphinx.ext.napoleon', 
+    'sphinxcontrib.programoutput'
 ]
 
-autodoc_mock_imports = [ "pybend", ]
+#autodoc_mock_imports = [ "pybend", ]
+autoclass_content = 'both'
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'groupwise',
+    'private-members' : True,
+    'undoc-members': True,
+    'exclude-members': '__weakref__',
+    'show-inheritance': True,
+}
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:

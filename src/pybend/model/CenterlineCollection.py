@@ -63,8 +63,7 @@ class CenterlineCollection:
     ) -> None:
         """Store the successive Centerline objects from a single channel-belt.
 
-        Parameters:
-        ----------
+        Args:
             map_centerline_data (dict[int, pd.DataFrame]): dictionnary
                 containing for each age a dataframe containing centerline data
             spacing (float): Target distance  (m) between two consecutive
@@ -165,8 +164,7 @@ class CenterlineCollection:
     ) -> bool:
         """Initialize Centerline_evoution object using multiprocessing.
 
-        Parameters:
-        ----------
+        Args:
             map_centerline_data (dict[int, pd.DataFrame]): dictionnary
               containing for each age a dataframe containing centerline data
             spacing (float): Target distance  (m) between two consecutive
@@ -188,7 +186,6 @@ class CenterlineCollection:
               and interpolate properties and detect bends along each centerline
 
         Returns:
-        ----------
           bool: True if calculation successfully eneded.
 
         """
@@ -218,6 +215,7 @@ class CenterlineCollection:
                 assert centerline is not None, (
                     f"Centerline {age} is undefined."
                 )
+
                 centerlines[age] = centerline
 
             self.centerlines = dict(sorted(centerlines.items()))
@@ -238,8 +236,7 @@ class CenterlineCollection:
     ) -> bool:
         """Initialize Centerline_evoution object using monoprocessing.
 
-        Parameters:
-        ----------
+        Args:
             map_centerline_data (dict[int, pd.DataFrame]): dictionnary
               containing for each age a dataframe containing centerline data
             spacing (float): Target distance  (m) between two consecutive
@@ -261,7 +258,6 @@ class CenterlineCollection:
               and interpolate properties and detect bends along each centerline
 
         Returns:
-        ----------
           bool: True if calculation successfully eneded.
 
         """
@@ -302,8 +298,9 @@ class CenterlineCollection:
         dictionnary self.centerlines containing ages a keys and Centerline
         object as values.
 
-        Parameters:
-        ----------
+        Args:
+            map_centerline_data (dict[int, pd.DataFrame]): dictionnary of ages
+                and dataframe defining channel point location and properties.
             spacing (float): Target distance  (m) between two consecutive
                 channel points after resampling, or number of points if
                 use_fix_nb_points is True
@@ -326,7 +323,6 @@ class CenterlineCollection:
             queue (mp.Queue): queue where to dump created Centerline
 
         Returns:
-        --------
             Centerline: Centerline object
 
         """
@@ -348,7 +344,6 @@ class CenterlineCollection:
         """Get all centerline ages stored in the CenterlineCollection.
 
         Returns:
-        ----------
           NDArray[int]: Array of centerline ages sorted in ascending order.
 
         """
@@ -364,7 +359,6 @@ class CenterlineCollection:
             property_name (str): Name of the property.
 
         Returns:
-        ----------
           NDArray[float]: Array containing the values of the property for
             each channel point.
 
@@ -382,11 +376,10 @@ class CenterlineCollection:
     ) -> None:
         """Set properties with constant value to the centerline of input age.
 
-        Parameters:
-        ----------
+        Args:
             age (float): Age of the Centerline.
-        property_map (dict[str, float]): Dictionnary containings property names
-            as keys and property values as values.
+            property_map (dict[str, float]): Dictionnary containings property
+                names as keys and property values as values.
 
         """
         if age in self.get_all_ages():
@@ -403,11 +396,10 @@ class CenterlineCollection:
     ) -> None:
         """Set properties values to the centerline of input age.
 
-        Parameters:
-        ----------
+        Args:
             age (float): Age of the Centerline.
-        property_map (dict[str, NDArray[float]]): Dictionnary containings
-            property names as keys and array of property values as values.
+            property_map (dict[str, NDArray[float]]): Dictionnary containings
+                property names as keys and array of property values as values.
 
         """
         if age in self.get_all_ages():
@@ -422,7 +414,6 @@ class CenterlineCollection:
         """Get the number of BendEvolution stored in self.bends_evol list.
 
         Returns:
-        ----------
             int: Number of BendEvolution.
 
         """
@@ -432,7 +423,6 @@ class CenterlineCollection:
         """Get the number of valid BendEvolution stored in bends_evol list.
 
         Returns:
-        ----------
             int: Number of valid BendEvolution.
 
         """
@@ -442,7 +432,6 @@ class CenterlineCollection:
         """Get the ids of valid BendEvolution stored in self.bends_evol list.
 
         Returns:
-        --------
             list[int]: Ids of valid BendEvolution.
 
         """
@@ -455,12 +444,10 @@ class CenterlineCollection:
 
         BendEvolution side is the most frequent side of its constitutive bends.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_index (int): BendEvolution index.
 
         Returns:
-        --------
             BendSide: BendEvolution side.
 
         """
@@ -490,12 +477,11 @@ class CenterlineCollection:
         Centerline matching consists in applying Dynamic Time Warping on each
         pair of consecutive Centerline to connect channel points together.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float, optional): Maximal allowed distance (m) between
               connected channel point.
 
-              Defaults to np.inf.
+                Defaults to np.inf.
             distance_weight (float, optional): Weight [0, 1] on channel point
                 distance.
 
@@ -552,8 +538,7 @@ class CenterlineCollection:
     ) -> bool:
         """Private method to compute centerline matching using monoprocessing.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float): Maximal allowed distance (m) between
               connected channel point.
             distance_weight (float): Weight [0, 1] on channel point
@@ -565,7 +550,6 @@ class CenterlineCollection:
             pattern (str): Pattern input of dtw.dtw function.
 
         Returns:
-        ----------
             bool: True if calculation successfully ended.
 
         """
@@ -599,8 +583,7 @@ class CenterlineCollection:
     ) -> bool:
         """Private method to compute centerline matching using multiprocessing.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float): Maximal allowed distance (m) between
               connected channel point.
             distance_weight (float): Weight [0, 1] on channel point
@@ -613,7 +596,6 @@ class CenterlineCollection:
             nb_procs (int): number of processors.
 
         Returns:
-        ----------
             bool: True if calculation successfully ended.
 
         """
@@ -650,8 +632,7 @@ class CenterlineCollection:
     ) -> list[int]:
         """Private method to compute centerline matching.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float): Maximal allowed distance (m) between
               connected channel point.
             distance_weight (float): Weight [0, 1] on channel point
@@ -664,7 +645,6 @@ class CenterlineCollection:
             keys (tuple[int, int]): age of the current and previous cenerlines
 
         Returns:
-        ----------
             list[int]: List of tuples containing indexes
                 of Centerline of age key and indexes of Centerline of age
                 prev_key.
@@ -765,8 +745,7 @@ class CenterlineCollection:
         index_cl_pts_next_centerline of each Centerline object and also
         upate ChannelPoint cl_pt_index_prev and cl_pt_index_next members.
 
-        Parameters:
-        ----------
+        Args:
             key (float): Age of the first matched centerline.
             prev_key (float): Age of the second matched centerline.
             indexes (list[int]): List of channel point indexes in the
@@ -813,8 +792,7 @@ class CenterlineCollection:
     ) -> bool:
         """Pulic method to create BendEvolution objects by connecting bends.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_validity (int, optional): Minimum number of bends in the
                 BendEvolution to be considered as valid.
 
@@ -833,7 +811,6 @@ class CenterlineCollection:
                 Defaults to "uniform".
 
         Returns:
-        ----------
             bool: True if the function ends witout errors
 
         """
@@ -864,15 +841,13 @@ class CenterlineCollection:
         searching for the closests apex points that belongs to bends of same
         side.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float): Maximum allowed distance (m) between 2
                 successive apex points.
             bend_evol_validity (int): Minimum number of bends in the
                 BendEvolution to be considered as valid.
 
         Returns:
-        ----------
             bool: True if the function ends witout errors
 
         """
@@ -973,15 +948,13 @@ class CenterlineCollection:
         searching for the closests centroids points that belongs to bends of
         same side.
 
-        Parameters:
-        ----------
+        Args:
             dmax (float): Maximum allowed distance (m) between 2
                 successive apex points.
             bend_evol_validity (int): Minimum number of bends in the
                 BendEvolution to be considered as valid.
 
         Returns:
-        ----------
             bool: True if the function ends witout errors
 
         """
@@ -1066,15 +1039,13 @@ class CenterlineCollection:
         searching for the greatest number of connected channel points between
         connected bends.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_validity (int): Minimum number of bends in the
                 BendEvolution to be considered as valid.
             weighting_func_type (str, optional): Weighting function type to
                 use.
 
         Returns:
-        ----------
             bool: True if the function ends witout errors
 
         """
@@ -1136,15 +1107,13 @@ class CenterlineCollection:
     ) -> int:
         """Register the reciprocal connection of bends of age key and next_key.
 
-        Parameters:
-        ----------
+        Args:
             key (int): Age of centerline.
             next_key (int): Age of successive centerline.
             cur_bend_index (int): index of the bend of age 'key'.
             next_bend_index (int): index of the bend of age 'next_key'.
 
         Returns:
-        ----------
             int: bend unique id
 
         """
@@ -1166,8 +1135,7 @@ class CenterlineCollection:
     ) -> list[int | None]:
         """Get the number of times each connected bends is.
 
-        Parameters:
-        ----------
+        Args:
             bend (Bend): Bend object.
             key (int): Age of centerline.
             next_key (int): Next age to consider. It can be lower or greater
@@ -1176,7 +1144,6 @@ class CenterlineCollection:
             weighting_func_type (str): Weighting function type to use.
 
         Returns:
-        ----------
             list[int | None]: Bend uid for each connected bends, or None if no
             bend is connected.
 
@@ -1215,10 +1182,10 @@ class CenterlineCollection:
     ) -> None:
         """Create the list self.bends_evol with BendEvolution objects.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_validity (int): Minimum number of bends in the
                 BendEvolution to be considered as valid.
+            bend_uids (list[int]): list of bend uids.
 
         """
         bend_evol_all: list[list[int]] = []
@@ -1259,8 +1226,7 @@ class CenterlineCollection:
         The method works recursively from the lists Bend.bend_uid_next and
         Bend.bend_uid_prev.
 
-        Parameters:
-        ----------
+        Args:
             to_treat (set[int]): List of remaining Bend uid to treat.
             bend_uids (list[int]): List of all remaining Bend uid to treat.
             bend_evol (list[int]): List of Bend uid that belongs to a same
@@ -1296,8 +1262,7 @@ class CenterlineCollection:
     ) -> None:
         """Manually set section lines across CenterlineCollection.
 
-        Parameters:
-        ----------
+        Args:
             pts_start (list[tuple[float, float]]): List of 2D coordinates of
                 section starting points.
             pts_end : list[tuple[float, float]]): List of 2D coordinates of
@@ -1317,12 +1282,11 @@ class CenterlineCollection:
 
         Section lines are created
 
-        Parameters:
-        ----------
-            point_name (Create_section_method, optional) Name of the point to
+        Args:
+            point_name (CreateSectionMethod, optional): Name of the point to
                 use to create the section.
 
-                Defaults to Create_section_method.MIDDLE.
+                Defaults to CreateSectionMethod.MIDDLE.
 
         Raises:
             TypeError: in case of wrong method
@@ -1351,11 +1315,10 @@ class CenterlineCollection:
         lines goes by the middle or centroid point of the last bend of each
         BendEvolution.
 
-        Parameters:
-        ----------
-            method (Create_section_method): Name of point to use.
-                It can be either Create_section_method.MIDDLE or
-                Create_section_method.CENTROID.
+        Args:
+            point_name (CreateSectionMethod): Name of point to use.
+                It can be either CreateSectionMethod.MIDDLE or
+                CreateSectionMethod.CENTROID.
 
         """
         self.section_lines = []
@@ -1507,8 +1470,7 @@ class CenterlineCollection:
         This method create the Section objects with intersected channel
         geometry and store them in the list self.sections.
 
-        Parameters:
-        ----------
+        Args:
             thres (int, optional): Minimum number of intersected lines to
                 create the Section object.
 
@@ -1523,7 +1485,6 @@ class CenterlineCollection:
                 Defaults to 0.
 
         Returns:
-        ----------
             bool: True if calculation successfully ended.
 
         """
@@ -1585,14 +1546,12 @@ class CenterlineCollection:
     ) -> int:
         """Get bend index from the index of a channel point of age.
 
-        Parameters:
-        ----------
+        Args:
             cl_pt_index (int): Index of the channel point.
             age (float): Age of the Centerline where the channel point
                 belongs to.
 
         Returns:
-        ----------
             int: Index of the Bend the channel point belongs to.
 
         """
@@ -1613,8 +1572,7 @@ class CenterlineCollection:
     ) -> None:
         """Compute the middle points of all bends of the CenterlineCollection.
 
-        Parameters:
-        ----------
+        Args:
             smooth_trajectory (bool, optional): If True, middle trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.middle_trajec_smooth.
@@ -1677,8 +1635,7 @@ class CenterlineCollection:
     ) -> None:
         """Compute the centroid point of each bend of the CenterlineCollection.
 
-        Parameters:
-        ----------
+        Args:
             smooth_trajectory (bool, optional): If True, centroid trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.centroid_trajec_smooth.
@@ -1745,8 +1702,7 @@ class CenterlineCollection:
     ) -> None:
         """Find the apex of all bends of the CenterlineCollection.
 
-        Parameters:
-        ----------
+        Args:
             apex_proba_weights (tuple[float, float, float]): Weights for apex
                 probability calculation. Apex probability depends on channel
                 point curvature, bend amplitude (m), and the distance from
@@ -1779,8 +1735,7 @@ class CenterlineCollection:
     ) -> None:
         """Find the apex of all bends of the CenterlineCollection.
 
-        Parameters:
-        ----------
+        Args:
             n (float): exponent of the curvature distribution function.
 
             smooth_trajectory (bool, optional): If True, middle trajectory
@@ -1834,12 +1789,10 @@ class CenterlineCollection:
     ) -> list[npt.NDArray[np.float64]]:
         """Smooth apex trajectory of one bend evolution.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_index (int): bend evolution index
 
         Returns:
-        -------
             list[npt.NDArray[np.float64]]: Smooth apex trajectory coordinates.
 
         """
@@ -1866,12 +1819,10 @@ class CenterlineCollection:
     ) -> list[npt.NDArray[np.float64]]:
         """Get the coordinates of all bend apex of the bend evolution.
 
-        Parameters:
-        ----------
+        Args:
             bend_evol_index (int): bend evolution index
 
         Returns:
-        -------
             npt.NDArray[np.float64]: apex coordinates
 
         """

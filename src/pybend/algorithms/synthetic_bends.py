@@ -76,14 +76,12 @@ def kinoshita_bend(
     r"""Create a Kinoshita bend.
 
     Bend centerline follows the Kinoshita curve (Kinoshita, 1961):
+    :math: `$\Theta=\Theta_0.\cos(\frac{2\pi.s}{\lambda})+\Theta_0^3.(Js.\sin(3\frac{2\pi.s}{\lambda})-Jf.\cos(3\frac{2\pi.s}{\lambda}))$`
 
-    .. math::
-        $\Theta=\Theta_0.\cos(\frac{2\pi.s}{\lambda})+\Theta_0^3.(Js.\sin(3\frac{2\pi.s}{\lambda})-Jf.\cos(3\frac{2\pi.s}{\lambda}))$
-
-    where :math:`$\Theta$` is the local angle from x axis, $\Theta_0$ the
-    maximum angle, :math:`$s$` the curvilinear coordinate, :math:`$\lambda$`
-    the wavelength, :math:`$Js$` the skewness coefficient, and :math:`$Jf$`
-    the flattening coefficient.
+    where :math:`$\Theta$` is the local angle from x axis, :math:`$\Theta_0$`
+    the maximum angle, :math:`$s$` the curvilinear coordinate,
+    :math:`$\lambda$` the wavelength, :math:`$Js$` the skewness coefficient,
+    and :math:`$Jf$` the flattening coefficient.
 
     Inflection point may be downstream the first point at
     :math:`$\Theta=\Theta_0$`, then the bend between inflection points is
@@ -104,7 +102,7 @@ def kinoshita_bend(
     Returns:
         npt.NDArray[np.float64]: point coordinates
 
-    """
+    """  # noqa: E501
     coords_x: list[float] = [0.0]
     coords_y: list[float] = [0.0]
     teta: float = teta_max

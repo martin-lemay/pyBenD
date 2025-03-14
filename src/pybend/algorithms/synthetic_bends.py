@@ -78,13 +78,7 @@ def kinoshita_bend(
     Bend centerline follows the Kinoshita curve (Kinoshita, 1961):
 
     .. math::
-
-        $\Theta=\{Theta}_{0}.\cos(\frac{2\{pi}.s}{\{lambda}})+\{Theta}_{0}^3.(Js.\sin(3\frac{2\{pi}.s}{\{lambda}})-Jf.\cos(3\frac{2\{pi}.s}{\{lambda}}))$
-        $\Theta=1$
-        $\cos(\frac{2\{pi}.s}{\{lambda}})$
-        $\{Theta}_{0}^3$
-        $Js.\sin(3\frac{2\{pi}.s}{\{lambda}})$
-        $Jf.\cos(3\frac{2\{pi}.s}{\{lambda}})$
+        $\Theta=\Theta_0.\cos(\frac{2\pi.s}{\lambda})+\Theta_0^3.(Js.\sin(3\frac{2\pi.s}{\lambda})-Jf.\cos(3\frac{2\pi.s}{\lambda}))$
 
     where :math:`$\Theta$` is the local angle from x axis, :math:`$\Theta_0$`
     the maximum angle, :math:`$s$` the curvilinear coordinate,

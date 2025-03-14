@@ -35,14 +35,14 @@ class StackingPatternType(Enum):
 
     .. code-block:: bash
 
-    Aggradation only    |   One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
+        Aggradation only    |   One Way      | Aggradation then One Way |    Two Ways   |  Multiple Ways
 
-          :                            .                    .           .                  .
-          :                           .                 .                   .                 .
-          :                        .                 .                        :                 :
-          :                     .                  .                        .                .
-          :                 .                     :                      .                 :
-          :                .                       :                    .                       .
+            :                            .                    .           .                  .
+            :                           .                 .                   .                 .
+            :                        .                 .                        :                 :
+            :                     .                  .                        .                .
+            :                  .                     :                      .                 :
+            :                .                       :                    .                       .
 
 
     *Channel Stacking pattern types. Each point represents the position of the

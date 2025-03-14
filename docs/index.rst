@@ -59,6 +59,25 @@ From pyBenD source, run the following commands:
    conda install ./
 
 
+Testing
+---------
+
+You can test pyBenD package using ``pytest`` (see the `homepage <https://pytest.org/>`_).
+
+* To test the source distribution, run the following commands from pyBenD root
+directory:
+
+.. code-block:: bash
+
+   pytest ./
+
+* To test the installed package, run the following commands:
+
+.. code-block:: bash
+
+   pytest --pyargs pybend
+
+
 
 Packages
 -------------

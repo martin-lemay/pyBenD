@@ -50,10 +50,10 @@ extensions = [
 ]
 
 #autodoc_mock_imports = [ "pybend", ]
+autoclass_content = 'both'
 autodoc_default_options = {
     'members': True,
     'member-order': 'groupwise',
-    'class-doc-from': 'init',
     'private-members' : True,
     'undoc-members': True,
     'exclude-members': '__weakref__',

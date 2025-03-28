@@ -1,4 +1,7 @@
-# pyBenD
+[![CI](https://github.com/martin-lemay/pyBenD/actions/workflows/python-package.yml/badge.svg)](https://github.com/martin-lemay/pyBenD/actions)
+[![docs](https://readthedocs.com/projects/mlemay-pybend/badge/?version=latest)](https://mlemay-pybend.readthedocs.io/en/latest/)
+
+# Welcome to pyBenD Repo!
 pyBenD stands for Python Bend Dynamics. This repository replaces [ChannelPy](https://github.com/martin-lemay/ChannelPy) repository.
 
 This project sets the data structure to store channel centreline properties and centreline evolution (a set of successive position of a river centerline) through time. It provides methods to create cross-sections and measure meander bend geomorphic and kinematic parameters.

@@ -5,7 +5,6 @@
 import functools
 import math
 from multiprocessing import Pool
-from typing import Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -13,6 +12,7 @@ import pandas as pd  # type: ignore[import-untyped]
 from scipy.interpolate import splev, splprep  # type: ignore[import-untyped]
 from scipy.signal import find_peaks  # type: ignore[import-untyped]
 
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
 from pybend.utils.logging import logger
 
@@ -32,204 +32,6 @@ def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
 
     """
     return np.array([cl_pt.pt for cl_pt in cl_pts])
-
-
-def compute_cuvilinear_abscissa(
-    XY: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Compute curvilinear abscissa from cartesian XY coordinates.
-
-    Args:
-        XY (NDArray[float]): 2D array with XY coordinates.
-
-    Returns:
-        NDArray[float]: Array of curvilinear abscissa values.
-
-    """
-    ds = distance_arrays(XY[:-1], XY[1:], 4)
-    return np.append([0], np.cumsum(ds))
-
-
-def compute_colinear(
-    pt1: npt.NDArray[np.float64] | Sequence[float],
-    pt2: npt.NDArray[np.float64] | Sequence[float],
-    k: float,
-) -> npt.NDArray[np.float64]:
-    """Return a point which is k times (pt2-pt1) from pt1.
-
-    Args:
-        pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the first point.
-        pt2 (npt.NDArray[np.float64] | Sequence[float]):  Coordinates of
-            the second point.
-        k (float): Factor
-
-    Returns:
-        NDArray[float]: Array with computed coordinates.
-
-    """
-    pt1Array: npt.NDArray[np.float64] = np.array(pt1)
-    pt2Array: npt.NDArray[np.float64] = np.array(pt2)
-    return pt1Array + k * (pt2Array - pt1Array)
-
-
-def distance_arrays(
-    pts1: npt.NDArray[np.float64], pts2: npt.NDArray[np.float64], prec: int = 4
-) -> npt.NDArray[np.float64]:
-    """Compute the distance between points.
-
-    Args:
-        pts1 (NDArray[float]): 2D array with coordinates of the first points,
-            1 point per row.
-        pts2 (NDArray[float]): 2D array with coordinates of the second points,
-            1 point per row.
-        prec (int, optional): Precision to round distances (i.e., number of
-            decimals)
-
-            Defaults to 4.
-
-    Returns:
-        NDArray[float]: 1D array with computed distances between each pair of
-            points.
-    """
-    assert pts1.size == pts2.size, "Point arrays must have the same size."
-    return np.round(np.linalg.norm(pts2 - pts1, axis=1), prec)
-
-
-def distance(
-    pt1: npt.NDArray[np.float64] | Sequence[float],
-    pt2: npt.NDArray[np.float64] | Sequence[float],
-    prec: int = 4,
-) -> float:
-    """Distance between pt1 and pt2.
-
-    Args:
-        pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the first point.
-        pt2 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the second point.
-        prec (int): Precision to round distances (i.e., number of decimals)
-
-    Returns:
-        float: Distance between the 2 points.
-
-    """
-    pt1Array: npt.NDArray[np.float64] = np.array(pt1)
-    pt2Array: npt.NDArray[np.float64] = np.array(pt2)
-
-    dim: int = min(pt1Array.size, pt2Array.size)
-    d: float = float(
-        np.linalg.norm(pt2Array[:dim] - pt1Array[:dim]).astype(float)
-    )
-    return round(d, prec)
-
-
-# TODO: add unit test
-def orthogonal_distance(
-    pt: npt.NDArray[np.float64],
-    seg_pt1: npt.NDArray[np.float64],
-    seg_pt2: npt.NDArray[np.float64],
-    prec: int = 4,
-) -> float:
-    """Orthogonal distance between pt and its projection on segment.
-
-    Args:
-        pt (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the point.
-        seg_pt1 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the first point of the segment.
-        seg_pt2 (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
-            the second point of the segment.
-        prec (int): Precision to round distances (i.e., number of decimals)
-
-    Returns:
-        float: Distance between the 2 points.
-
-    """
-    pt_proj: npt.NDArray[np.float64] = project_orthogonal(pt, seg_pt1, seg_pt2)
-    return distance(pt_proj, pt, prec)
-
-
-def perp(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-    """Compute the orthogonal vector to input.
-
-    Args:
-        vec (NDArray[float]): Coordinates of the vector.
-
-    Returns:
-        NDArray[float]: Coordinates of the orthogonal vector.
-
-    """
-    vec_new: npt.NDArray[np.float64] = np.empty_like(vec)
-    vec_new[0], vec_new[1] = -vec[1], vec[0]
-    return vec_new
-
-
-def normal(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-    """Compute the normalized orthogonal vector to nput.
-
-    Args:
-        vec (NDArray[float]): Coordinates of the vector.
-
-    Returns:
-        NDArray[float]: Coordinates of the normalized orthogonal vector.
-
-    """
-    normal_vec = perp(vec)
-    normal_vec /= np.linalg.norm(normal_vec)
-    return normal_vec
-
-
-def seg_intersect(
-    pt11: npt.NDArray[np.float64],
-    pt12: npt.NDArray[np.float64],
-    pt21: npt.NDArray[np.float64],
-    pt22: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Compute the intersection point to the segments (pt11,pt12), (pt21,pt22).
-
-    Args:
-        pt11 (NDArray[float]): Coordinates of the 1st point of the first line
-        pt12 (NDArray[float]): Coordinates of the 2nd point of the first line
-        pt21 (NDArray[float]): Coordinates of the 1st point of the second line
-        pt22 (NDArray[float]): Coordinates of the 2nd second of the second line
-
-    Returns:
-        NDArray[float]: Coordinates of the intersection point.
-
-    """
-    da: npt.NDArray[np.float64] = pt12 - pt11
-    db: npt.NDArray[np.float64] = pt22 - pt21
-    dp: npt.NDArray[np.float64] = pt11 - pt21
-    dap: npt.NDArray[np.float64] = perp(da)
-    denom: float = np.dot(dap, db).astype(float)
-    num: float = np.dot(dap, dp).astype(float)
-    assert denom != 0, "No intersection between the two lines."
-    return (num / denom) * db + pt21
-
-
-def project_orthogonal(
-    pt: npt.NDArray[np.float64],
-    pt1: npt.NDArray[np.float64],
-    pt2: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Compute the point, image of pt projected on the vector vec=(pt2-pt1).
-
-    Args:
-        pt (NDArray[float]): Coordinates of the point to project.
-        pt1 (NDArray[float]): Coordinates of the first point of the line.
-        pt2 (NDArray[float]): Coordinates of the second point of the line.
-
-    Returns:
-        NDArray[float]: Coordinates of the projected point.
-
-    """
-    vec: npt.NDArray[np.float64] = pt2 - pt1
-    d: float = np.linalg.norm(vec).astype(float)
-    k: float = 0.0
-    if d > 1e-6:
-        k = np.dot(vec, pt - pt1) / d**2
-    return compute_colinear(pt1, pt2, k)
 
 
 def resample_path(
@@ -409,7 +211,7 @@ def find_2_closest_points(
             continue
 
         pt0: npt.NDArray[np.float64] = np.array((row[x_prop], row[y_prop]))
-        d: float = distance(pt0, pt_new)
+        d: float = geom.distance(pt0, pt_new)
 
         # optimization: stop when distance between new and old points increase
         if d > d_prev:
@@ -434,13 +236,13 @@ def find_2_closest_points(
         pt_next = np.array(
             (dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1])
         )
-        d2 = distance(pt_next, pt_new)
+        d2 = geom.distance(pt_next, pt_new)
         j2 = j1 + 1
     elif j1 == dataset2.shape[0] - 1:
         pt_prev = np.array(
             (dataset2[x_prop][j1 - 1], dataset2[y_prop][j1 - 1])
         )
-        d2 = distance(pt_prev, pt_new)
+        d2 = geom.distance(pt_prev, pt_new)
         j2 = j1 - 1
     else:
         pt_prev = np.array(
@@ -449,8 +251,8 @@ def find_2_closest_points(
         pt_next = np.array(
             (dataset2[x_prop][j1 + 1], dataset2[y_prop][j1 + 1])
         )
-        d_prev = distance(pt_prev, pt_new)
-        d_next = distance(pt_next, pt_new)
+        d_prev = geom.distance(pt_prev, pt_new)
+        d_next = geom.distance(pt_next, pt_new)
         if d_prev < d_next:
             d2 = d_prev
             j2 = j1 - 1
@@ -590,8 +392,10 @@ def compute_curvature(XY: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     curv: npt.NDArray[np.float64] = np.full(XY.shape[0], np.nan)
     for i in range(1, XY.shape[0] - 1, 1):
         curv[i] = compute_curvature_at_point(XY[i - 1], XY[i], XY[i + 1])
-    # copy curvature from neighbors at end points
-    curv[0], curv[-1] = curv[1], curv[-2]
+    # copy curvature values at end points
+    dc0 = curv[2] - curv[1]
+    dc1 = curv[-2] - curv[-3]
+    curv[0], curv[-1] = curv[1] - dc0, curv[-2] + dc1
     return curv
 
 
@@ -615,8 +419,8 @@ def compute_curvature_at_point(
     x2, y2 = pt2
     x3, y3 = pt3
 
-    ds12: float = distance(pt1, pt2)
-    ds23: float = distance(pt2, pt3)
+    ds12: float = geom.distance(pt1, pt2)
+    ds23: float = geom.distance(pt2, pt3)
     ds13: float = ds12 + ds23
 
     dxds: float = (x3 - x1) / (ds13)
@@ -720,6 +524,52 @@ def compute_curvature_at_point_flumy(
         if det > 0:
             curvature *= -1.0
     return curvature
+
+
+def compute_half_angle_variation(normal: npt.NDArray[np.float64]) -> int:
+    """Get the index of half path angle variation.
+
+    Args:
+        normal (npt.NDArray[np.float64]): normal vectors to channel path
+
+    Returns:
+        int: index of median curvature
+
+    """
+    normal2 = np.copy(normal)
+    # use first normal vector as reference direction
+    ref: npt.NDArray[np.float64] = normal2[0]
+    if ref[0] < 0.0:
+        normal2 *= -1
+
+    # compute angle variation of each normal vector from reference vector
+    teta: npt.NDArray[np.float64] = np.zeros(normal2.shape[0])
+    for i, vec in enumerate(normal2):
+        teta[i] = geom.get_angle_between_vectors(ref, vec)
+
+    # correction of teta[0] depending on rotation direction
+    teta[0] = 2.0 * np.pi if teta[1] > np.pi else 0.0
+
+    # if angle decreases from first to last point, use the complementary angle
+    if (teta[-1] - teta[0]) < 0:
+        teta = 2 * np.pi - teta
+
+    # get the total angle variation from first to last point
+    d_teta: float = teta[-1] - teta[0]
+    # compute angle at apex
+    index = 0
+    teta_apex: float = teta[0]
+    if d_teta <= np.pi:
+        teta_apex += d_teta / 2.0
+    else:
+        teta_apex += np.pi / 2.0
+    # find the index of the apex
+    try:
+        index = int(np.nonzero(teta >= teta_apex)[0][0])
+    except IndexError:
+        print("Error: teta_apex not found")
+
+    return index
 
 
 # TODO: add unit test
@@ -930,28 +780,6 @@ def compute_point_displacements(
         whole_disp[2] = 0
     whole_disp[3] = np.linalg.norm(disp2)
     return local_disp, whole_disp
-
-
-def barycenter(l_val: list[float], l_pond: list[float]) -> float:
-    """Compute the weighted average of values in l_val.
-
-    Args:
-        l_val (list[float]): List of values to compute the mean.
-        l_pond (list[float]): List of weights for each value of l_val.
-
-    Returns:
-        float: weighted mean.
-
-    """
-    assert len(l_val) == len(l_pond), (
-        "The length of the lists of values and weighting coefficients "
-        + "must be the same to compute the barycenter"
-    )
-
-    mean: float = 0.0
-    for val, pond in zip(l_val, l_pond, strict=False):
-        mean += val * pond
-    return mean / sum(l_pond)
 
 
 def sort_key(labels: list[str], reverse: bool = False) -> list[str]:

@@ -15,24 +15,19 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
 
-from pybend.algorithms.centerline_process_function import (
+from pybend.algorithms.centerline_process_functions import (
     clpoints2coords,
-    compute_colinear,
     compute_curvature_at_point,
     compute_curvature_at_point_Menger,
-    compute_cuvilinear_abscissa,
-    distance,
-    distance_arrays,
+    compute_half_angle_variation,
     filter_consecutive_indices,
     find_2_closest_points_mono_proc,
     find_2_closest_points_multi_proc,
     find_inflection_points,
     find_inflection_points_from_peaks,
-    perp,
-    project_orthogonal,
     resample_path,
-    seg_intersect,
 )
+from pybend.algorithms.geometry_functions import normal
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import PropertyNames
 from pybend.utils.globalParameters import (
@@ -154,6 +149,82 @@ ly2: npt.NDArray[np.float64] = np.array(
     ]
 )
 
+bend1 = np.array(
+    [
+        [0.0, 0.02460340231050681],
+        [0.033448785710398825, 0.08290781035769729],
+        [0.068409450343311, 0.1403184120934265],
+        [0.1065689593610426, 0.19565445039360774],
+        [0.1493985911953874, 0.24746031782354228],
+        [0.19789567265751726, 0.2940033984359062],
+        [0.2523606008254085, 0.3333962513777778],
+        [0.3122889477405898, 0.36383994529371305],
+        [0.37643757089508867, 0.3839192732360411],
+        [0.44306060237681255, 0.3928409849226347],
+        [0.5102384610946183, 0.39052569631773054],
+        [0.5761885925163301, 0.3775331819847616],
+        [0.6394716208646274, 0.354873005765189],
+        [0.6990683470359246, 0.3237851384710679],
+        [0.7543596247467657, 0.28556080234424797],
+        [0.8050659156469491, 0.24143487655929194],
+        [0.8511960546926158, 0.19254484143084352],
+        [0.8930301932749155, 0.1399318191615383],
+        [0.931135169086971, 0.0845582146048894],
+        [0.9663911274243189, 0.0273284787593636],
+        [1.0, -0.030883796126824292],
+    ]
+)
+bend2 = np.array(
+    [
+        [0.244663364568034, 0.6619724536249403],
+        [0.1539288407308944, 0.7828095385212653],
+        [0.07269784047837094, 0.9102296291670053],
+        [0.01584516400822417, 1.0502372292477686],
+        [0.0, 1.2005145917470705],
+        [0.03805449179076463, 1.3467548411886683],
+        [0.13106958566250876, 1.465845341289326],
+        [0.2647388450607147, 1.5363214648641172],
+        [0.41534070952253643, 1.5487082853930978],
+        [0.5607480592248206, 1.5075858152003705],
+        [0.6877058851178338, 1.4256342115143326],
+        [0.7919833643220967, 1.31626985611003],
+        [0.8743963791805451, 1.1896110629524475],
+        [0.9366899997849941, 1.0519380455010126],
+        [0.9791355008285192, 0.9069113778037982],
+        [1.0, 0.7572483310069439],
+        [0.9965088656528036, 0.6061782582487568],
+        [0.9667667076202336, 0.45802374789635564],
+        [0.9117443024095477, 0.31728679529674453],
+        [0.8361890992429324, 0.1864213446359777],
+        [0.7480276598396666, 0.06369434880971948],
+    ]
+)
+
+bend3 = np.array(
+    [
+        [-1.0, 0.0],
+        [-0.9876883405951378, 0.15643446504023087],
+        [-0.9510565162951536, 0.3090169943749474],
+        [-0.8910065241883679, 0.45399049973954675],
+        [-0.8090169943749476, 0.5877852522924731],
+        [-0.7071067811865477, 0.7071067811865475],
+        [-0.5877852522924732, 0.8090169943749475],
+        [-0.4539904997395469, 0.8910065241883678],
+        [-0.30901699437494756, 0.9510565162951535],
+        [-0.15643446504023104, 0.9876883405951378],
+        [-1.8369701987210297e-16, 1.0],
+        [0.15643446504023067, 0.9876883405951378],
+        [0.30901699437494723, 0.9510565162951536],
+        [0.45399049973954664, 0.8910065241883679],
+        [0.5877852522924729, 0.8090169943749475],
+        [0.7071067811865474, 0.7071067811865476],
+        [0.8090169943749473, 0.5877852522924732],
+        [0.8910065241883678, 0.45399049973954686],
+        [0.9510565162951535, 0.3090169943749475],
+        [0.9876883405951377, 0.15643446504023098],
+        [1.0, 1.2246467991473532e-16],
+    ]
+)
 # expected results
 coords_out: npt.NDArray[np.float64] = np.array(pts_in).reshape(
     len(pts_in), len(pts_in[0])
@@ -408,6 +479,7 @@ res_closest: npt.NDArray[np.float64] = np.array(
     )
 )
 result_out = pd.DataFrame(res_closest, columns=columns)
+l_half_angle_index_exp = (10, 7, 10, 7, 10)
 
 eps: float = 1e-6
 
@@ -428,64 +500,6 @@ class TestsProcessFunctions(unittest.TestCase):
         self.assertTrue(
             np.array_equal(coords, coords_out), "Coordinates are wrong."
         )
-
-    def test_compute_cuvilinear_abscissa(self: Self) -> None:
-        """Test of compute_cuvilinear_abscissa() function."""
-        XY = coords_out[:, :2]
-        curv_abscissa = compute_cuvilinear_abscissa(XY)
-        self.assertAlmostEqual(
-            (curv_abscissa - curv_abscissa_out).sum(),
-            0.0,
-            3,
-            "Curvilinear abscissa are wrong.",
-        )
-
-    def test_compute_colinear(self: Self) -> None:
-        """Test of compute_colinear() function."""
-        pt = compute_colinear(pt11, pt21, k)
-        self.assertTrue(
-            np.array_equal(pt, pt_out1), "Point coordinate is wrong."
-        )
-
-    def test_distance_arrays(self: Self) -> None:
-        """Test of distance_arrays() function."""
-        pts1, pts2 = coords_out[:5], coords_out[4:]
-        array1: npt.NDArray[np.float64] = distance_arrays(pts1, pts2, prec=4)
-        array2: npt.NDArray[np.float64] = np.array(
-            (7.7175, 8.6735, 3.1385, 3.043, 2.8914)
-        )
-
-        self.assertTrue(
-            np.array_equal(array1, array2),
-            "Distances from distance_arrays are different.",
-        )
-
-    def test_distance(self: Self) -> None:
-        """Test of distance() function."""
-        pts1, pts2 = coords_out[:5], coords_out[4:]
-        d1 = distance_arrays(pts1, pts2, prec=4)
-        d2 = [
-            distance(pt1, pt2, prec=4)
-            for pt1, pt2 in zip(pts1, pts2, strict=False)
-        ]
-        self.assertTrue(np.array_equal(d1, d2), "Distances are different.")
-
-    def test_perp(self: Self) -> None:
-        """Test of perp() function."""
-        vec_in = pt21 - pt11
-        vec = perp(vec_in)
-        self.assertTrue(np.array_equal(vec, perp_out))
-
-    def test_seg_intersect(self: Self) -> None:
-        """Test of seg_intersect() function."""
-        pt = seg_intersect(pt11, pt12, pt21, pt22)
-        self.assertTrue(np.array_equal(pt, pt_out_intersect))
-
-    def test_project_orthogonal(self: Self) -> None:
-        """Test of project_orthogonal() function."""
-        pt_proj = project_orthogonal(pt21, pt11, pt12)
-        self.assertAlmostEqual(pt_proj[0], pt_out_intersect[0], 3)
-        self.assertAlmostEqual(pt_proj[1], pt_out_intersect[1], 3)
 
     def test_resample_path0(self: Self) -> None:
         """Test of resample_path() function."""
@@ -627,8 +641,8 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.savefig(fig_path + "test_find_2_closest_points.png", dpi=150)
         plt.close()
 
-    def test_compute_curvature(self: Self) -> None:
-        """Test of compute_curvature() function."""
+    def test_compute_curvature_at_point(self: Self) -> None:
+        """Test of compute_curvature_at_point function."""
         for pt1, pt2, pt3, curv_out in zip(
             pts1_curv, pts2_curv, pts3_curv, curvs_out, strict=False
         ):
@@ -674,6 +688,53 @@ class TestsProcessFunctions(unittest.TestCase):
         obs = filter_consecutive_indices(input_list, lag).tolist()
         exp = [2, 8, 20, 32, 42]
         self.assertSequenceEqual(obs, exp)
+
+    def test_compute_half_angle_variation(self: Self) -> None:
+        """Test of compute_half_angle_variation function."""
+        for k, (bend, exp) in enumerate(
+            zip(
+                (bend1, bend2, -1.0 * bend1, -1.0 * bend2, bend3),
+                l_half_angle_index_exp,
+                strict=True,
+            ),
+        ):
+            ln = np.zeros_like(bend)
+            for i, pt in enumerate(bend):
+                if i == 0:
+                    pt0 = pt
+                    pt1 = bend[i + 1]
+                elif i == bend.shape[0] - 1:
+                    pt0 = bend[i - 1]
+                    pt1 = pt
+                else:
+                    pt0 = bend[i - 1]
+                    pt1 = bend[i + 1]
+                ln[i] = normal(pt0 - pt1)
+            ln *= -1.0
+
+            index = compute_half_angle_variation(ln)
+
+            # visual check
+            scale_normal = 0.02
+            plt.figure(dpi=150)
+            plt.plot(bend[:, 0], bend[:, 1], "k-")
+            for i, n in enumerate(ln):
+                plt.arrow(
+                    bend[i, 0],
+                    bend[i, 1],
+                    n[0] * scale_normal,
+                    n[1] * scale_normal,
+                    color="k",
+                    width=0.005,
+                    linewidth=0.1,
+                )
+
+            plt.plot(bend[index, 0], bend[index, 1], "ro", markersize=4)
+
+            plt.axis("equal")
+            plt.savefig(fig_path + f"bend_{k}.png", dpi=150)
+
+            self.assertEqual(index, exp, f"Error at index {k}")
 
 
 if __name__ == "__main__":

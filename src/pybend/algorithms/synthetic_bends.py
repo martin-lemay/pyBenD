@@ -5,7 +5,7 @@
 import numpy as np
 import numpy.typing as npt
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.centerline_process_functions as cpf
 
 __doc__ = """
 Set of methods to create synthetic bends.
@@ -109,31 +109,28 @@ def kinoshita_bend(
     coords_y: list[float] = [0.0]
     teta: float = teta_max
     ds: float = 1.0
-    for i in range(int(round(1.2 * nb_pts))):
-        t: float = np.pi * i / (nb_pts - 1)
+    for i in range(int(round(1.3 * nb_pts))):
+        i1 = i - (nb_pts / 6)
+        t: float = np.pi * i1 / (nb_pts - 1)
         teta = teta_max * np.cos(t) + teta_max**3 * (
             Js * np.sin(3 * t) - Jf * np.cos(3 * t)
         )
         coords_x += [coords_x[i] + ds * np.cos(teta)]
         coords_y += [coords_y[i] + ds * np.sin(teta)]
 
-    # get minimum curvature indexes
-    coords: npt.NDArray[np.float64] = np.column_stack((coords_x, coords_y))
-    curvature: npt.NDArray[np.float64] = np.abs(cpf.compute_curvature(coords))
+    # remove first point that may not be accurate
+    coords_x = coords_x[1:]
+    coords_y = coords_y[1:]
 
-    # find inflection points
-    curv1: npt.NDArray[np.float64] = -1.0 * curvature
-    peak_indexes: npt.NDArray[np.int64] = (
-        cpf.find_inflection_points_from_peaks(curv1, 0.1)
-    )
-    i_up: int = 0
-    i_down: int = len(coords)
-    if len(peak_indexes) == 1:
-        i_down = peak_indexes[0]
-    elif len(peak_indexes) == 2:
-        i_up, i_down = peak_indexes
-    elif len(peak_indexes) > 2:
-        i_up = peak_indexes[0]
-        i_down = peak_indexes[-1]
+    # get coords of the bend where curvature is negative
+    coords: npt.NDArray[np.float64] = np.column_stack((coords_x, coords_y))
+    curvature: npt.NDArray[np.float64] = cpf.compute_curvature(coords)
+    coords1 = coords[np.nonzero(curvature >= 0)]
+
+    # normalize bend x coordinates between 0 and 1
+    xmin = np.min(coords1[:, 0])
+    xmax = np.max(coords1[:, 0])
+    coords1 = (coords1 - xmin) / (xmax - xmin)
+
     # return coordinates between inflection points
-    return coords[i_up : i_down + 1]
+    return coords1

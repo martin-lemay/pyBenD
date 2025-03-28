@@ -16,7 +16,8 @@ from scipy.signal import (  # type: ignore[import-untyped]
 )
 from shapely.geometry import LineString, Polygon  # type: ignore
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.Bend import Bend
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
@@ -196,7 +197,7 @@ class Centerline:
         cart_abscissa_prop_name: str = PropertyNames.CARTESIAN_ABSCISSA.value
         cart_ordinate_prop_name: str = PropertyNames.CARTESIAN_ORDINATE.value
         # 1. resample the centerline with a parametric spline function
-        ls = cpf.compute_cuvilinear_abscissa(
+        ls = geom.compute_cuvilinear_abscissa(
             dataset.loc[
                 :, (cart_abscissa_prop_name, cart_ordinate_prop_name)
             ].to_numpy()  # type: ignore
@@ -458,7 +459,7 @@ class Centerline:
 
         """
         dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
-            cpf.compute_cuvilinear_abscissa(
+            geom.compute_cuvilinear_abscissa(
                 dataset.loc[
                     :,
                     (
@@ -522,7 +523,7 @@ class Centerline:
                     ]
                 )
 
-            normal = cpf.normal(pt_next - pt_prev)
+            normal = geom.normal(pt_next - pt_prev)
             dataset.loc[i, PropertyNames.NORMAL_X.value] = normal[0]
             dataset.loc[i, PropertyNames.NORMAL_Y.value] = normal[1]
 
@@ -1333,7 +1334,7 @@ class Centerline:
         cl_pt_inflex_down: ClPoint = self.cl_points[bend.index_inflex_down]
 
         lentgh: float = abs(cl_pt_inflex_down._s - cl_pt_inflex_up._s)
-        d_inflex: float = cpf.distance(
+        d_inflex: float = geom.distance(
             cl_pt_inflex_up.pt, cl_pt_inflex_down.pt
         )
         sinuo: float = 1.0
@@ -1392,25 +1393,6 @@ class Centerline:
 
         return bend.index_inflex_up + apex_index
 
-    def find_bend_apex(self: Self, n: float, bend_index: int) -> int:
-        """Find bend apex from cummulative curvature function.
-
-        Args:
-            n (float): exponent value
-
-            bend_index (int): Index of the bend to treat.
-
-        Returns:
-            int: Bend apex index.
-
-        """
-        bend: Bend = self.bends[bend_index]
-        curvature: npt.NDArray[np.float64] = np.abs(
-            self.get_bend_curvature_filtered(bend.id)
-        )
-        apex_index = cpf.compute_median_curvature_index(curvature, n)
-        return bend.index_inflex_up + apex_index
-
     def find_all_bend_apex_user_weights(
         self: Self, apex_proba_weights: tuple[float, float, float]
     ) -> None:
@@ -1439,6 +1421,25 @@ class Centerline:
             for bend_index, index_apex in enumerate(outputs):
                 self._update_bend(bend_index, index_apex=index_apex)
 
+    def find_bend_apex(self: Self, n: float, bend_index: int) -> int:
+        """Find bend apex from cummulative curvature function.
+
+        Args:
+            n (float): exponent value
+
+            bend_index (int): Index of the bend to treat.
+
+        Returns:
+            int: Bend apex index.
+
+        """
+        bend: Bend = self.bends[bend_index]
+        curvature: npt.NDArray[np.float64] = np.abs(
+            self.get_bend_curvature_filtered(bend.id)
+        )
+        apex_index = cpf.compute_median_curvature_index(curvature, n)
+        return bend.index_inflex_up + apex_index
+
     def find_all_bend_apex(self: Self, n: float) -> None:
         """Find bend apex and update Bend for all bends of the centerline.
 
@@ -1461,6 +1462,36 @@ class Centerline:
             # update bends
             for bend_index, index_apex in enumerate(outputs):
                 self._update_bend(bend_index, index_apex=index_apex)
+
+    def find_bend_apex_limaye(self: Self, bend_index: int) -> int:
+        """Find bend apex according to Limage method.
+
+        Apex is defined from half of channel path angle variation between
+        upstream and downstream end of the bend.
+
+        Limaye (2025) A geometric algorithm to identify river meander bends:
+        1. Effect of perspective. Journal of Geophysical Research:
+        Earth Surface, 130, e2024JF007908.
+        https://doi.org/10.1029/2024JF007908
+
+        Args:
+            bend_index (int): Index of the bend to treat.
+
+        Returns:
+            int: Bend apex index.
+
+        """
+        bend: Bend = self.bends[bend_index]
+        normal_x: npt.NDArray[np.float64] = self.get_bend_property(
+            bend.id, PropertyNames.NORMAL_X.value
+        )
+        normal_y: npt.NDArray[np.float64] = self.get_bend_property(
+            bend.id, PropertyNames.NORMAL_Y.value
+        )
+        apex_index: int = cpf.compute_half_angle_variation(
+            np.vstack((normal_x, normal_y))
+        )
+        return bend.index_inflex_up + apex_index
 
     def compute_all_bend_center(self: Self) -> None:
         """Compute center point and update Bend of all bends."""
@@ -1495,7 +1526,7 @@ class Centerline:
         cl_pt_inflex_up: ClPoint = self.cl_points[bend.index_inflex_up]
         cl_pt_inflex_down: ClPoint = self.cl_points[bend.index_inflex_down]
         # compute_colinear deals with 2D points only
-        pt_center: npt.NDArray[np.float64] = cpf.compute_colinear(
+        pt_center: npt.NDArray[np.float64] = geom.compute_colinear(
             cl_pt_inflex_up.pt, cl_pt_inflex_down.pt, 0.5
         )
         # add z coordinate
@@ -1600,7 +1631,7 @@ class Centerline:
 
         assert bend.pt_center is not None, "Bend middle point is undefined"
         cl_pt: ClPoint = self.cl_points[cl_pt_index]
-        return cpf.distance(cl_pt.pt, bend.pt_center)
+        return geom.distance(cl_pt.pt, bend.pt_center)
 
     def _compute_distance_orthogonal_to_inflection_segment(
         self: Self, bend_index: int, cl_pt_index: int
@@ -1632,7 +1663,7 @@ class Centerline:
         cl_pt_inflex_up: ClPoint = self.cl_points[bend.index_inflex_up]
         cl_pt_inflex_down: ClPoint = self.cl_points[bend.index_inflex_down]
 
-        pt_proj: npt.NDArray[np.float64] = cpf.project_orthogonal(
+        pt_proj: npt.NDArray[np.float64] = geom.project_orthogonal(
             cl_pt.pt, cl_pt_inflex_up.pt, cl_pt_inflex_down.pt
         )
-        return cpf.distance(pt_proj, cl_pt.pt)
+        return geom.distance(pt_proj, cl_pt.pt)

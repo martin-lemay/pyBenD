@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.Bend import Bend
 from pybend.model.Centerline import Centerline, ClPoint
 from pybend.model.enumerations import MorphometricNames, PropertyNames
@@ -189,7 +189,7 @@ class Morphometry:
         pt_inflex_down: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_inflex_down
         ].pt
-        return cpf.distance(pt_inflex_up, pt_inflex_down)
+        return geom.distance(pt_inflex_up, pt_inflex_down)
 
     def compute_bend_amplitude(self: Self, bend_id: int) -> float:
         """Compute bend amplitude.
@@ -213,7 +213,7 @@ class Morphometry:
         pt_inflex_down: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_inflex_down
         ].pt
-        return cpf.orthogonal_distance(pt_apex, pt_inflex_up, pt_inflex_down)
+        return geom.orthogonal_distance(pt_apex, pt_inflex_up, pt_inflex_down)
 
     def compute_bend_extension(self: Self, bend_id: int) -> float:
         """Compute bend extension.
@@ -233,7 +233,7 @@ class Morphometry:
         ].pt
         pt_center: Optional[npt.NDArray[np.float64]] = bend.pt_center
         if pt_center is not None:
-            return cpf.distance(pt_apex, pt_center)
+            return geom.distance(pt_apex, pt_center)
         return np.nan
 
     def compute_bend_radius(self: Self, bend_id: int) -> float:
@@ -343,7 +343,7 @@ class Morphometry:
         next_bend: Bend = self.centerline.bends[bend_id + 1]
         clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
         clpt_apex_next = self.centerline.cl_points[next_bend.index_apex]
-        return cpf.distance(clpt_apex_prev.pt, clpt_apex_next.pt)
+        return geom.distance(clpt_apex_prev.pt, clpt_apex_next.pt)
 
     def compute_bend_amplitude_leopold(self: Self, bend_id: int) -> float:
         """Compute bend ampltiude according to Leopold method.
@@ -367,7 +367,7 @@ class Morphometry:
         clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
         clpt_apex = self.centerline.cl_points[bend.index_apex]
         clpt_apex_next = self.centerline.cl_points[next_bend.index_apex]
-        return cpf.orthogonal_distance(
+        return geom.orthogonal_distance(
             clpt_apex.pt, clpt_apex_prev.pt, clpt_apex_next.pt
         )
 
@@ -399,7 +399,7 @@ class Morphometry:
 
         # compute sinuosity
         arc_length: float = float(round(cl_ptmax._s - cl_ptmin._s, 4))
-        cart_length: float = cpf.distance(cl_ptmin.pt, cl_ptmax.pt, 4)
+        cart_length: float = geom.distance(cl_ptmin.pt, cl_ptmax.pt, 4)
         sinuo: float = (
             round(abs(arc_length / cart_length), 4)
             if abs(cart_length) > 0

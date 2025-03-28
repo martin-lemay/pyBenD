@@ -19,7 +19,8 @@ from shapely.geometry import (  # type: ignore
     Polygon,
 )
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.Bend import Bend, parse_bend_uid
 from pybend.model.BendEvolution import BendEvolution
 from pybend.model.Centerline import Centerline
@@ -707,7 +708,7 @@ class CenterlineCollection:
             for j, (x0, y0, vel_perturb0, curv0) in enumerate(
                 zip(lx0, ly0, lvel_perturb0, lcurv0, strict=False)
             ):
-                d: float = cpf.distance((x0, y0), (x1, y1))
+                d: float = geom.distance((x0, y0), (x1, y1))
                 if d > dmax:
                     d = 1e9
                 distance_matrix_dist[i, j] = d
@@ -767,7 +768,7 @@ class CenterlineCollection:
             pt0: npt.NDArray[np.float64] = (
                 self.centerlines[prev_key].cl_points[index_prev_key].pt
             )
-            if cpf.distance(pt1, pt0) < dmax:
+            if geom.distance(pt1, pt0) < dmax:
                 self.centerlines[key].index_cl_pts_prev_centerline[
                     index_key
                 ] = int(index_prev_key)
@@ -899,7 +900,7 @@ class CenterlineCollection:
                         pt2: npt.NDArray[np.float64] = (
                             self.centerlines[key].cl_points[index_apex_cur].pt
                         )
-                        dist[k] = cpf.distance(pt1, pt2)
+                        dist[k] = geom.distance(pt1, pt2)
 
                 # take the index of the minimum distance if this distance is
                 # lower than dmax
@@ -994,7 +995,7 @@ class CenterlineCollection:
                         assert bend.pt_centroid is not None, (
                             "Centroid is undefined"
                         )
-                        dist[k] = cpf.distance(
+                        dist[k] = geom.distance(
                             bend_saved[-1].pt_centroid, bend.pt_centroid
                         )
 

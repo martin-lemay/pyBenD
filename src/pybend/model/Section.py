@@ -8,7 +8,8 @@ from typing import Optional, Self
 import numpy as np
 import numpy.typing as npt
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
 from pybend.model.Isoline import Isoline
 
@@ -147,7 +148,7 @@ class Section:
         isolines_origin: list[tuple[float, float]] = []
 
         # use the orthogonal vector to the flow dir to find the sign
-        flow_dir_perp: npt.NDArray[np.float64] = cpf.perp(flow_dir)
+        flow_dir_perp: npt.NDArray[np.float64] = geom.perp(flow_dir)
 
         cl_pt_ref: ClPoint = self.isolines[0].cl_pt_ref
         for isoline in self.isolines:
@@ -167,7 +168,7 @@ class Section:
             if dot < 0:
                 sign = -1.0
 
-            d: float = sign * cpf.distance(
+            d: float = sign * geom.distance(
                 cl_pt_ref.pt, cl_pt.pt
             )  # distance to cl_pt_ref
             dz: float = cl_pt.pt[2] - cl_pt_ref.pt[2]

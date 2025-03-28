@@ -12,22 +12,6 @@ Usefull geometry functions.
 """
 
 
-def compute_cuvilinear_abscissa(
-    XY: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Compute curvilinear abscissa from cartesian XY coordinates.
-
-    Args:
-        XY (NDArray[float]): 2D array with XY coordinates.
-
-    Returns:
-        NDArray[float]: Array of curvilinear abscissa values.
-
-    """
-    ds = distance_arrays(XY[:-1], XY[1:], 4)
-    return np.append([0], np.cumsum(ds))
-
-
 def compute_colinear(
     pt1: npt.NDArray[np.float64] | Sequence[float],
     pt2: npt.NDArray[np.float64] | Sequence[float],
@@ -102,7 +86,6 @@ def distance(
     return round(d, prec)
 
 
-# TODO: add unit test
 def orthogonal_distance(
     pt: npt.NDArray[np.float64],
     seg_pt1: npt.NDArray[np.float64],
@@ -143,7 +126,6 @@ def perp(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     return vec_new
 
 
-# TODO: add unit test
 def normal(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute the normalized orthogonal vector to nput.
 
@@ -255,3 +237,37 @@ def barycenter(l_val: list[float], l_pond: list[float]) -> float:
     for val, pond in zip(l_val, l_pond, strict=False):
         mean += val * pond
     return mean / sum(l_pond)
+
+
+def get_MP(
+    dir_trans: npt.NDArray[np.float64] = np.array((1.0, 0.0)),
+    ref: npt.NDArray[np.float64] = np.array((1.0, 0.0)),
+) -> npt.NDArray[np.float64]:
+    """Get the rotation 2D matrix between ref and dir_trans.
+
+    Args:
+        dir_trans (NDArray[float], optional): Direction.
+
+            Defaults to np.array((1., 0.)).
+        ref (NDArray[float], optional): Reference direction.
+
+            Defaults to np.array((1., 0.)).
+
+    Returns:
+        NDArray[float]: Array corresponding to rotation 2D matrix.
+
+    """
+    dir_trans_norm: npt.NDArray[np.float64] = dir_trans / np.linalg.norm(
+        dir_trans
+    )
+    ref_norm: npt.NDArray[np.float64] = ref / np.linalg.norm(ref)
+    if np.dot(dir_trans_norm, ref) < 0.0:
+        dir_trans_norm *= -1.0
+
+    cos: float = float(np.dot(dir_trans_norm, ref_norm))
+    teta: float = float(np.arccos(cos))
+    det: float = float(np.linalg.norm((dir_trans_norm, ref_norm)))
+    if det < 0:
+        teta = np.pi - teta
+    sin: float = np.sin(teta)
+    return np.array([[cos, sin], [-sin, cos]])

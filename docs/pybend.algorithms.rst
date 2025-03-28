@@ -9,22 +9,6 @@ This package provides:
 * methods to generate synthetic bend centerlines
 
 
-pybend.algorithms.centerline\_process\_function module
-------------------------------------------------------
-
-.. automodule:: pybend.algorithms.centerline_process_function
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pybend.algorithms.plot\_functions module
-----------------------------------------
-
-.. automodule:: pybend.algorithms.plot_functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pybend.algorithms.pybend\_io module
 -----------------------------------
 
@@ -40,4 +24,30 @@ pybend.algorithms.synthetic\_bends module
    :members:
    :undoc-members:
    :show-inheritance:
+
+pybend.algorithms.geometry\_functions module
+----------------------------------------
+
+.. automodule:: pybend.algorithms.geometry_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pybend.algorithms.centerline\_process\_functions module
+------------------------------------------------------
+
+.. automodule:: pybend.algorithms.centerline_process_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pybend.algorithms.plot\_functions module
+----------------------------------------
+
+.. automodule:: pybend.algorithms.plot_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 

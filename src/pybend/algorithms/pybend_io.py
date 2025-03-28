@@ -88,7 +88,7 @@ def load_centerline_dataset_from_csv(
         dataset[PropertyNames.ELEVATION.value] = 0.0
 
     dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
-        geom.compute_cuvilinear_abscissa(
+        cpf.compute_cuvilinear_abscissa(
             dataset.loc[
                 :,
                 (
@@ -205,7 +205,7 @@ def load_centerline_dataset_from_kml(
     if nb_col == 2:
         dataset[PropertyNames.ELEVATION.value] = 0.0
     dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
-        geom.compute_cuvilinear_abscissa(
+        cpf.compute_cuvilinear_abscissa(
             dataset.loc[
                 :,
                 (
@@ -372,7 +372,7 @@ def load_centerline_evolution_from_single_xy_csv(
             copy=False,
         )
         sub_data[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
-            geom.compute_cuvilinear_abscissa(
+            cpf.compute_cuvilinear_abscissa(
                 sub_data.loc[
                     :,
                     (
@@ -484,7 +484,7 @@ def create_dataset_from_xy(
     data = np.zeros((X.size, 5))
     data[:, 1] = X
     data[:, 2] = Y
-    data[:, 0] = geom.compute_cuvilinear_abscissa(data[:, 1:3])
+    data[:, 0] = cpf.compute_cuvilinear_abscissa(data[:, 1:3])
     for i in range(1, data.shape[0] - 1, 1):
         pt1 = data[i - 1, 1:3]
         pt2 = data[i, 1:3]

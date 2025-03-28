@@ -17,9 +17,17 @@ import pandas as pd  # type: ignore[import-untyped]
 
 from pybend.algorithms.centerline_process_functions import (
     clpoints2coords,
+    compute_curvature,
     compute_curvature_at_point,
     compute_curvature_at_point_Menger,
+    compute_cuvilinear_abscissa,
+    compute_esperance,
     compute_half_angle_variation,
+    compute_kurtosis,
+    compute_median_curvature_index,
+    compute_point_displacements,
+    compute_skewness,
+    compute_variance,
     filter_consecutive_indices,
     find_2_closest_points_mono_proc,
     find_2_closest_points_multi_proc,
@@ -237,7 +245,31 @@ pt_out1: npt.NDArray[np.float64] = np.array((5, 5))
 perp_out: npt.NDArray[np.float64] = np.array((-1, 1))
 pt_out_intersect: npt.NDArray[np.float64] = np.array((1, 0))
 curvs_out: tuple[float, ...] = (0.0, 2**0.5, -(2**0.5))
-
+bend2_curvs: npt.NDArray[np.float64] = np.array(
+    [
+        0.253,
+        0.5518,
+        1.1866,
+        1.8153,
+        2.3193,
+        2.6341,
+        2.7285,
+        2.6117,
+        2.3305,
+        1.9571,
+        1.5725,
+        1.2496,
+        1.0384,
+        0.9558,
+        0.9819,
+        1.065,
+        1.1344,
+        1.1163,
+        0.9519,
+        0.5775,
+        0.3282,
+    ]
+)
 lx_out: npt.NDArray[np.float64] = np.array(
     (
         0.0,
@@ -548,6 +580,17 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.savefig(fig_path + "test_resample_path2.png", dpi=150)
         plt.close()
 
+    def test_compute_cuvilinear_abscissa(self: Self) -> None:
+        """Test of compute_cuvilinear_abscissa() function."""
+        XY = coords_out[:, :2]
+        curv_abscissa = compute_cuvilinear_abscissa(XY)
+        self.assertAlmostEqual(
+            (curv_abscissa - curv_abscissa_out).sum(),
+            0.0,
+            3,
+            "Curvilinear abscissa are wrong.",
+        )
+
     def test_find_2_closest_points(self: Self) -> None:
         """Test of find_2_closest_points() function."""
         result = find_2_closest_points_mono_proc(dataset1, dataset2, "X", "Y")
@@ -640,6 +683,14 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.axis("equal")
         plt.savefig(fig_path + "test_find_2_closest_points.png", dpi=150)
         plt.close()
+
+    def test_compute_curvature(self: Self) -> None:
+        """Test of compute_curvature_at_point function."""
+        curvature = compute_curvature(bend2)
+        print(np.round(curvature, 4).tolist())
+        self.assertSequenceEqual(
+            bend2_curvs.tolist(), np.round(curvature, 4).tolist()
+        )
 
     def test_compute_curvature_at_point(self: Self) -> None:
         """Test of compute_curvature_at_point function."""
@@ -735,6 +786,84 @@ class TestsProcessFunctions(unittest.TestCase):
             plt.savefig(fig_path + f"bend_{k}.png", dpi=150)
 
             self.assertEqual(index, exp, f"Error at index {k}")
+
+    def test_compute_median_curvature_index(self: Self) -> None:
+        """Test of compute_median_curvature_index function."""
+        for bend, i_exp in zip((bend1, bend1, bend2), (9, 9, 7), strict=False):
+            curvature = compute_curvature(bend)
+            index = compute_median_curvature_index(curvature, 2)
+            print(index)
+            self.assertEqual(index, i_exp)
+
+    def test_compute_esperance(self: Self) -> None:
+        """Test of compute_esperance function."""
+        for bend, absc_exp in zip(
+            (bend1, bend1, bend2), (0.619, 0.619, 1.152), strict=False
+        ):
+            curvature = compute_curvature(bend)
+            curv_abs = compute_cuvilinear_abscissa(bend)
+            absc = round(compute_esperance(curvature, curv_abs, 2), 3)
+            print(absc)
+            self.assertEqual(absc, absc_exp)
+
+    def test_compute_variance(self: Self) -> None:
+        """Test of compute_variance function."""
+        for bend, absc_exp in zip(
+            (bend1, bend1, bend2), (0.060, 0.060, 0.353), strict=False
+        ):
+            curvature = compute_curvature(bend)
+            curv_abs = compute_cuvilinear_abscissa(bend)
+            absc = round(compute_variance(curvature, curv_abs, 2)[0], 3)
+            print(absc)
+            self.assertEqual(absc, absc_exp)
+
+    def test_compute_skewness(self: Self) -> None:
+        """Test of compute_skewness function."""
+        for bend, absc_exp in zip(
+            (bend1, bend1, bend2), (0.287, 0.287, 1.067), strict=False
+        ):
+            curvature = compute_curvature(bend)
+            curv_abs = compute_cuvilinear_abscissa(bend)
+            absc = round(compute_skewness(curvature, curv_abs, 2), 3)
+            print(absc)
+            self.assertEqual(absc, absc_exp)
+
+    def test_compute_kurtosis(self: Self) -> None:
+        """Test of compute_kurtosis function."""
+        for bend, absc_exp in zip(
+            (bend1, bend1, bend2), (2.549, 2.549, 3.645), strict=False
+        ):
+            curvature = compute_curvature(bend)
+            curv_abs = compute_cuvilinear_abscissa(bend)
+            absc = round(compute_kurtosis(curvature, curv_abs, 2), 3)
+            print(absc)
+            self.assertEqual(absc, absc_exp)
+
+    def test_compute_point_displacements(self: Self) -> None:
+        """Test of compute_point_displacements function."""
+        dir_trans = np.array((-1.0, -0.5))
+        pts_in2 = [np.array(pt) for pt in pts_in]
+        (disp_local, disp_tot) = compute_point_displacements(
+            pts_in2, dir_trans
+        )
+        print(np.round(disp_local, 4).tolist())
+        print(np.round(disp_tot, 4).tolist())
+        disp_local = np.round(disp_local, 4)
+        disp_tot = np.round(disp_tot, 4)
+        disp_local_exp = [
+            [0.0894, 2.415, 0.2, 2.4166],
+            [5.6796, -1.8336, 0.3, 5.9682],
+            [1.7441, 0.3578, 0.5, 1.7804],
+            [0.1789, -0.7603, -0.4, 0.781],
+            [0.9391, 0.7603, -0.1, 1.2083],
+            [-0.5814, -2.5044, -0.2, 2.571],
+            [0.1789, -0.313, -0.2, 0.3606],
+            [0.3578, -0.6261, -0.1, 0.7211],
+        ]
+        disp_tot_exp = [8.5865, -2.5044, 0.0, 8.9443]
+        for j in range(disp_local.shape[1]):
+            self.assertSequenceEqual(disp_local[j].tolist(), disp_local_exp[j])
+        self.assertSequenceEqual(disp_tot.tolist(), disp_tot_exp)
 
 
 if __name__ == "__main__":

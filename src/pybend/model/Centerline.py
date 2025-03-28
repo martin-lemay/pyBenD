@@ -197,7 +197,7 @@ class Centerline:
         cart_abscissa_prop_name: str = PropertyNames.CARTESIAN_ABSCISSA.value
         cart_ordinate_prop_name: str = PropertyNames.CARTESIAN_ORDINATE.value
         # 1. resample the centerline with a parametric spline function
-        ls = geom.compute_cuvilinear_abscissa(
+        ls = cpf.compute_cuvilinear_abscissa(
             dataset.loc[
                 :, (cart_abscissa_prop_name, cart_ordinate_prop_name)
             ].to_numpy()  # type: ignore
@@ -459,7 +459,7 @@ class Centerline:
 
         """
         dataset[PropertyNames.CURVILINEAR_ABSCISSA.value] = (
-            geom.compute_cuvilinear_abscissa(
+            cpf.compute_cuvilinear_abscissa(
                 dataset.loc[
                     :,
                     (

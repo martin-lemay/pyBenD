@@ -46,7 +46,7 @@ From pyBenD source, run the following commands:
    git clone https://github.com/martin-lemay/pyBenD.git
    cd pyBenD
    source .venv/bin/activate
-   pip install ./
+   pip install -e ./
 
 * using conda:
 

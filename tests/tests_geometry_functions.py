@@ -16,10 +16,12 @@ import pandas as pd  # type: ignore[import-untyped]
 
 from pybend.algorithms.geometry_functions import (
     compute_colinear,
-    compute_cuvilinear_abscissa,
     distance,
     distance_arrays,
     get_angle_between_vectors,
+    get_MP,
+    normal,
+    orthogonal_distance,
     perp,
     project_orthogonal,
     seg_intersect,
@@ -54,27 +56,27 @@ pts_in: list[tuple[float, float, float]] = [
     (14.0, 8.0, 1.0),
 ]
 
-pt1: tuple[float, float] = (0, 0)
-pt2: tuple[float, float] = (1, 0)
-pt11: npt.NDArray[np.float64] = np.array((0, 0))
-pt12: npt.NDArray[np.float64] = np.array((5, 0))
-pt21: npt.NDArray[np.float64] = np.array((1, 1))
-pt22: npt.NDArray[np.float64] = np.array((1, -2))
+pt1: tuple[float, float] = (0.0, 0.0)
+pt2: tuple[float, float] = (1.0, 0.0)
+pt11: npt.NDArray[np.float64] = np.array((0.0, 0.0))
+pt12: npt.NDArray[np.float64] = np.array((5.0, 0.0))
+pt21: npt.NDArray[np.float64] = np.array((1.0, 1.0))
+pt22: npt.NDArray[np.float64] = np.array((1.0, -2.0))
 k: int = 5
 pts1_curv: tuple[npt.NDArray[np.float64], ...] = (
-    np.array((0, 0)),
-    np.array((1, 0)),
-    np.array((1, 0)),
+    np.array((0.0, 0.0)),
+    np.array((1.0, 0.0)),
+    np.array((1.0, 0.0)),
 )
 pts2_curv: tuple[npt.NDArray[np.float64], ...] = (
-    np.array((1, 0)),
-    np.array((0, 0)),
-    np.array((0, 0)),
+    np.array((1.0, 0.0)),
+    np.array((0.0, 0.0)),
+    np.array((0.0, 0.0)),
 )
 pts3_curv: tuple[npt.NDArray[np.float64], ...] = (
-    np.array((2, 0)),
-    np.array((0, 1)),
-    np.array((0, -1)),
+    np.array((2.0, 0.0)),
+    np.array((0.0, 1.0)),
+    np.array((0.0, -1.0)),
 )
 
 # ClPoint
@@ -152,10 +154,10 @@ coords_out: npt.NDArray[np.float64] = np.array(pts_in).reshape(
 curv_abscissa_out = np.array(
     [0.0, 2.4166, 8.3848, 10.1652, 10.9462, 12.1545, 14.7255, 15.0861, 15.8072]
 )
-pt_out_colinear: npt.NDArray[np.float64] = np.array((5, 0))
-pt_out1: npt.NDArray[np.float64] = np.array((5, 5))
-perp_out: npt.NDArray[np.float64] = np.array((-1, 1))
-pt_out_intersect: npt.NDArray[np.float64] = np.array((1, 0))
+pt_out_colinear: npt.NDArray[np.float64] = np.array((5.0, 0.0))
+pt_out1: npt.NDArray[np.float64] = np.array((5.0, 5.0))
+perp_out: npt.NDArray[np.float64] = np.array((-1.0, 1.0))
+pt_out_intersect: npt.NDArray[np.float64] = np.array((1.0, 0.0))
 curvs_out: tuple[float, ...] = (0.0, 2**0.5, -(2**0.5))
 
 lx_out: npt.NDArray[np.float64] = np.array(
@@ -413,17 +415,6 @@ class TestsProcessFunctions(unittest.TestCase):
             "User defined number of procs must be %s." % nb_procs,
         )
 
-    def test_compute_cuvilinear_abscissa(self: Self) -> None:
-        """Test of compute_cuvilinear_abscissa() function."""
-        XY = coords_out[:, :2]
-        curv_abscissa = compute_cuvilinear_abscissa(XY)
-        self.assertAlmostEqual(
-            (curv_abscissa - curv_abscissa_out).sum(),
-            0.0,
-            3,
-            "Curvilinear abscissa are wrong.",
-        )
-
     def test_compute_colinear(self: Self) -> None:
         """Test of compute_colinear() function."""
         pt = compute_colinear(pt11, pt21, k)
@@ -454,11 +445,24 @@ class TestsProcessFunctions(unittest.TestCase):
         ]
         self.assertTrue(np.array_equal(d1, d2), "Distances are different.")
 
+    def test_orthogonal_distance(self: Self) -> None:
+        """Test of orthogonal_distance() function."""
+        d = orthogonal_distance(pt21, pt11, pt12, 4)
+        d_exp = 1.0
+        self.assertAlmostEqual(d, d_exp, 4)
+
     def test_perp(self: Self) -> None:
         """Test of perp() function."""
         vec_in = pt21 - pt11
         vec = perp(vec_in)
         self.assertTrue(np.array_equal(vec, perp_out))
+
+    def test_normal(self: Self) -> None:
+        """Test of normal() function."""
+        vec_in = pt21 - pt11
+        vec = normal(vec_in)
+        vec_exp = perp_out / np.linalg.norm(perp_out)
+        self.assertTrue(np.array_equal(vec, vec_exp))
 
     def test_seg_intersect(self: Self) -> None:
         """Test of seg_intersect() function."""
@@ -502,6 +506,18 @@ class TestsProcessFunctions(unittest.TestCase):
         for vec2, teta_exp in zip(vec2_all, expected, strict=True):
             teta = round(get_angle_between_vectors(vec1, vec2), 4)
             self.assertAlmostEqual(teta, teta_exp)
+
+    def test_get_MP(self: Self) -> None:
+        """Test of get_MP function."""
+        dir_trans = np.array((1.0, 1.0))
+        mat = get_MP(dir_trans)
+        mat_exp = np.sqrt(2) / 2.0 * np.array(((1.0, 1.0), (-1.0, 1.0)))
+        print(mat)
+        print(mat_exp)
+        self.assertSequenceEqual(
+            np.round(mat.flatten(), 4).tolist(),
+            np.round(mat_exp.flatten(), 4).tolist(),
+        )
 
 
 if __name__ == "__main__":

@@ -71,6 +71,22 @@ def resample_path(
     return splev(u, tck)
 
 
+def compute_cuvilinear_abscissa(
+    XY: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
+    """Compute curvilinear abscissa from cartesian XY coordinates.
+
+    Args:
+        XY (NDArray[float]): 2D array with XY coordinates.
+
+    Returns:
+        NDArray[float]: Array of curvilinear abscissa values.
+
+    """
+    ds = geom.distance_arrays(XY[:-1], XY[1:], 4)
+    return np.append([0], np.cumsum(ds))
+
+
 def find_2_closest_points_multi_proc(
     dataset1: pd.DataFrame,
     dataset2: pd.DataFrame,
@@ -377,9 +393,10 @@ def filter_consecutive_indices(
     return np.array(sorted(set(filtered_values)))
 
 
-# TODO: add unit test
 def compute_curvature(XY: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Compute curvature of an ensemble of points.
+
+    Code was modified from https://github.com/zsylvester/curvaturepy/blob/master/cline_analysis.py
 
     Args:
         XY (npt.NDArray[np.float64]): 2D array with XY coordinates.
@@ -389,14 +406,12 @@ def compute_curvature(XY: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
 
     """
     assert XY.shape[1] == 2, "XY coordinates must 2D array with 2 columns."
-    curv: npt.NDArray[np.float64] = np.full(XY.shape[0], np.nan)
-    for i in range(1, XY.shape[0] - 1, 1):
-        curv[i] = compute_curvature_at_point(XY[i - 1], XY[i], XY[i + 1])
-    # copy curvature values at end points
-    dc0 = curv[2] - curv[1]
-    dc1 = curv[-2] - curv[-3]
-    curv[0], curv[-1] = curv[1] - dc0, curv[-2] + dc1
-    return curv
+    dx = np.gradient(XY[:, 0])
+    dy = np.gradient(XY[:, 1])  # first derivatives
+    ddx = np.gradient(dx)
+    ddy = np.gradient(dy)  # second derivatives
+    curvature = (dx * ddy - dy * ddx) / ((dx**2 + dy**2) ** 1.5)  # curvature
+    return -1.0 * curvature
 
 
 def compute_curvature_at_point(
@@ -432,7 +447,9 @@ def compute_curvature_at_point(
     d2yds2: float = (ds12 * (y3 - y2) - ds23 * (y2 - y1)) / (
         ds12 * ds23 * ds13
     )
-    return -(dxds * d2yds2 - dyds * d2xds2) / pow(dxds**2 + dyds**2, 3.0 / 2.0)
+    return float(
+        -(dxds * d2yds2 - dyds * d2xds2) / pow(dxds**2 + dyds**2, 3.0 / 2.0)
+    )
 
 
 # not used
@@ -572,7 +589,6 @@ def compute_half_angle_variation(normal: npt.NDArray[np.float64]) -> int:
     return index
 
 
-# TODO: add unit test
 def compute_median_curvature_index(
     curvature: npt.NDArray[np.float64], n: float
 ) -> int:
@@ -678,42 +694,6 @@ def compute_kurtosis(
     return float(compute_esperance(curvature, abs2, n))
 
 
-# TODO: create unit test
-def get_MP(
-    dir_trans: npt.NDArray[np.float64] = np.array((1.0, 0.0)),
-    ref: npt.NDArray[np.float64] = np.array((1.0, 0.0)),
-) -> npt.NDArray[np.float64]:
-    """Get the rotation 2D matrix between ref and dir_trans.
-
-    Args:
-        dir_trans (NDArray[float], optional): Direction.
-
-            Defaults to np.array((1., 0.)).
-        ref (NDArray[float], optional): Reference direction.
-
-            Defaults to np.array((1., 0.)).
-
-    Returns:
-        NDArray[float]: Array corresponding to rotation 2D matrix.
-
-    """
-    dir_trans_norm: npt.NDArray[np.float64] = dir_trans / np.linalg.norm(
-        dir_trans
-    )
-    ref_norm: npt.NDArray[np.float64] = ref / np.linalg.norm(ref)
-    if np.dot(dir_trans_norm, ref) < 0.0:
-        dir_trans_norm *= -1.0
-
-    cos: float = float(np.dot(dir_trans_norm, ref_norm))
-    teta: float = float(np.arccos(cos))
-    det: float = float(np.linalg.norm((dir_trans_norm, ref_norm)))
-    if det < 0:
-        teta = np.pi - teta
-    sin: float = np.sin(teta)
-    return np.array([[cos, sin], [-sin, cos]])
-
-
-# TODO: create unit test
 def compute_point_displacements(
     l_pt: list[npt.NDArray[np.float64]],
     dir_trans: npt.NDArray[np.float64] = np.array((1.0, 0.0)),
@@ -738,7 +718,7 @@ def compute_point_displacements(
 
     """
     # compute change-of-basis matrix
-    MP: npt.NDArray[np.float64] = get_MP(dir_trans, ref)
+    MP: npt.NDArray[np.float64] = geom.get_MP(dir_trans, ref)
 
     # compute displacement
     # dX, dY, dZ, dMig
@@ -747,12 +727,12 @@ def compute_point_displacements(
     whole_disp: npt.NDArray[np.float64] = np.nan * np.zeros(4)
 
     # compute incremental displacements
-    pt1: npt.NDArray[np.float64] = l_pt[0]
+    pt1: npt.NDArray[np.float64] = np.array(l_pt[0])
     disp: npt.NDArray[np.float64]
     disp2: npt.NDArray[np.float64]
     for i, pt2 in enumerate(l_pt):
         if i > 0:
-            disp = pt2 - pt1
+            disp = (np.array(pt2) - np.array(pt1))[:2]
             disp2 = np.dot(MP, disp)
 
             local_disp[i - 1, 0] = disp2[0]
@@ -766,10 +746,10 @@ def compute_point_displacements(
         pt1 = pt2
 
     # compute global displacements
-    pt00: npt.NDArray[np.float64] = l_pt[0]
-    pt01: npt.NDArray[np.float64] = l_pt[-1]
+    pt00: npt.NDArray[np.float64] = np.array(l_pt[0])
+    pt01: npt.NDArray[np.float64] = np.array(l_pt[-1])
 
-    disp = pt01 - pt00
+    disp = (pt01 - pt00)[:2]
     disp2 = np.dot(MP, disp)
     whole_disp[0] = disp2[0]
     whole_disp[1] = disp2[1]

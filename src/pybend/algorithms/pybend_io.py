@@ -7,7 +7,8 @@ import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
 from typing_extensions import deprecated
 
-import pybend.algorithms.centerline_process_function as cpf
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import PropertyNames
 

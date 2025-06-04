@@ -543,17 +543,18 @@ def compute_curvature_at_point_flumy(
     return curvature
 
 
-def compute_half_angle_variation(normal: npt.NDArray[np.float64]) -> int:
+def compute_half_angle_variation(normal: npt.NDArray[np.float64], shift:int=0) -> int:
     """Get the index of half path angle variation.
 
     Args:
         normal (npt.NDArray[np.float64]): normal vectors to channel path
+        shift (int): first and last point shift to compute angle deviation
 
     Returns:
         int: index of median curvature
 
     """
-    normal2 = np.copy(normal)
+    normal2 = np.copy(normal[shift:-shift-1])
     # use first normal vector as reference direction
     ref: npt.NDArray[np.float64] = normal2[0]
     if ref[0] < 0.0:
@@ -586,7 +587,7 @@ def compute_half_angle_variation(normal: npt.NDArray[np.float64]) -> int:
     except IndexError:
         print("Error: teta_apex not found")
 
-    return index
+    return index + shift
 
 
 def compute_median_curvature_index(

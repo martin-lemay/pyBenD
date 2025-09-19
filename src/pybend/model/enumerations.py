@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
 
-from enum import Enum
+from enum import StrEnum
 
 __doc__ = r"""
 This module defines enumerations used in pyBenD.
@@ -9,7 +9,7 @@ This module defines enumerations used in pyBenD.
 
 
 # TODO replace property name in the code with this enum
-class PropertyNames(Enum):
+class PropertyNames(StrEnum):
     """Enumeration of usual ChannelPoint property names."""
 
     AGE = "Age"
@@ -29,7 +29,7 @@ class PropertyNames(Enum):
     APEX_PROBABILITY = "Apex_probability"
 
 
-class AmplitudeType(Enum):
+class AmplitudeType(StrEnum):
     """Method to compute amplitude."""
 
     #: use the distance between the given point and bend center.
@@ -38,7 +38,7 @@ class AmplitudeType(Enum):
     ORTHOGONAL = "Orthogonal"
 
 
-class BendConnectionMethod(Enum):
+class BendConnectionMethod(StrEnum):
     """Enumeration defining bend connection method."""
 
     #: Connected bends: same side and shortest distance between apexes.
@@ -49,7 +49,7 @@ class BendConnectionMethod(Enum):
     MATCHING = "From Matching"
 
 
-class BendSide(Enum):
+class BendSide(StrEnum):
     """Enum for bend side.
 
     Bend is UP if curvature is positive and is DOWN if curvature is negative.
@@ -63,7 +63,7 @@ class BendSide(Enum):
     UNKNWON = "unknown"
 
 
-class CreateSectionMethod(Enum):
+class CreateSectionMethod(StrEnum):
     """Enumeration of methods to use to automatically create cross-sections."""
 
     #: Section goes by the middle point of the last bend of BendEvolution
@@ -74,7 +74,7 @@ class CreateSectionMethod(Enum):
     APEX = "From neighboring apex"
 
 
-class FilterName(Enum):
+class FilterName(StrEnum):
     """Enumeration for filter names."""
 
     #: Uniform filter
@@ -83,7 +83,7 @@ class FilterName(Enum):
     SAVITSKY = "Savitsky-Golay filter"
 
 
-class MorphometricNames(Enum):
+class MorphometricNames(StrEnum):
     """Enumeration for morphometric names."""
 
     ARC_LENGTH = "Arc_length"
@@ -94,5 +94,6 @@ class MorphometricNames(Enum):
     RADIUS_CURVATURE = "RadiusCurvature"
     ASYMMETRY = "Asymmetry"
     ROUNDNESS = "Roundness"
+    SKEWNESS = "Skewness"
     WAVELENGTH_LEOPOLD = "Wavelength_Leopold"
     AMPLITUDE_LEOPOLD = "Amplitude_Leopold"

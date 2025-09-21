@@ -333,8 +333,8 @@ class Morphometry:
     def compute_bend_skewness(self: Self, bend_id: int) -> float:
         """Compute bend skewness coefficient.
 
-        Skewness coefficient corresponds to the Pearson's skewness coefficient of the
-        curvature satial distribution.
+        Skewness coefficient corresponds to the Pearson's skewness coefficient
+        of the curvature satial distribution.
 
         Args:
             bend_id (int): bend index

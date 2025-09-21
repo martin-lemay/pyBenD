@@ -25,7 +25,11 @@ def get_nb_procs() -> int:
         int: Number of processors.
 
     """
-    procs_count: int = os.cpu_count() #len(os.sched_getaffinity(0)) # unix only
+    procs_count: int | None = (
+        os.cpu_count()
+    )  # len(os.sched_getaffinity(0)) # unix only
+    if procs_count is None:
+        procs_count = 99999
     if procs_count < NB_PROCS:
         logger.warning(f"Available number of cpu: {procs_count}")
     return min(procs_count, NB_PROCS)

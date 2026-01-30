@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
+
+"""Centerline-collection model.
+
+Defines `CenterlineCollection`, which stores successive channel centerlines
+through time for a single channel belt.
+"""
+
 import functools
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor as Pool
@@ -40,15 +47,9 @@ from pybend.utils.logging import ERROR, logger
 logger.setLevel(ERROR)
 
 
-__doc__ = r"""
-This module defines CenterlineCollection objet that stores the successive
-positions of a sinuous channel from a single channel-belt through time as well
-as utilities.
-
-"""
-
-
 class CenterlineCollection:
+    """A time series of `Centerline` objects representing channel evolution."""
+
     def __init__(
         self: Self,
         map_centerline_data: dict[int, pd.DataFrame],
@@ -213,9 +214,9 @@ class CenterlineCollection:
 
             centerlines: dict[int, Centerline] = {}
             for age, centerline in zip(inputs, outputs, strict=False):
-                assert centerline is not None, (
-                    f"Centerline {age} is undefined."
-                )
+                assert (
+                    centerline is not None
+                ), f"Centerline {age} is undefined."
 
                 centerlines[age] = centerline
 
@@ -989,12 +990,12 @@ class CenterlineCollection:
                     ):
                         # compute the distance between upstream inflex points
                         # (more stable than apex)
-                        assert bend_saved[-1].pt_centroid is not None, (
-                            "Centroid is undefined"
-                        )
-                        assert bend.pt_centroid is not None, (
-                            "Centroid is undefined"
-                        )
+                        assert (
+                            bend_saved[-1].pt_centroid is not None
+                        ), "Centroid is undefined"
+                        assert (
+                            bend.pt_centroid is not None
+                        ), "Centroid is undefined"
                         dist[k] = geom.distance(
                             bend_saved[-1].pt_centroid, bend.pt_centroid
                         )
@@ -1350,9 +1351,9 @@ class CenterlineCollection:
                     "Unkown method for section line creation. Methods are "
                     + "either: ".join(methods)
                 )
-            assert pt_end is not None, (
-                "Undefined end point for section line creation"
-            )
+            assert (
+                pt_end is not None
+            ), "Undefined end point for section line creation"
             assert bend.index_apex > -1, "Bend apex is undefined."
             pt_apex: npt.NDArray[np.float64] = (
                 self.centerlines[key].cl_points[bend.index_apex].pt

@@ -2,6 +2,15 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Stratigraphic section model.
+
+The stratigraphic architecture is characterized by the stacking pattern.
+Stacking pattern types are defined from StackingPatternType enumeration.
+
+.. Warning::
+    this class is under construction...
+"""
+
 from enum import Enum
 from typing import Optional, Self
 
@@ -12,18 +21,6 @@ import pybend.algorithms.centerline_process_functions as cpf
 import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
 from pybend.model.Isoline import Isoline
-
-__doc__ = r"""
-Section module defines Section object allowing to represent the stratigraphic
-architecture.
-
-The stratigraphic architecture is characterized by the stacking pattern.
-Stacking pattern types are defined from StackingPatternType enumeration.
-
-.. Warning::
-    this class is under construction...
-
-"""
 
 
 class StackingPatternType(Enum):
@@ -66,6 +63,8 @@ class StackingPatternType(Enum):
 
 
 class Section:
+    """A 2D stratigraphic section composed of multiple isolines."""
+
     def __init__(
         self: Self,
         ide: str,

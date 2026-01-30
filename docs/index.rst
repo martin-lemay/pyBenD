@@ -1,12 +1,15 @@
 Python Bend Dynamics - pyBenD
 =============================
 
-``pyBenD``, which stands for Python Bend Dynamics, is a ``Python`` package dedicated to meandering system morphodynamic analysis. 
+``pyBenD``, which stands for Python Bend Dynamics, is a ``Python`` package dedicated to
+meandering system morphodynamic analysis. 
 
 ``pyBenD`` consists in:
 
-* a data structure that stores individual channel centerlines and successive centerlines of a same channel migrating over time from various input file format (csv, kml, etc.)
-* tools that automatically detect meander bends and characteristics points such as inflection points, bend apex, or bend center
+* a data structure that stores individual channel centerlines and successive centerlines
+   of a same channel migrating over time from various input file format (csv, kml, etc.)
+* tools that automatically detect meander bends and characteristics points such as
+   inflection points, bend apex, or bend center
 * tools to compute meander bend morphometric parameters
 * tools to compute channel lateral migration rates
 * tools to compute meander bend kinematics parameters.
@@ -64,8 +67,7 @@ Testing
 
 You can test pyBenD package using ``pytest`` (see the `homepage <https://pytest.org/>`_).
 
-* To test the source distribution, run the following commands from pyBenD root
-directory:
+* To test the source distribution, run the following commands from pyBenD root directory:
 
 .. code-block:: bash
 
@@ -78,20 +80,86 @@ directory:
    pytest --pyargs pybend
 
 
+Contributing
+--------------
 
-Packages
--------------
+Contributions are welcome — bug reports, feature requests, docs improvements, and code
+changes.
+
+Workflow (issues + PR/MR)
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Create an **issue** first to describe the bug / enhancement (with a minimal
+   reproducible example when relevant).
+* Create a **Pull Request / Merge Request** that **addresses one issue**.
+
+  * Reference the issue in the PR description (e.g. ``Fixes #123``).
+  * Keep changes focused and include tests/docs updates when applicable.
+
+Local setup
+^^^^^^^^^^^
+
+.. code-block:: bash
+
+   pip install -e .[dev,test]
+
+If you plan to build the docs locally, install the doc build dependencies as well:
+
+.. code-block:: bash
+
+   pip install -r requirements.txt
+
+Formatting, linting, typing, tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Run these from the repository root:
+
+.. code-block:: bash
+
+   # Format
+   ruff format .
+
+   # Lint (optionally auto-fix)
+   ruff check .
+   ruff check --fix .
+
+   # Type-check
+   mypy .
+
+   # Tests
+   pytest
+
+   # To mirror CI more closely (includes doctests)
+   pytest ./ --doctest-modules
+
+Build the docs locally
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python -m sphinx -b html docs docs/_build/html
+
+Then open ``docs/_build/html/index.html`` in your browser.
+
+What is checked in CI
+^^^^^^^^^^^^^^^^^^^^^
+
+On each Pull Request, GitHub Actions runs:
+
+* ``ruff check`` (lint; currently non-blocking in CI)
+* ``mypy`` (static type checks)
+* ``pytest`` (tests + doctests)
+
+
+Contents
+----------
 
 .. toctree::
    :maxdepth: 1
 
-   pybend
-
-
-Related publications
----------------------
-
-.. toctree::
-   :maxdepth: 1
-
+   examples
+   howto/howto
+   user_guide/user_guide
+   glossary
+   pybend/pybend
    publications

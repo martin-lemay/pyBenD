@@ -2,33 +2,23 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-from __future__ import annotations
+"""Bend model.
 
-from typing import Optional
+This module defines the `Bend` object and helpers to encode/decode bend unique
+identifiers.
 
-import numpy as np
-import numpy.typing as npt
-import pandas as pd  # type: ignore[import-untyped]
-from shapely.geometry import LineString, Polygon  # type: ignore
-from typing_extensions import Self
+Let's suppose a sinuous channel centerline. Bends are defined as the channel
+path comprised between two consecutive inflection points (o). A bend contains
+an apex whose definition may vary according to bend shape:
 
-from pybend.model.enumerations import BendSide
+- Kinoshita-like bends: maximum curvature (see Kinoshita (1961);
+    `Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
+    `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_)
+- Circular bend (constant curvature): equidistance from inflection points.
 
-__doc__ = r"""
-Bend module defines Bend object and associated utils.
-
-Let's Suppose a sinuous channel centerline. Bends are defined as the channel
-path comprised between 2 consecutive inflection points (o). A Bend contains an
-apex whose definition may vary according to bend shape:
-
-- kinoshita-like bends: maximum curvature (see Kinoshita (1961);
-`Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
-`Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_
-- circular bend (constant curvature): equidistance from inflection points
-
-By convention Bend is UP if curvature is positive -clockwise rotation along
-flow direction- and is DOWN if curvature is negative -counter-clockwise
-rotation along flow direction.
+By convention, a bend is UP if curvature is positive (clockwise rotation along
+flow direction), and DOWN if curvature is negative (counter-clockwise rotation
+along flow direction).
 
 .. code-block:: bash
 
@@ -40,14 +30,22 @@ rotation along flow direction.
     Direction      o     m     o               .   .
                                                  x
 
-
-*Elementary Bends are defined by upstream and downstream inflection points (o).
-Bends contains distinctive points including the apex (x), the middle (m) and
-the barucenter (b). By convention Bend is UP if curvature is positive and DOWN
-if curvature is negative*
-
-
+Elementary bends are defined by upstream and downstream inflection points (o).
+Bends contain distinctive points including the apex (x), the middle (m) and
+the barycenter (b).
 """
+
+from __future__ import annotations
+
+from typing import Optional
+
+import numpy as np
+import numpy.typing as npt
+import pandas as pd  # type: ignore[import-untyped]
+from shapely.geometry import LineString, Polygon  # type: ignore
+from typing_extensions import Self
+
+from pybend.model.enumerations import BendSide
 
 #: modulo value for bend unique ids
 uid_module: int = int(1e4)
@@ -81,6 +79,8 @@ def parse_bend_uid(uid: int) -> tuple[int, int]:
 
 
 class Bend:
+    """A meander bend delimited by two consecutive inflection points."""
+
     def __init__(
         self: Self,
         bend_id: int,
@@ -93,18 +93,17 @@ class Bend:
         """Store bend parameters associated to a Centerline object.
 
         Args:
-            bend_id (int): bend id
+            bend_id (int): Bend id.
             index_inflex_up (int): index of the upstream inflection point along
-                the centerline
+                the centerline.
             index_inflex_down (int): index of the downstream inflection point
-                along the centerline
-            age (int, optional): age of the bend.
+                along the centerline.
+            age (int, optional): Age of the bend.
 
-                Defaults to 0..
-            side (Bend_side, optional): bend side (Bend_side.UP,
-                Bend_side.DOWN, Bend_side.UNKNWON).
+                Defaults to 0.
+            side (BendSide, optional): Bend side (UP, DOWN, or UNKNOWN).
 
-                Defaults to Bend_side.UNKNWON.
+                Defaults to BendSide.UNKNWON.
             isvalid (bool, optional): bend is valid if its sinuosity is greater
                 than a user defined threshold.
 
@@ -165,10 +164,10 @@ class Bend:
         self.params_averaged: Optional[pd.DataFrame] = None
 
     def __repr__(self: Self) -> str:
-        """Returned string.
+        """Return a concise string representation.
 
         Returns:
-            str: description of the object.
+            str: Description of the object.
         """
         return str(self.age) + "-" + str(self.id)
 
@@ -259,8 +258,10 @@ class Bend:
 
 
 class BendClPointIndexIter:
+    """Iterator over channel-point indices belonging to a `Bend`."""
+
     def __init__(self: Self, bend: Bend) -> None:
-        """Itetator on bend channel point indexes.
+        """Create an iterator over bend channel-point indices.
 
         Args:
             bend (Bend): Bend to iterate to.
@@ -271,7 +272,7 @@ class BendClPointIndexIter:
         self.index: int = 0
 
     def __iter__(self: Self) -> BendClPointIndexIter:
-        """Iterator.
+        """Return the iterator.
 
         Returns:
             BendClPointIndexIter: self
@@ -280,13 +281,13 @@ class BendClPointIndexIter:
         return self
 
     def __next__(self: Self) -> int:
-        """Next method.
+        """Return the next channel-point index.
 
         Raises:
-            StopIteration: stop when index_inflex_down is reached.
+            StopIteration: Raised when the iterator is exhausted.
 
         Returns:
-            int: channel point index
+            int: Channel-point index.
         """
         if self.index <= self.bend.get_nb_points():
             x: int = self.index

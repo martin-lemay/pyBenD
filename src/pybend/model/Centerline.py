@@ -2,33 +2,11 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-import functools
-from multiprocessing import Pool
-from typing import Optional, Self, cast
+"""Centerline model.
 
-import numpy as np
-import numpy.typing as npt
-import pandas as pd  # type: ignore[import-untyped]
-from scipy.ndimage import uniform_filter  # type: ignore[import-untyped]
-from scipy.signal import (  # type: ignore[import-untyped]
-    find_peaks,
-    savgol_filter,
-)
-from shapely.geometry import LineString, Polygon  # type: ignore
+Defines the `Centerline` object and methods to compute centerline attributes
+(inflection points, bends, apex/middle/centroid, etc.).
 
-import pybend.algorithms.centerline_process_functions as cpf
-import pybend.algorithms.geometry_functions as geom
-from pybend.model.Bend import Bend
-from pybend.model.ClPoint import ClPoint
-from pybend.model.enumerations import (
-    BendSide,
-    FilterName,
-    PropertyNames,
-)
-from pybend.utils.globalParameters import get_nb_procs
-from pybend.utils.logging import logger
-
-__doc__ = r"""
 Let's consider a channel centerline discretized into successive channel points.
 This module defines the Centerline object that stores all channel points.
 Centerline object also provides multiple methods to compute centerline
@@ -63,8 +41,36 @@ To use it:
 
 """
 
+import functools
+from multiprocessing import Pool
+from typing import Optional, Self, cast
+
+import numpy as np
+import numpy.typing as npt
+import pandas as pd  # type: ignore[import-untyped]
+from scipy.ndimage import uniform_filter  # type: ignore[import-untyped]
+from scipy.signal import (  # type: ignore[import-untyped]
+    find_peaks,
+    savgol_filter,
+)
+from shapely.geometry import LineString, Polygon  # type: ignore
+
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
+from pybend.model.Bend import Bend
+from pybend.model.ClPoint import ClPoint
+from pybend.model.enumerations import (
+    BendSide,
+    FilterName,
+    PropertyNames,
+)
+from pybend.utils.globalParameters import get_nb_procs
+from pybend.utils.logging import logger
+
 
 class Centerline:
+    """A channel centerline represented as an ordered collection of points."""
+
     def __init__(
         self: Self,
         age: int,
@@ -87,7 +93,7 @@ class Centerline:
                 coordinates and properties. Points must be ordered according
                 to flow direction.
             spacing (float): Target distance (m) between channel points after
-                resampling. If spacing equals 0, centreline is not resampled.
+                resampling. If spacing equals 0, centerline is not resampled.
             smooth_distance (float): Smoothing distance (m) for Savitsky-Golay
                 filter applied on channel path.
             use_fix_nb_points (bool, optional): If True, the resampled
@@ -177,7 +183,7 @@ class Centerline:
                 flow direction.
             age (int): Age of the centerline.
             spacing (float): Target distance (m) between channel points after
-                resampling. If spacing equals 0, centreline is not resampled.
+                resampling. If spacing equals 0, centerline is not resampled.
             smooth_distance (float): Smoothing distance (m) for Savitsky-Golay
                 filter applied on channel path.
             curvature_filtering_window (int): Number of points used for
@@ -769,20 +775,14 @@ class Centerline:
     ) -> None:
         """Compute interpolated properties at index i in dataset_new.
 
-        Paramers:
-
-            dataset (DataFrame): Original DataFrame from which properties come
-                from.
-
-                Input DataFrame dataset_new is updated with the computed
-                properties.
-            props_excluded (list[str]): List of properties excluded from the
-                interpolation.
-            dataset_new (DataFrame): DataFrame to which properties are computed
-            i (int): index in dataset_new.
-            row (Series): Series that contains information on original points
-                for interpolation.
-
+        Args:
+            dataset (pd.DataFrame): Original DataFrame from which properties are
+                interpolated.
+            props_excluded (tuple[str, ...]): Properties excluded from interpolation.
+            dataset_new (pd.DataFrame): Target DataFrame that is updated in-place.
+            i (int): Index in ``dataset_new``.
+            row (pd.Series): Row containing the two source indices and distances
+                used for interpolation.
         """
         j1 = row["index1"]
         j2 = row["index2"]
@@ -1178,11 +1178,12 @@ class Centerline:
     ) -> npt.NDArray[np.float64]:
         """Compute bend apex probability according to input weights.
 
-        Apex probability corresponds to the probability [0, 1] of a channel
+        Apex probability corresponds to the probability $[0, 1]$ of a channel
         point being an apex according to its curvature, its distance to the
-         middle point of the bend, and its distance to the closest inflection
-         point. The result is stored in Bend.apex_probability and as a property
-         of channel points.
+        bend middle point, and its distance to the closest inflection point.
+
+        The result is stored in ``Bend.apex_probability`` and as a property of
+        channel points.
 
         Args:
             bend_index (int): Index of the bend to treat.
@@ -1278,9 +1279,9 @@ class Centerline:
         )
 
         # set apex probability of inflection point to 0
-        assert apex_probability is not None, (
-            "Apex probability list is undefined"
-        )
+        assert (
+            apex_probability is not None
+        ), "Apex probability list is undefined"
         apex_probability[0] = 0.0
         apex_probability[-1] = 0.0
         return apex_probability

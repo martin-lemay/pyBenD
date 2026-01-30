@@ -2,21 +2,7 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-from typing import Optional, Self
-
-import numpy as np
-import numpy.typing as npt
-import pandas as pd  # type: ignore[import-untyped]
-
-import pybend.algorithms.centerline_process_functions as cpf
-import pybend.algorithms.geometry_functions as geom
-from pybend.model.Bend import Bend
-from pybend.model.Centerline import Centerline, ClPoint
-from pybend.model.enumerations import MorphometricNames, PropertyNames
-
-__doc__ = r"""
-This module defines the Morphometry class that compute meander bend
-morphometric parameters from a Centerline object.
+"""Bend morphometry computations.
 
 Bends are defined as the channel path comprised between 2 consecutive
 inflection points (o). A Bend contains a maximum curvature point (+) and an
@@ -29,12 +15,12 @@ Metrics include:
 * amplitude (Am): orthogonal distance between bend apex and chord
 * extension (Ex): distance between bend apex and center
 * asymmetry coefficient: A=(Lup-Ldown) / L, where Lup and Ldown are arc length
+distances between bend apex and upstream and downstream inflection point
+respectively, and L is the bend arc length.
 * radius of curvature: inverse of bend apex curvature
-* roundess: ratio of maximum to mean curvature along the bend distances between
-bend apex and upstream and downstream inflection point respectively, and L
-is the bend arc length.
+* roundess: ratio of maximum to mean curvature along the bend
 
- .. code-block:: bash
+.. code-block:: bash
 
                                  .   x  .
                              .      /|    .
@@ -54,11 +40,24 @@ To use it:
     centerline :Centerline
     morphComputer :Morphometry = Morphometry(centerline)
     metrics :pd.DataFrame = morphComputer.compute_bend_morphometry()
-
 """
+
+from typing import Optional, Self
+
+import numpy as np
+import numpy.typing as npt
+import pandas as pd  # type: ignore[import-untyped]
+
+import pybend.algorithms.centerline_process_functions as cpf
+import pybend.algorithms.geometry_functions as geom
+from pybend.model.Bend import Bend
+from pybend.model.Centerline import Centerline, ClPoint
+from pybend.model.enumerations import MorphometricNames, PropertyNames
 
 
 class Morphometry:
+    """Compute morphometric parameters from a `Centerline`."""
+
     def __init__(
         self: Self,
         centerline: Centerline,
@@ -119,12 +118,12 @@ class Morphometry:
                 self.compute_bend_wavelength(bend.id)
             )
             # sinuosity
-            if data.loc[i, MorphometricNames.WAVELENGTH.value] > 0:
+            if data.loc[i, MorphometricNames.WAVELENGTH.value] > 0:  # type: ignore
                 data.loc[i, MorphometricNames.SINUOSITY.value] = np.round(
-                    data.loc[i, MorphometricNames.ARC_LENGTH.value]
-                    / data.loc[i, MorphometricNames.WAVELENGTH.value],
+                    data.loc[i, MorphometricNames.ARC_LENGTH.value]  # type: ignore
+                    / data.loc[i, MorphometricNames.WAVELENGTH.value],  # type: ignore
                     4,
-                )
+                )  # type: ignore
             data.loc[i, MorphometricNames.AMPLITUDE.value] = (
                 self.compute_bend_amplitude(bend.id)
             )
@@ -164,9 +163,9 @@ class Morphometry:
         Returns:
             float: bend sinuosity
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
 
         den: float = self.compute_bend_wavelength(bend_id)
         sinuo: float = np.nan
@@ -184,9 +183,9 @@ class Morphometry:
         Returns:
             float: bend wavelength
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_inflex_up
@@ -205,9 +204,9 @@ class Morphometry:
         Returns:
             float: bend amplitude
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_apex
@@ -229,9 +228,9 @@ class Morphometry:
         Returns:
             float: bend extension
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
             bend.index_apex
@@ -250,9 +249,9 @@ class Morphometry:
         Returns:
             float: bend radius
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         curvature: npt.NDArray[np.float64] = np.abs(
             self.centerline.get_bend_curvature_filtered(bend_id)
@@ -271,9 +270,9 @@ class Morphometry:
         Returns:
             float: bend arc length
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
             bend_id, PropertyNames.CURVILINEAR_ABSCISSA.value
         )
@@ -290,9 +289,9 @@ class Morphometry:
         Returns:
             float: bend roundness
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         curvature: npt.NDArray[np.float64] = np.abs(
             self.centerline.get_bend_curvature_filtered(bend_id)
         )
@@ -309,9 +308,9 @@ class Morphometry:
         Returns:
             float: bend asymmetry coefficient
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
             bend_id, PropertyNames.CURVILINEAR_ABSCISSA.value
@@ -342,9 +341,9 @@ class Morphometry:
         Returns:
             float: bend skewness coefficient
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
         bend: Bend = self.centerline.bends[bend_id]
 
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
@@ -376,9 +375,9 @@ class Morphometry:
         Returns:
             float: Leopold wavelength.
         """
-        assert (
-            (bend_id > 0) and bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > 0) and bend_id < self.centerline.get_nb_bends(), (
+            "Bend index is undefined."
+        )
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         next_bend: Bend = self.centerline.bends[bend_id + 1]
         clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
@@ -396,9 +395,9 @@ class Morphometry:
         Returns:
             float: Leopold amplitude.
         """
-        assert (bend_id > -1) and (
-            bend_id < self.centerline.get_nb_bends()
-        ), "Bend index is undefined."
+        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+            "Bend index is undefined."
+        )
 
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         bend: Bend = self.centerline.bends[bend_id]
@@ -473,8 +472,8 @@ class Morphometry:
             np.zeros(metrics_all.shape[1]), index=metrics_all.columns
         )
         for i in range(bend_index_min, bend_index_max + 1, 1):
-            mean += metrics_all.loc[i]
-        return np.round(mean / count, 4)
+            mean += metrics_all.loc[i]  # type: ignore
+        return np.round(mean / count, 4)  # type: ignore
 
     def _get_window_end_indexes(
         self: Self, bend_index: int, window_size: float

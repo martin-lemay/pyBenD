@@ -20,20 +20,22 @@ from typing import Self
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 
-from pybend.algorithms.pybend_io import (
+from pybend.io.centerline_collection_io import (
+    load_centerline_collection_dataset_from_Flumy_csv,
+    load_centerline_evolution_from_multiple_xy_csv,
+    load_centerline_evolution_from_single_xy_csv,
+)
+from pybend.io.centerline_io import (
     create_dataset_from_xy,
     dump_centerline_to_csv,
-    load_centerline_collection_dataset_from_Flumy_csv,
     load_centerline_dataset_from_csv,
     load_centerline_dataset_from_Flumy_csv,
     load_centerline_dataset_from_kml,
-    load_centerline_evolution_from_multiple_xy_csv,
-    load_centerline_evolution_from_single_xy_csv,
 )
 from pybend.model.Centerline import Centerline
 
 # inputs
-dir_path: str = "tests/data/"
+dir_path: str = os.getcwd() + "/tests/data/"
 filepath1: str = dir_path + "centerline_xyz_data.csv"
 filepath2: str = dir_path + "centerline_flumy_data.csv"
 filepath3: str = dir_path + "centerline_kml.kml"
@@ -50,7 +52,7 @@ filepath_cl_collection_xy: str = (
 )
 
 # output directory
-out_path: str = "tests/.out/"
+out_path: str = os.getcwd() + "/tests/.out/"
 # create it if absent
 if not os.path.exists(out_path):
     os.makedirs(out_path)

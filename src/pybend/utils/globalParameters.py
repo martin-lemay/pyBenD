@@ -2,15 +2,16 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Global configuration parameters.
+
+Defines global parameters such as the number of processors to use and
+functions to get and set these parameters.
+"""
+
 import os
 
 from pybend.utils.logging import logger
 
-__doc__ = r"""
-Defines global parameters such as the number of processors to use and
-functions to get and set these parameters.
-
-"""
 # number of processors for multiprocessing
 NB_PROCS: int = 1
 

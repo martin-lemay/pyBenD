@@ -2,7 +2,7 @@
 Publications
 ###############################################################################
 
-*Last updated 13-March-2025*
+*Last updated 26-January-2026*
 
 Peer-Review Articles
 ====================
@@ -12,9 +12,14 @@ Peer-Review Articles
    :header-rows: 0
 
 
+   * - | **Automated detection of the apex of a meander bend using the cumulative spatial distribution of curvature.**
+       | Lemay, M., Grimaud, J. L., Limaye, A. B.
+       | Submitted to *Earth Surface Processes and Landforms* (2026).
+       | 
+       | 
    * - | **Submarine channel stacking patterns controlled by the 3D kinematics of meander bends.**
        | Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F.
-       | Geological Society, London, Special Publications, SP540-2022-143. 2024
+       | Geological Society, London, Special Publications, SP540-2022-143 (2024)
        | `doi.org/10.1144/SP540-2022-143 <https://doi.org/10.1144/SP540-2022-143>`_
        | 
    * - | **Lateral river erosion impacts the preservation of Neolithic enclosures in alluvial plains.**

@@ -14,6 +14,8 @@
 #
 import os
 import sys
+import shutil
+from pathlib import Path
 
 # Add python modules to be documented
 config_file_dir = os.path.dirname(__file__)
@@ -25,7 +27,7 @@ sys.path.insert( 0, src_dir )
 
 # -- Project information -----------------------------------------------------
 
-project = u'pyBenD - Python meander bend morphodynamic'
+project = u'pyBenD - Python Meander Bend Morphodynamic'
 copyright = u'2025 Martin Lemay <martin.lemay@mines-paris.org>'
 author = u'Martin Lemay'
 
@@ -45,7 +47,7 @@ release = u'0'
 # ones.
 extensions = [
     'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 
-    'sphinx.ext.imgmath', 'sphinxarg.ext', 'sphinx.ext.napoleon', 
+    'sphinx.ext.imgmath', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary', 
     'sphinxcontrib.programoutput'
 ]
 
@@ -61,9 +63,6 @@ autodoc_default_options = {
 }
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-# source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
 # The master toctree document.
@@ -104,3 +103,42 @@ html_css_files = [
 # -- Options for HTMLHelp output ---------------------------------------------
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyBenDDoc'
+
+
+def _sync_example_notebooks() -> None:
+    """Copy project notebooks into the Sphinx source tree.
+
+    Sphinx (and toctree entries) require sources to live under the docs source
+    directory. We keep notebooks in the top-level `notebooks/` folder and
+    copy them into `docs/notebooks/` at build time.
+    """
+
+    docs_dir = Path(config_file_dir)
+    repo_root = Path(project_root)
+
+    notebook_src_dir = repo_root / "notebooks"
+    notebook_dst_dir = docs_dir / "notebooks"
+    notebook_dst_dir.mkdir(parents=True, exist_ok=True)
+
+    notebook_names = [
+        "bend_apex_detection.ipynb",
+        "bend_kinematics_analysis.ipynb",
+        "meander_morphometry_analysis.ipynb",
+        "seine_river_migration_analysis.ipynb",
+    ]
+
+    for name in notebook_names:
+        src_path = notebook_src_dir / name
+        dst_path = notebook_dst_dir / name
+        if src_path.exists():
+            shutil.copy2(src_path, dst_path)
+
+    # Copy notebook data folder (useful when users download/run notebooks)
+    data_src = notebook_src_dir / "data"
+    data_dst = notebook_dst_dir / "data"
+    if data_src.exists() and data_src.is_dir():
+        shutil.copytree(data_src, data_dst, dirs_exist_ok=True)
+
+
+def setup(app):
+    app.connect("builder-inited", lambda app: _sync_example_notebooks())

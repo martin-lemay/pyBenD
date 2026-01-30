@@ -2,6 +2,8 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Plotting helpers for pybend."""
+
 from typing import Optional
 
 import matplotlib.colors as colors
@@ -19,10 +21,6 @@ from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import BendSide
 from pybend.model.Section import Section
 from pybend.utils.logging import logger
-
-__doc__ = """
-Plot methods.
-"""
 
 
 def plot_centerline_collection(
@@ -824,18 +822,18 @@ def plot_versus_curvilinear(
         "hotpink",
     ]
 
-    assert len(curves1) == len(labels1), (
-        "The number of Curves and labels from first set is different"
-    )
-    assert len(curves2) == len(labels2), (
-        "The number of Curves and labels from second set is different"
-    )
-    assert len(curves1) > len(colors1), (
-        "Too many curves to plot from first set."
-    )
-    assert len(curves2) > len(colors2), (
-        "Too many curves to plot from second set."
-    )
+    assert len(curves1) == len(
+        labels1
+    ), "The number of Curves and labels from first set is different"
+    assert len(curves2) == len(
+        labels2
+    ), "The number of Curves and labels from second set is different"
+    assert len(curves1) > len(
+        colors1
+    ), "Too many curves to plot from first set."
+    assert len(curves2) > len(
+        colors2
+    ), "Too many curves to plot from second set."
 
     _, ax1 = plt.subplots()
 

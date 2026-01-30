@@ -2,14 +2,12 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Synthetic bend generators."""
+
 import numpy as np
 import numpy.typing as npt
 
 import pybend.algorithms.centerline_process_functions as cpf
-
-__doc__ = """
-Set of methods to create synthetic bends.
-"""
 
 
 def mirror(

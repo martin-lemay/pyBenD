@@ -20,7 +20,9 @@ from pybend.model.enumerations import PropertyNames
 
 
 def load_centerline_from_file(
-    filepath: str, kind: CenterlineIOFormat, **args
+    filepath: str,
+    kind: CenterlineIOFormat,
+    **args,  # ruff: noqa: ANN003 # type: ignore
 ) -> tuple[int, pd.DataFrame]:
     """Load a centerline from a file.
 
@@ -35,26 +37,28 @@ def load_centerline_from_file(
                 - ``x_prop`` (str): X column name (default ``"X"``)
                 - ``y_prop`` (str): Y column name (default ``"Y"``)
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
-                - ``drop_columns`` (tuple[str, ...]): columns to drop (default empty)
+                - ``drop_columns`` (tuple[str, ...]): columns to drop (default
+                    empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.FLUMY_CSV``:
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.KML``:
-                - ``keyword`` (str): keyword for coordinate line (default ``"coordinates"``)
+                - ``keyword`` (str): keyword for coordinate line (default
+                    ``"coordinates"``)
 
     Returns:
-        tuple[int, pd.DataFrame]: Tuple containing the centerline age (if present)
-        and the dataset as a DataFrame.
+        tuple[int, pd.DataFrame]: Tuple containing the centerline age (if
+        present) and the dataset as a DataFrame.
     """
     age: int = 0
     ext = filepath.split(".")[-1].lower()
     match kind:
         case CenterlineIOFormat.CSV:
-            assert (
-                ext == "csv"
-            ), "File extension does not match specified format."
+            assert ext == "csv", (
+                "File extension does not match specified format."
+            )
             xprop = args.get("x_prop", "X")
             yprop = args.get("y_prop", "Y")
             zprop = args.get("z_prop", "Z")
@@ -69,17 +73,17 @@ def load_centerline_from_file(
                 sep=sep,
             )
         case CenterlineIOFormat.FLUMY_CSV:
-            assert (
-                ext == "csv"
-            ), "File extension does not match specified format."
+            assert ext == "csv", (
+                "File extension does not match specified format."
+            )
             sep = args.get("sep", ";")
             age, dataset = load_centerline_dataset_from_Flumy_csv(
                 filepath, sep=sep
             )
         case CenterlineIOFormat.KML:
-            assert (
-                ext == "kml"
-            ), "File extension does not match specified format."
+            assert ext == "kml", (
+                "File extension does not match specified format."
+            )
             keyword = args.get("keyword", "coordinates")
             dataset = load_centerline_dataset_from_kml(
                 filepath, keyword=keyword
@@ -133,12 +137,12 @@ def load_centerline_dataset_from_csv(
         str(path), sep=sep, float_precision="round_trip"
     )
 
-    assert (
-        x_prop in dataset.columns
-    ), "X coordinate column indexes was not found."
-    assert (
-        y_prop in dataset.columns
-    ), "Y coordinate column indexes was not found."
+    assert x_prop in dataset.columns, (
+        "X coordinate column indexes was not found."
+    )
+    assert y_prop in dataset.columns, (
+        "Y coordinate column indexes was not found."
+    )
 
     for col in drop_columns:
         dataset.drop(columns=col, inplace=True)

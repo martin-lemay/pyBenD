@@ -365,21 +365,18 @@ class Centerline:
             NDArray[float]: Array with property values
 
         """
+        bend: Bend = self.bends[bend_id]
+        data: npt.NDArray[np.float64] = np.full(bend.get_nb_points(), np.nan)
         try:
-            bend: Bend = self.bends[bend_id]
-            data: npt.NDArray[np.float64] = np.full(
-                bend.get_nb_points(), np.nan
-            )
             for i, cl_pt in enumerate(
                 self.cl_points[
                     bend.index_inflex_up : bend.index_inflex_down + 1
                 ]
             ):
                 data[i] = cl_pt.get_property(prop_name)
-            return data
         except Exception as err:
             logger.error(str(err))
-            return np.full(bend.get_nb_points(), np.nan)
+        return data
 
     def get_all_curvature_filtered(self: Self) -> npt.NDArray[np.float64]:
         """Get the array of filtered curvature property along the centerline.
@@ -656,8 +653,8 @@ class Centerline:
                 (
                     np.array(
                         (
-                            dataset[cart_abscissa_prop_name][i - 1],
-                            dataset[cart_ordinate_prop_name][i - 1],
+                            dataset[cart_abscissa_prop_name][i - 1],  # type: ignore
+                            dataset[cart_ordinate_prop_name][i - 1],  # type: ignore
                         )
                     ),  # type: ignore
                     np.array(
@@ -668,13 +665,13 @@ class Centerline:
                     ),  # type: ignore
                     np.array(
                         (
-                            dataset[cart_abscissa_prop_name][i + 1],
-                            dataset[cart_ordinate_prop_name][i + 1],
+                            dataset[cart_abscissa_prop_name][i + 1],  # type: ignore
+                            dataset[cart_ordinate_prop_name][i + 1],  # type: ignore
                         )
                     ),
                 )  # type: ignore
                 for i, row in dataset.iterrows()
-                if ((i > 0) and (i < dataset.shape[0] - 1))
+                if ((i > 0) and (i < dataset.shape[0] - 1))  # type: ignore
             ]  # type: ignore
             outputs = pool.starmap(cpf.compute_curvature_at_point, inputs)  # type: ignore
 
@@ -776,13 +773,15 @@ class Centerline:
         """Compute interpolated properties at index i in dataset_new.
 
         Args:
-            dataset (pd.DataFrame): Original DataFrame from which properties are
-                interpolated.
-            props_excluded (tuple[str, ...]): Properties excluded from interpolation.
-            dataset_new (pd.DataFrame): Target DataFrame that is updated in-place.
+            dataset (pd.DataFrame): Original DataFrame from which properties
+                are interpolated.
+            props_excluded (tuple[str, ...]): Properties excluded from
+                interpolation.
+            dataset_new (pd.DataFrame): Target DataFrame that is updated
+                in-place.
             i (int): Index in ``dataset_new``.
-            row (pd.Series): Row containing the two source indices and distances
-                used for interpolation.
+            row (pd.Series): Row containing the two source indices and
+                distances used for interpolation.
         """
         j1 = row["index1"]
         j2 = row["index2"]
@@ -1279,9 +1278,9 @@ class Centerline:
         )
 
         # set apex probability of inflection point to 0
-        assert (
-            apex_probability is not None
-        ), "Apex probability list is undefined"
+        assert apex_probability is not None, (
+            "Apex probability list is undefined"
+        )
         apex_probability[0] = 0.0
         apex_probability[-1] = 0.0
         return apex_probability

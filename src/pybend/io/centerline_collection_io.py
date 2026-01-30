@@ -20,7 +20,9 @@ from pybend.model.enumerations import PropertyNames
 
 
 def load_centerline_collection_from_a_file(
-    filepath: str, kind: CenterlineIOFormat, **args
+    filepath: str,
+    kind: CenterlineIOFormat,
+    **args,  # type: ignore # ruff: noqa: ANN003
 ) -> dict[int, pd.DataFrame]:
     """Load a centerline collection from a single file.
 
@@ -36,7 +38,8 @@ def load_centerline_collection_from_a_file(
                 - ``y_prop`` (str): Y column name (default ``"Y"``)
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
                 - ``age_prop`` (str): age column name (default ``"Age"``)
-                - ``drop_columns`` (tuple[str, ...]): columns to drop (default empty)
+                - ``drop_columns`` (tuple[str, ...]): columns to drop (default
+                    empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.FLUMY_CSV``:
@@ -52,9 +55,9 @@ def load_centerline_collection_from_a_file(
     ext = path.suffix.lower().lstrip(".")
     match kind:
         case CenterlineIOFormat.CSV:
-            assert (
-                ext == "csv"
-            ), "File extension does not match specified format."
+            assert ext == "csv", (
+                "File extension does not match specified format."
+            )
             x_prop = args.get("x_prop", "X")
             y_prop = args.get("y_prop", "Y")
             z_prop = args.get("z_prop", "Z")
@@ -71,9 +74,9 @@ def load_centerline_collection_from_a_file(
                 sep=sep,
             )
         case CenterlineIOFormat.FLUMY_CSV:
-            assert (
-                ext == "csv"
-            ), "File extension does not match specified format."
+            assert ext == "csv", (
+                "File extension does not match specified format."
+            )
             sep = args.get("sep", ";")
             dataset = load_centerline_collection_dataset_from_Flumy_csv(
                 filepath, sep=sep
@@ -84,7 +87,9 @@ def load_centerline_collection_from_a_file(
 
 
 def load_centerline_collection_from_multiple_files(
-    map_file: dict[int, str], kind: CenterlineIOFormat, **args
+    map_file: dict[int, str],
+    kind: CenterlineIOFormat,
+    **args,  # ruff: noqa: ANN003 # type: ignore
 ) -> dict[int, pd.DataFrame]:
     """Load a centerline collection from multiple files in a directory.
 
@@ -99,12 +104,14 @@ def load_centerline_collection_from_multiple_files(
                 - ``x_prop`` (str): X column name (default ``"X"``)
                 - ``y_prop`` (str): Y column name (default ``"Y"``)
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
-                - ``drop_columns`` (tuple[str, ...]): columns to drop (default empty)
+                - ``drop_columns`` (tuple[str, ...]): columns to drop (default
+                    empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.KML``:
                 - ``directory`` (str): base directory containing the KML files
-                - ``keyword`` (str): keyword for coordinate line (default ``"coordinates"``)
+                - ``keyword`` (str): keyword for coordinate line (default
+                    ``"coordinates"``)
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame

@@ -40,7 +40,8 @@ def resolve_path(*, base_dir: Path | None, raw_url: str, ctx: str) -> Path:
         return p
     if base_dir is None:
         raise ValueError(
-            f"Base directory must be provided to resolve relative path for {ctx}."
+            f"Base directory must be provided to resolve relative path for "
+            f"{ctx}."
         )
     path = (base_dir / p).resolve()
     if not path.exists():

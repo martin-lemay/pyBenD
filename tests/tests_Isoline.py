@@ -13,7 +13,7 @@ from typing import Self
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import pandas as pd  # 
+import pandas as pd  #
 
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import PropertyNames

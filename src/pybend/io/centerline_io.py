@@ -355,11 +355,17 @@ def dump_centerline_to_csv(
             Defaults to ";".
 
     """
-    p = Path(filepath)
-    parent = p.parent
-    path = resolve_path(
-        base_dir=None, raw_url=str(parent), ctx="saving centerline"
-    )
+    p = Path(filepath).expanduser()
+    if p.exists() and p.is_dir():
+        raise IsADirectoryError(
+            f"dump_centerline_to_csv() expected a file path, got directory: {p}"
+        )
+
+    # Resolve to an absolute path without requiring the file to pre-exist.
+    # (resolve_path() is intended for inputs and enforces existence.)
+    out_file = p if p.is_absolute() else (Path.cwd() / p)
+    out_file = out_file.resolve()
+    out_file.parent.mkdir(parents=True, exist_ok=True)
     columns = centerline.cl_points[0].get_data().index.tolist() + [
         PropertyNames.AGE.value
     ]
@@ -369,4 +375,4 @@ def dump_centerline_to_csv(
     for i, cl_pt in enumerate(centerline.cl_points):
         data.loc[i, cl_pt.get_data().index] = cl_pt.get_data()
 
-    data.to_csv(str(path), sep=sep, index=False)
+    data.to_csv(str(out_file), sep=sep, index=False)

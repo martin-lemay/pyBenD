@@ -24,8 +24,9 @@ class CenterlineIOFormat(StrEnum):
 def resolve_path(*, base_dir: Path | None, raw_url: str, ctx: str) -> Path:
     """Resolve an absolute or base_dir-relative path.
 
-    - Absolute paths are accepted even when base_dir is None.
-    - Relative paths require base_dir.
+        - Absolute paths are accepted even when base_dir is None.
+        - Relative paths are resolved against base_dir when provided, otherwise
+            against the current working directory.
 
     Args:
         base_dir (Path | None): Base directory to resolve relative paths.
@@ -35,15 +36,13 @@ def resolve_path(*, base_dir: Path | None, raw_url: str, ctx: str) -> Path:
     Returns:
         Path: Resolved absolute path.
     """
-    p = Path(raw_url)
+    p = Path(raw_url).expanduser()
     if p.is_absolute():
-        return p
-    if base_dir is None:
-        raise ValueError(
-            f"Base directory must be provided to resolve relative path for "
-            f"{ctx}."
-        )
-    path = (base_dir / p).resolve()
+        path = p
+    else:
+        root = base_dir if base_dir is not None else Path.cwd()
+        path = (root / p).resolve()
+
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
     return path

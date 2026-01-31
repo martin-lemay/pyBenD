@@ -7,9 +7,9 @@ meandering system morphodynamic analysis.
 ``pyBenD`` consists in:
 
 - a data structure that stores individual channel centerlines and successive centerlines
-   of a same channel migrating over time from various input file format (csv, kml, etc.)
+  of a same channel migrating over time from various input file format (csv, kml, etc.)
 - tools that automatically detect meander bends and characteristics points such as
-   inflection points, bend apex, or bend center
+  inflection points, bend apex, or bend center
 - tools to compute meander bend morphometric parameters
 - tools to compute channel lateral migration rates
 - tools to compute meander bend kinematics parameters.
@@ -20,9 +20,9 @@ meandering system morphodynamic analysis.
    If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
 
    - pyBenD v1.0.0: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0).
-      Zenodo. `doi.org/10.5281/zenodo.18442370 <https://doi.org/10.5281/zenodo.18442370>`_
+     Zenodo. `doi.org/10.5281/zenodo.18442370 <https://doi.org/10.5281/zenodo.18442370>`_
    - pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0).
-      Zenodo. `doi.org/10.5281/zenodo.18442369 <https://doi.org/10.5281/zenodo.18442369>`_
+     Zenodo. `doi.org/10.5281/zenodo.18442369 <https://doi.org/10.5281/zenodo.18442369>`_
 
 
 Installation

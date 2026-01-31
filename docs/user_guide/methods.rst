@@ -41,10 +41,9 @@ Resampling and path smoothing
 
 	- a *target spacing* between consecutive points (default behavior), or
 	- a *fixed number of points* when ``use_fix_nb_points=True``. In this case, the
-    number of points can be set with ``spacing`` parameter (integer value).
-
-	If ``spacing == 0``, the centerline is not resampled and the original point positions
-	are used.
+    	number of points can be set with ``spacing`` parameter (integer value).
+		If ``spacing == 0``, the centerline is not resampled and the original
+		point positions are used.
 
 3. **Smoothing of the resampled XY path**
 
@@ -77,7 +76,7 @@ Some fields are intentionally excluded from interpolation because they are recom
 for the resampled geometry: curvilinear abscissa and XY coordinates.
 
 Curvature calculation and curvature smoothing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If ``compute_curvature=True``, curvature is computed along the (resampled and smoothed)
 centerline using a local 3-point method: the curvature at point *i* depends on the
@@ -388,8 +387,9 @@ non-negative distances can be combined:
 	$(x_j, y_j)$. If the distance exceeds ``dmax``, it is set to a very large
 	penalty so that DTW avoids matching distant points. ``dmax`` is usually set to
     a meander wavelength.
-- **Curvature distance**: difference in *filtered curvature magnitude*
-	$||\kappa_i| - |\kappa_j||$.
+
+- **Curvature distance**: difference in *filtered curvature magnitude* $||\kappa_i| - |\kappa_j||$.
+
 - **Velocity-perturbation distance** (optional): absolute difference of the
 	``VELOCITY_PERTURBATION`` property after Savitzky-Golay filtering
 	(``window_length=window``, ``polyorder=2``), when the property exists.
@@ -416,6 +416,7 @@ pyBenD then stores the matching in both directions:
 - On the *current* centerline: ``index_cl_pts_prev_centerline`` stores, for
 	each current point index, the matched index in the previous centerline (or
 	``-1`` when no acceptable match exists).
+
 - On the *previous* centerline: ``index_cl_pts_next_centerline`` stores, for
 	each previous point index, the list of current indices that map to it
 	(one-to-many links may occur due to DTW).
@@ -445,6 +446,7 @@ at the current age:
 
 - candidate trajectories are restricted to those whose last bend belongs to the
 	immediately previous age and has the same bend side (``Bend.side``),
+
 - the closest apex is selected if its distance is below ``dmax``;
 	otherwise a new trajectory is started.
 
@@ -506,6 +508,7 @@ stored in ``CenterlineCollection.section_lines``. Two approaches are available:
   This is the approach used in ``notebooks/bend_kinematics_analysis.ipynb`` where
   section endpoints are chosen so that each section intersects the centerlines of a
   given channel belt.
+
 - **Automatic definition** with
   :meth:`~pybend.model.CenterlineCollection.CenterlineCollection.create_section_lines`.
   The method uses the youngest (last) centerline and creates one section per
@@ -552,6 +555,7 @@ coordinates ``(d, dz)``, where:
 
 - $d$ is the signed lateral position along the section, measured relative to the
 	first channel occurrence on the section.
+
 - $dz$ is the vertical offset relative to that first occurrence.
 
 The sign of $d$ is determined from the user-provided flow direction (``flow_dir``):
@@ -657,6 +661,7 @@ Two complementary families of kinematic measurements are commonly used:
 
 - **Real (planform) kinematics**: measured from successive mapped/simulated
   centerlines, after point-to-point tracking (DTW matching).
+
 - **Apparent (section-based) kinematics**: measured from channel positions
   recorded on stratigraphic sections, in a section-aligned
   coordinate system.
@@ -720,6 +725,7 @@ computes:
 
 - ``local_disp``: incremental displacements between successive time steps,
   with columns ``(dX, dY, dZ, dMig)``.
+
 - ``whole_disp``: displacement between first and last trajectory points,
   again as ``(DX, DY, DZ, DMig)``.
 
@@ -756,8 +762,7 @@ The bend-averaged kinematics shown in
 
 The notebook stores bend-scale metrics from the resulting ``whole_disp``:
 
-- ``DxBend``, ``DyBend``: absolute values of the displacement components in the
-  chosen local basis.
+- ``DxBend``, ``DyBend``: absolute values of the displacement components in the chosen local basis.
 - ``DmigBend``: total planform migration magnitude (``DMig``).
 
 Apex migration (bend_kinematics_analysis example)

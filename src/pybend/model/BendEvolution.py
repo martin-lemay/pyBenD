@@ -57,7 +57,6 @@ class BendEvolution:
             ide (int): id of bend evolution
             order (int): order of bend evolution
             isvalid (bool, optional): bend evolution is valid.
-
                 Defaults to False.
 
         """

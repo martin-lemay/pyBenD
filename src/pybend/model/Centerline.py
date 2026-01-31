@@ -98,32 +98,24 @@ class Centerline:
                 filter applied on channel path.
             use_fix_nb_points (bool, optional): If True, the resampled
                 centerline will contains exactly spacing points, otherwise,
-                spacing is the targeted distance between 2 consecutive points.
-
-                Defaults to False.
+                spacing is the targeted distance between 2 consecutive points.                Defaults to False.
             curvature_filtering_window (int, optional): Number of points used
                 for filtering curvature.
-
                 Defaults to 5.
             sinuo_thres (float, optional): Sinuosity threshold used to
                 discriminate valid bends.
-
                 Defaults to 1.05.
             n (float): exponent value for bend apex detection
-
                 Defaults to 2.
             compute_curvature (bool, optional): If True, recompute and filter
                 curvature along channel points.
-
                 Defaults to True.
             interpol_props (bool, optional): If True, interpolate channel point
                 properties along channel points.
-
                 Defaults to True.
             find_bends (bool, optional): If True, automatically compute
                 curvature and interpolate properties and detect meander bends
                 along channel centerline.
-
                 Defaults to True.
         """
         #: age of the enterline
@@ -173,7 +165,7 @@ class Centerline:
             - resampling the centerline with a parametric spline function
             - if spacing > 0, smoothing centerline path
             - if interpol_props is True, interpolating centerline properties to
-                new points
+              new points
             - if compute_curvature is True, computing and filtering curvatures
             - fill the list of channel point self.cl_points
 
@@ -563,7 +555,6 @@ class Centerline:
             window (int): Number of points used for filtering curvature.
             method (FilterName): Filter to use, either
                 FilterName.UNIFORM or Smooth_filter.SAVITSKY
-
                 Defaults to FilterName.SAVITSKY.
         """
         # apply uniform filter to the curvature to smooth local variations
@@ -689,7 +680,7 @@ class Centerline:
 
         Returns:
             int: Index of the bend in the list self.bends, or np.nan if no
-                bend was found.
+            bend was found.
 
         """
         if cl_pt_index > self.get_nb_points():
@@ -713,8 +704,8 @@ class Centerline:
 
         Returns:
             bool: True if interpolation successfully ended.
-                Input DataFrame dataset_new is updated with the computed
-                properties.
+            Input DataFrame dataset_new is updated with the computed
+            properties.
 
         """
         nb_procs: int = get_nb_procs()
@@ -979,20 +970,15 @@ class Centerline:
         Args:
             bend_index (int): Bend index.
             side (BendSide, optional): bend side
-
                 Defaults to None.
             valid (bool, optional): bend validity
-
                 Defaults to None.
             index_apex (int, optional): bend apex index
-
                 Defaults to None.
             pt_center (npt.NDArray[np.float64], optional): bend middle point
-
                 Defaults to None.
             pt_centroid (npt.NDArray[np.float64], optional): bend centroid
                 point
-
                 Defaults to None.
 
         """
@@ -1021,7 +1007,7 @@ class Centerline:
 
         Returns:
             tuple[BendSide, bool, int, npt.NDArray[np.float64]]: tuple
-                containing side, isvalid, apex_index, and pt_center
+            containing side, isvalid, apex_index, and pt_center
 
         """
         side: BendSide = self.get_bend_side(bend_index)

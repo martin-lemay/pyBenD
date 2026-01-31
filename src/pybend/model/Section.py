@@ -8,6 +8,7 @@ The stratigraphic architecture is characterized by the stacking pattern.
 Stacking pattern types are defined from StackingPatternType enumeration.
 
 .. Warning::
+
     this class is under construction...
 """
 
@@ -88,11 +89,9 @@ class Section:
             same_bend (Optional[list[bool]], optional): list of boolean, True
                 if isoline at the same index belongs to the same BendEvolution
                 object as the first one.
-
                 Defaults to None.
             flow_dir (npt.NDArray[np.float64], optional): flow directin to
                 orientate the section.
-
                 Defaults to np.array([1, 0]).
 
         """
@@ -138,7 +137,6 @@ class Section:
 
         Args:
             flow_dir (npt.NDArray[np.float64], optional): Flow direction.
-
                 Defaults to np.array([1, 0]).
 
         Returns:
@@ -187,11 +185,9 @@ class Section:
             mig_threshold (float): lateral migration threshold (m)
             frac_threshold (float, optional): fraction of the total number of
                 isolines.
-
                 Defaults to 0.95.
             begin_threshold (float, optional): fraction of the total number of
                 isolines.
-
                 Defaults to 0.1.
 
         Returns:
@@ -291,15 +287,12 @@ class Section:
         Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
-
                 Defaults to 1.
             norm_vert (float, optional): Normalisation value for vertical
                 dimension.
-
                 Defaults to 1.
             smooth (bool, optional): if True, channel apparent trajectory is
                 smoothed.
-
                 Defaults to False.
 
         """
@@ -342,18 +335,14 @@ class Section:
         Args:
             norm_hor (float, optional): Normalisation value for horizontal
                 dimension.
-
                 Defaults to 1.
             norm_vert (float, optional): Normalisation value for vertical
                 dimension.
-
                 Defaults to 1
             write_results (bool, optional): if True, write results in a file.
-
                 Defaults to False.
             filepath (str, optional): Full name of the file to export the
                 results.
-
                 Defaults to "".
         """
         self.averaged_disp = {}
@@ -397,7 +386,7 @@ class Section:
 
         Returns:
             npt.NDArray[np.float64]: Averaged displacement metrics including in
-                order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
+            order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
 
         """
         pt_apex: tuple[float, float] = self.isolines_origin[-1]

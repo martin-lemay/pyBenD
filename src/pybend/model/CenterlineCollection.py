@@ -77,27 +77,21 @@ class CenterlineCollection:
                 of resampled centerline, otherwise it is the target distance.
             curvature_filtering_window (int, optional): Number of points to
                 consider for curvature filtering window.
-
                 Defaults to 5.
             sinuo_thres (float, optional): threshold above which bends are
                 valid.
-
                 Defaults to 1.05.
             n (float): exponent of the curvature distribution function.
-
                 Defaults to 2.
             compute_curvature (bool, optional): if True, recompute channel
                 point curvature after resampling.
-
                 Defaults to True.
             interpol_props (bool, optional): if True, interpolate channel point
                 properties along channel points after resampling.
-
                 Defaults to True.
             find_bends (bool, optional): if True, automatically compute
                 curvature and interpolate properties and detect bends along
                 each centerline.
-
                 Defaults to True.
         """
         #: dictionnary to store Centerline object at each age
@@ -188,7 +182,7 @@ class CenterlineCollection:
               and interpolate properties and detect bends along each centerline
 
         Returns:
-          bool: True if calculation successfully eneded.
+            bool: True if calculation successfully eneded.
 
         """
         nb_procs = get_nb_procs()
@@ -260,7 +254,7 @@ class CenterlineCollection:
               and interpolate properties and detect bends along each centerline
 
         Returns:
-          bool: True if calculation successfully eneded.
+            bool: True if calculation successfully eneded.
 
         """
         ages: list[int] = list(map_centerline_data.keys())
@@ -346,7 +340,7 @@ class CenterlineCollection:
         """Get all centerline ages stored in the CenterlineCollection.
 
         Returns:
-          NDArray[int]: Array of centerline ages sorted in ascending order.
+            NDArray[int]: Array of centerline ages sorted in ascending order.
 
         """
         return np.sort(list(self.centerlines.keys()))
@@ -361,7 +355,7 @@ class CenterlineCollection:
             property_name (str): Name of the property.
 
         Returns:
-          NDArray[float]: Array containing the values of the property for
+            NDArray[float]: Array containing the values of the property for
             each channel point.
 
         """
@@ -481,27 +475,20 @@ class CenterlineCollection:
 
         Args:
             dmax (float, optional): Maximal allowed distance (m) between
-              connected channel point.
-
+                connected channel point.
                 Defaults to np.inf.
             distance_weight (float, optional): Weight [0, 1] on channel point
                 distance.
-
                 Defaults to 0.
             vel_perturb_weight (float, optional): Weight [0, 1] on velocity
                 perturbation.
-
                 Defaults to 0.
             curvature_weight (float, optional): Weight [0, 1] on curvature.
-
                 Defaults to 1.
             window (int, optional): Number of points for filter.
-
                 Defaults to 5.
             pattern (str, optional): Pattern input of dtw.dtw function.
-
                 Defaults to "asymmetric".
-
         """
         try:
             nb_procs: int = get_nb_procs()
@@ -648,8 +635,8 @@ class CenterlineCollection:
 
         Returns:
             list[int]: List of tuples containing indexes
-                of Centerline of age key and indexes of Centerline of age
-                prev_key.
+            of Centerline of age key and indexes of Centerline of age
+            prev_key.
 
         """
         key: int = keys[0]
@@ -797,19 +784,15 @@ class CenterlineCollection:
         Args:
             bend_evol_validity (int, optional): Minimum number of bends in the
                 BendEvolution to be considered as valid.
-
                 Defaults to 2.
             method (Bend_connection_method, optional): Method to use to
                 compute BendEvolution.
-
                 Defaults to Bend_connection_method.MATCHING.
             dmax (float, optional): Maximum allowed distance (m) between 2
                 successive apex points.
-
                 Defaults to np.inf.
             weighting_func_type (str, optional): Weighting function type to
                 use.
-
                 Defaults to "uniform".
 
         Returns:
@@ -1287,7 +1270,6 @@ class CenterlineCollection:
         Args:
             point_name (CreateSectionMethod, optional): Name of the point to
                 use to create the section.
-
                 Defaults to CreateSectionMethod.MIDDLE.
 
         Raises:
@@ -1475,15 +1457,12 @@ class CenterlineCollection:
         Args:
             thres (int, optional): Minimum number of intersected lines to
                 create the Section object.
-
                 Defaults to 1.
             flow_dir (NDArray[float], optional): Direction vector of the flow
                 used to orientate the Sections.
-
                 Defaults to np.array([1,0]).
             cl_collec_id (int, optional): CenterlineCollection id used in the
                 Section id.
-
                 Defaults to 0.
 
         Returns:
@@ -1578,7 +1557,6 @@ class CenterlineCollection:
             smooth_trajectory (bool, optional): If True, middle trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.middle_trajec_smooth.
-
                 Defaults to False.
 
         """
@@ -1641,7 +1619,6 @@ class CenterlineCollection:
             smooth_trajectory (bool, optional): If True, centroid trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.centroid_trajec_smooth.
-
                 Defaults to False.
 
         """
@@ -1713,7 +1690,6 @@ class CenterlineCollection:
             smooth_trajectory (bool, optional): If True, middle trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.middle_trajec_smooth.
-
                 Defaults to False.
 
         """
@@ -1743,7 +1719,6 @@ class CenterlineCollection:
             smooth_trajectory (bool, optional): If True, middle trajectory
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.middle_trajec_smooth.
-
                 Defaults to False.
 
         """

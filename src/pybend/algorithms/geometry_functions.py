@@ -44,12 +44,11 @@ def distance_arrays(
             1 point per row.
         prec (int, optional): Precision to round distances (i.e., number of
             decimals)
-
             Defaults to 4.
 
     Returns:
         NDArray[float]: 1D array with computed distances between each pair of
-            points.
+        points.
     """
     assert pts1.size == pts2.size, "Point arrays must have the same size."
     return np.round(np.linalg.norm(pts2 - pts1, axis=1), prec)
@@ -244,10 +243,8 @@ def get_MP(
 
     Args:
         dir_trans (NDArray[float], optional): Direction.
-
             Defaults to np.array((1., 0.)).
         ref (NDArray[float], optional): Reference direction.
-
             Defaults to np.array((1., 0.)).
 
     Returns:

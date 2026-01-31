@@ -24,9 +24,9 @@ class CenterlineIOFormat(StrEnum):
 def resolve_path(*, base_dir: Path | None, raw_url: str, ctx: str) -> Path:
     """Resolve an absolute or base_dir-relative path.
 
-        - Absolute paths are accepted even when base_dir is None.
-        - Relative paths are resolved against base_dir when provided, otherwise
-            against the current working directory.
+    - Absolute paths are accepted even when base_dir is None.
+    - Relative paths are resolved against base_dir when provided, otherwise
+      against the current working directory.
 
     Args:
         base_dir (Path | None): Base directory to resolve relative paths.

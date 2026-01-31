@@ -12,8 +12,8 @@ path comprised between two consecutive inflection points (o). A bend contains
 an apex whose definition may vary according to bend shape:
 
 - Kinoshita-like bends: maximum curvature (see Kinoshita (1961);
-    `Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
-    `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_)
+  `Parker et al. (1983) <https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/on-the-time-development-of-meander-bends/2E90F22506BAB77771E1E54126B95D40>`_
+  `Abad and Garcia (2009) <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2008WR007016>`_)
 - Circular bend (constant curvature): equidistance from inflection points.
 
 By convention, a bend is UP if curvature is positive (clockwise rotation along
@@ -99,14 +99,11 @@ class Bend:
             index_inflex_down (int): index of the downstream inflection point
                 along the centerline.
             age (int, optional): Age of the bend.
-
                 Defaults to 0.
             side (BendSide, optional): Bend side (UP, DOWN, or UNKNOWN).
-
                 Defaults to BendSide.UNKNWON.
             isvalid (bool, optional): bend is valid if its sinuosity is greater
                 than a user defined threshold.
-
                 Defaults to False.
 
         """

@@ -44,17 +44,14 @@ def resample_path(
         x (NDArray[float]): x coordinates
         y (NDArray[float]): y coordinates
         nb_pts (int, optional): Number of points to return.
-
             If nb_pts equals 0, return (x,y) points without resampling.
-
             Defaults to 0.
         s (float, optional): Smoothing parameter of B-spline interpolation.
-
             Defaults to 0.
 
     Returns:
         NDArray[float] | tuple[NDArray[float], NDArray[float]]: Coordinates
-            of the new points.
+        of the new points.
 
     """
     assert x.size == y.size, "x and y must have the same size."
@@ -99,13 +96,10 @@ def find_2_closest_points_multi_proc(
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
         x_prop (str, optional): Column name of x coordinate.
-
             Defaults to "X".
         y_prop (str, optional): Column name of y coordinate.
-
             Defaults to "Y".
         nb_procs (int, optional): Number of processor to use.
-
             Defaults to 1.
 
     Returns:
@@ -152,10 +146,8 @@ def find_2_closest_points_mono_proc(
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
         x_prop (str, optional): Column name of x coordinate.
-
             Defaults to "X".
         y_prop (str, optional): Column name of y coordinate.
-
             Defaults to "Y".
 
     Returns:
@@ -199,10 +191,8 @@ def find_2_closest_points(
         dataset2 (DataFrame): DataFrame containing x,y coordinates where to
             find the closest points.
         x_prop (str, optional): Column name of x coordinate.
-
             Defaults to "X".
         y_prop (str, optional): Column name of y coordinate.
-
             Defaults to "Y".
         j1 (int): index of previous found point for optimization.
         pt_new (NDArray[float]): Reference points from which to compute the
@@ -325,7 +315,6 @@ def find_inflection_points_from_peaks(
     Args:
         curvature(NDArray[np.float64]): curvature of each point.
         curv_threshold (float): curvature threshold for peak detection.
-
             Defaults to 0.001.
 
     Returns:
@@ -705,15 +694,12 @@ def compute_point_displacements(
     Args:
         l_pt (list[NDArray[float]]): List of point coordinates.
         dir_trans (NDArray[float], optional): Direction.
-
             Defaults to np.array((1., 0.)).
         ref (NDArray[float], optional): Reference direction.
-
             Defaults to np.array((1., 0.)).
 
     Returns:
         tuple[NDArray[float], NDArray[float]]: tuple containing:
-
             - Displacement in-between each successive points of the serie.
             - Displacement between first and last points of the serie.
 
@@ -769,7 +755,6 @@ def sort_key(labels: list[str], reverse: bool = False) -> list[str]:
     Args:
         labels (list[str]): List of labels that can be cast to int/float values
         reverse (bool, optional): if True, sorting is descending.
-
             Defaults to False.
 
     Returns:
@@ -793,13 +778,10 @@ def get_keys_from_to(
     Args:
         all_keys (list[str]): List of keys that can be cast to int values.
         key_min (int, optional): Minimum key.
-
             Defaults to 0.
         key_max (int, optional): Maximum key.
-
             Defaults to 999999.
         sort_reverse (bool, optional): If True, sorting is descending.
-
             Defaults to False.
 
     Returns:

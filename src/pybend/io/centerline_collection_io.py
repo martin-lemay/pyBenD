@@ -41,7 +41,7 @@ def load_centerline_collection_from_a_file(
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
                 - ``age_prop`` (str): age column name (default ``"Age"``)
                 - ``drop_columns`` (tuple[str, ...]): columns to drop (default
-                    empty)
+                  empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.FLUMY_CSV``:
@@ -49,7 +49,7 @@ def load_centerline_collection_from_a_file(
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame
-            with centerline point coordinates and properties are values.
+        with centerline point coordinates and properties are values.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
@@ -107,17 +107,17 @@ def load_centerline_collection_from_multiple_files(
                 - ``y_prop`` (str): Y column name (default ``"Y"``)
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
                 - ``drop_columns`` (tuple[str, ...]): columns to drop (default
-                    empty)
+                  empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.KML``:
                 - ``directory`` (str): base directory containing the KML files
                 - ``keyword`` (str): keyword for coordinate line (default
-                    ``"coordinates"``)
+                  ``"coordinates"``)
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame
-            with centerline point coordinates and properties are values.
+        with centerline point coordinates and properties are values.
     """
     match kind:
         case CenterlineIOFormat.CSV:
@@ -153,12 +153,11 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     Args:
         filepath (str): path to write the csv file
         sep (str, optional): csv separator.
-
             Defaults to ";".
 
     Returns:
         dict [int, pd.DataFrame]: dictionary where ages are keys and DataFrame
-            with centerline point coordinates and properties are values.
+        with centerline point coordinates and properties are values.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
@@ -217,29 +216,23 @@ def load_centerline_evolution_from_single_xy_csv(
     Args:
         filepath (str): file path
         x_prop (str, optional): name of the column for x coordinate
-
             Defaults to "X".
         y_prop (str, optional): name of the column for y coordinate
-
             Defaults to "Y".
         z_prop (str, optional): name of the column for elevation
-
             Defaults to "Z".
         age_prop (str, optional): name of the column for centerline age
-
             Defaults to "Age".
         drop_columns (tuple[str,...], optional): list of the names of the
             columns to drop
-
             Defaults is empty.
         sep (str, optional): separator of the csv files
-
             Defaults to ";".
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and
-            DataFrame with centerline point coordinates and properties are
-            values.
+        DataFrame with centerline point coordinates and properties are
+        values.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
@@ -310,26 +303,21 @@ def load_centerline_evolution_from_multiple_xy_csv(
         map_file (dict[int, str]): dictionnary of age and file name in the
             directory.
         x_prop (str, optional): name of the column for x coordinate
-
             Defaults to "X".
         y_prop (str, optional): name of the column for y coordinate
-
             Defaults to "Y".
         z_prop (str, optional): name of the column for elevation
-
             Defaults to "Z".
         drop_columns (tuple[str,...], optional): list of the names of the
             columns to drop
-
             Defaults is empty.
         sep (str, optional): separator of the csv files
-
             Defaults to ";".
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and
-            DataFrame with centerline point coordinates and properties are
-            values.
+        DataFrame with centerline point coordinates and properties are
+        values.
     """
     assert len(map_file) > 0, "The map of files is empty."
 
@@ -355,12 +343,11 @@ def load_centerline_evolution_from_multiple_kml(
         map_file (dict[int, str]): dictionnary of age and file name in the
             directory
         keyword (str, optional): keyword to search for coordinate line.
-
             Defaults to "coordinates".
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame
-            with centerline point coordinates and properties are values.
+        with centerline point coordinates and properties are values.
     """
     assert len(map_file) > 0, "The map of files is empty."
 

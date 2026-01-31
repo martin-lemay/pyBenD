@@ -39,7 +39,7 @@ def load_centerline_from_file(
                 - ``y_prop`` (str): Y column name (default ``"Y"``)
                 - ``z_prop`` (str): Z/elevation column name (default ``"Z"``)
                 - ``drop_columns`` (tuple[str, ...]): columns to drop (default
-                    empty)
+                  empty)
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.FLUMY_CSV``:
@@ -47,7 +47,7 @@ def load_centerline_from_file(
 
             For ``CenterlineIOFormat.KML``:
                 - ``keyword`` (str): keyword for coordinate line (default
-                    ``"coordinates"``)
+                  ``"coordinates"``)
 
     Returns:
         tuple[int, pd.DataFrame]: Tuple containing the centerline age (if
@@ -110,25 +110,20 @@ def load_centerline_dataset_from_csv(
     Args:
         filepath (str): path to the csv file
         x_prop (str, optional): name of the column for x coordinate.
-
             Defaults to "X".
         y_prop (str, optional): name of the column for y coordinate.
-
             Defaults to "Y".
         z_prop (str, optional): name of the column for elevation.
-
             Defaults to "Z".
         drop_columns (tuple[str, ...], optional): list of the names of the
             columns to drop.
-
             Defaults is empty.
         sep (str, optional): csv separator.
-
             Defaults to ";".
 
     Returns:
         pd.DataFrame: DataFrame containing centerline coordinates and
-            properties of each channel point
+        properties of each channel point
 
     """
     path = resolve_path(
@@ -189,13 +184,12 @@ def load_centerline_dataset_from_Flumy_csv(
     Args:
         filepath (str): path to the csv file using Flumy format
         sep (str, optional): csv column delimiter.
-
             Defaults to ";".
 
     Returns:
         tuple[int, pd.DataFrame]: tuple containing the age as first component
-            and a DataFrame containing centerline point coordinates and
-            properties.
+        and a DataFrame containing centerline point coordinates and
+        properties.
 
     """
     path = resolve_path(
@@ -242,7 +236,6 @@ def load_centerline_dataset_from_kml(
     Args:
         filepath (str): path to the kml file
         keyword (str, optional): keyword to search for coordinate line.
-
             Defaults to "coordinates".
 
     Returns:
@@ -316,7 +309,7 @@ def create_dataset_from_xy(
 
     Returns:
         pd.DataFrame: DataFrame with centerline point coordinates and
-            properties.
+        properties.
 
     """
     data = np.zeros((X.size, 5))
@@ -351,7 +344,6 @@ def dump_centerline_to_csv(
         filepath (str): path to write the csv file
         centerline (Centerline): Centerline object to dump
         sep (str, optional): csv separator.
-
             Defaults to ";".
 
     """

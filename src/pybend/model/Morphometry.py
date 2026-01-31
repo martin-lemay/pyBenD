@@ -15,8 +15,8 @@ Metrics include:
 * amplitude (Am): orthogonal distance between bend apex and chord
 * extension (Ex): distance between bend apex and center
 * asymmetry coefficient: A=(Lup-Ldown) / L, where Lup and Ldown are arc length
-distances between bend apex and upstream and downstream inflection point
-respectively, and L is the bend arc length.
+  distances between bend apex and upstream and downstream inflection point
+  respectively, and L is the bend arc length.
 * radius of curvature: inverse of bend apex curvature
 * roundess: ratio of maximum to mean curvature along the bend
 
@@ -92,7 +92,6 @@ class Morphometry:
         Args:
             valid_bends (bool): if True, compute morphometry on valid bends
                 only
-
                 Defaults to True.
 
         Returns:

@@ -52,60 +52,42 @@ def plot_centerline_collection(
         cl_collec (CenterlineCollection): CenterlineCollection object to plot
         domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         nb_cl (int, optional): Number of centerline to show.
-
             Defaults to 999 (i.e., plot all centerlines).
         show (bool, optional): if True, show the figure.
-
             Defaults to False.
         annotate (bool, optional): if True, add bend ids.
-
             Defaults to False.
         plot_apex (bool, optional): if True, plot bend apex.
-
             Defaults to True.
         plot_inflex (bool, optional): if True, plot inflection points.
-
             Defaults to False.
         plot_middle (bool, optional): if True, plot bend middle point.
-
             Defaults to False.
         plot_centroid (bool, optional): if True, plot bend centroid.
-
             Defaults to False.
         annot_text_size (int, optional): Text size for annotations.
-
             Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue and red
             according to UP and DOWN side respectively.
-
             Defaults to False.
         plot_apex_trajec (bool, optional): if True, plot apex trajectory.
-
             Defaults to False.
         plot_middle_trajec (bool, optional): if True, plot middle trajectory.
-
             Defaults to False.
         plot_centroid_trajec (bool, optional): if True, plot bend centroid
             trajectory.
-
             Defaults to False.
         plot_normal (bool, optional): if True, plot normal vector of channel
             points.
-
             Defaults to False.
         scale_normal (float, optional): Scale for normal vectors.
-
             Defaults to 1.0.
         plot_section (bool, optional): if True, plot section lines.
-
             Defaults to False.
         plot_warping (bool, optional): if True, plot channel point trajectory.
-
             Defaults to True.
         cmap_name (str, optional): Name of the color map to use.
-
             Defaults to "Blues".
-
     """
     all_ages: npt.NDArray[np.int64] = cl_collec.get_all_ages()
 
@@ -202,54 +184,38 @@ def plot_centerline_single(
         bends (list[Bend]): list of Bend objects to plot
         domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         show (bool, optional): if True, show the figure.
-
             Defaults to False.
         annotate (bool, optional): if True, add bend ids.
-
             Defaults to False.
         plot_apex (bool, optional): if True, plot bend apex.
-
             Defaults to True.
         plot_inflex (bool, optional): if True, plot inflection points.
-
             Defaults to False.
         plot_middle (bool, optional): if True, plot bend middle point.
-
             Defaults to False.
         plot_centroid (bool, optional): if True, plot bend centroid.
-
             Defaults to False.
         plot_pt_start (bool, optional): if True, plot centerline starting point
-
             Defaults to False.
         plot_apex_proba (bool, optional): If True, color channel points with
             apex probability property values.
-
             Defaults to False.
         plot_normal (bool, optional): if True, plot normal vector of channel
             points.
-
             Defaults to False.
         scale_normal (float, optional): Scale for normal vectors.
-
             Defaults to 1.0.
         annot_text_size (float, optional): Text size for annotations.
-
             Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue and red
             according to UP and DOWN side respectively.
-
             Defaults to True.
         linewidth (float, optional): Line width.
-
             Defaults to 1.
         markersize (float, optional): Marker size.
-
             Defaults to 2.
         ax0 (Optional[Axes], optional): Axes where to plot.
-
             Defaults to None.
-
     """
     ax: Axes
     if ax0 is None:
@@ -315,56 +281,40 @@ def plot_bend_evol(
         cl_collec (tuple[CenterlineCollection]): CenterlineCollection object
         bend_evol (BendEvolution): BendEvolution object to plot.
         nb_cl (int, optional): Number of centerline to plot.
-
             Defaults to 999 (i.e., plot all centerlines).
         domain (tuple[tuple[float, float],tuple[float, float]]): display domain
         annotate (bool, optional): if True, add bend ids.
-
             Defaults to False.
         plot_apex (bool, optional): if True, plot bend apex.
-
             Defaults to True.
         plot_inflex (bool, optional): if True, plot inflection points.
-
             Defaults to False.
         plot_middle (bool, optional): if True, plot bend middle point.
-
             Defaults to False.
         plot_centroid (bool, optional): if True, plot bend centroid.
-
             Defaults to False.
         plot_centroid_trajec (bool, optional): if True, plot bend centroid
             trajectory.
-
             Defaults to False.
         plot_apex_trajec (bool, optional): if True, plot bend apex trajectory.
-
             Defaults to False.
         plot_middle_trajec (bool, optional): if True, plot bend middle point
             trajectory.
-
             Defaults to False.
         plot_section (bool, optional): if True, plot section lines.
-
             Defaults to False.
-
         plot_warping (bool, optional): if True, plot channel point
             trajectories.
-
             Defaults to False.
         annot_text_size (float, optional): Text size for annotations.
-
             Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue and red
             according to UP and DOWN side respectively.
-
             Defaults to True.
         linewidth (float, optional): Line width.
-
             Defaults to 1.
         markersize (float, optional): Marker size.
         cmap_name (str, optional): Name of the color map to use.
-
             Defaults to "Blues".
 
     """
@@ -477,62 +427,44 @@ def plot_bends(
         domain (tuple[tuple[float, float], tuple[float, float]]): display
             domain
         annotate (bool, optional): if True, add bend ids.
-
             Defaults to False.
         plot_apex (bool, optional): if True, plot bend apex.
-
             Defaults to True.
         plot_inflex (bool, optional): if True, plot inflection points.
-
             Defaults to False.
         plot_middle (bool, optional): if True, plot bend middle point.
-
             Defaults to False.
         plot_centroid (bool, optional): if True, plot bend centroid.
-
             Defaults to False.
         plot_normal (bool, optional): if True, plot normal vector of channel
             points.
-
             Defaults to False.
         scale_normal (float, optional): Scale for normal vectors.
-
             Defaults to 1.0.
         annot_text_size (float, optional): Text size for annotations.
-
             Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue and red
             according to UP and DOWN side respectively.
-
             Defaults to True.
         alpha (float, optional): Transparency.
-
             Defaults to 1.0.
         linewidth (float, optional): Line width.
-
             Defaults to 1.
         markersize (float, optional): Marker size.
         cl_color (Optional[tuple[Any]]): Centerline color. If plot_bend is set
             to True, centerline color is overwrite.
-
             Defaults to None.
         plot_apex_proba (bool, optional): If True, color channel points with
             apex probability property values.
-
             Defaults to False.
         plot_property (bool, optional): If True, color channel points with
             input property values.
-
             Defaults to False.
-
         property_name (str, optional): If plot_property is True, name if the
             property to plot.
-
             Defaults to "".
-
         rotate (bool, optional): if True, rotate bend such as inflection points
             are aligned along horizontal axis.
-
             Defaults to False.
 
     """
@@ -726,19 +658,14 @@ def plot_section(
         section (Section): Section object to plot
         ax (Axes): Axes where to plot
         norm_hor (float, optional): Horizontal normalization.
-
             Defaults to 1.
         norm_vert (float, optional): Vertical normalization.
-
             Defaults to 1.
         color_same_bend (bool, optional): If True, use a color for isolines
             that belongs to the last bend and another for the other isolines.
-
             Defaults to None.
         cmap_name (str, optional): name of the color map.
-
             Defaults to "".
-
     """
     # get color map
     colors_norm: Optional[colors.Normalize] = None
@@ -799,7 +726,6 @@ def plot_versus_curvilinear(
         curves2 (list[npt.NDArray[np.float64]]): second set of curves
         labels2 (list[str]): labels of second set of curves
         show (bool, optional): if True, show the figure.
-
             Defaults to False.
 
     """
@@ -945,7 +871,6 @@ def _plot_warping(
         cl_collec (CenterlineCollection): CenterlineCollection object
         indexes (dict[int, tuple[int, int]]): dictionnary containing a list of
             indexes of centerline points to plot for each ages
-
             Defaults to empty dictionnary.
 
     """
@@ -997,7 +922,6 @@ def _update_plot_properties(
         domain (tuple[tuple[float, float], tuple[float, float]]): plot limits
             ((xmin, xmax), (ymin, ymax))
         show (bool, optional): if True, show figure.
-
             Defaults to False.
 
     """

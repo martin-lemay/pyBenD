@@ -7,6 +7,7 @@ coordinates (x, y) ordered according to flow direction, and can optionally inclu
 elevation (z) and other attributes.
 
 pyBenD defines two main objects:
+
 * ``Centerline``: represents a single channel centerline at a specific time.
 * ``CenterlineCollection``: represents a series of channel centerlines over time,
     allowing analysis of channel kinematics.
@@ -15,9 +16,11 @@ pyBenD defines two main objects:
 
     Centerline data can be obtained from manual digitization using GIS software,
     or extracted from Remote Sensing data using specialized tools, such as:
+
     * Python tools:
         - `RivaMap <https://github.com/isikdogan/rivamap>`_
         - `PyRIS <https://github.com/hchicchon/pyris>`_
+
     * Matlab tool: `RivMap <https://www.mathworks.com/matlabcentral/fileexchange/58264-rivmap-river-morphodynamics-from-analysis-of-planforms>`_
     * Google Earth Engine: `RivWidthCloud <https://ieeexplore.ieee.org/document/8752013>`_
 
@@ -73,6 +76,7 @@ The FLUMY CSV format is a specific structure used by the
 `FLUMY software <https://flumy.minesparis.psl.eu/>`_. It typically includes columns for
 x, y, z coordinates, and may also contain additional metadata, separated by a ';'.
 The exact column names and order should follow the FLUMY specifications:
+
 - Iteration: age of centerline point
 - Dist_previous: distance to previous point
 - Curv_abscissa: curvilinear abscissa
@@ -134,31 +138,41 @@ See for instance the file in test data: ``tests/data/centerline_kml.kml``.
 Once the centerline data is loaded into a ``pandas.DataFrame``, a ``Centerline`` object
 can be created by passing the DataFrame to the ``Centerline`` class constructor.
 Additional parameters are needed to correctly sample the centerline, including:
+
 * ``age`` (int): Age of the centerline.
 * ``dataset`` (pd.DataFrame): DataFrame that contains channel point
     coordinates and properties. Points must be ordered according
     to flow direction.
+
 * ``spacing`` (float): Target distance (m) between channel points after
     resampling. At first approximation, the spacing must be around channel half-width.
     If spacing equals 0, centerline is not resampled. If ``use_fix_nb_points`` is True,
     spacing becomes the number of points of the resampled centerline.
+
 * ``smooth_distance`` (float): Smoothing distance (m) for Savitsky-Golay
     filter applied on channel path. A reasonable value is 5 times the channel width,
     corresponding to approximatively a meander wavelength.
+
 * ``use_fix_nb_points`` (bool, optional): If True, the resampled
     centerline will contains exactly spacing points, otherwise,
     spacing is the targeted distance between 2 consecutive points. Defaults to False.
+
 * ``curvature_filtering_window`` (int, optional): Number of points used
     for filtering curvature. Defaults to 5.
+
 * ``sinuo_thres`` (float, optional): Sinuosity threshold used to
     discriminate valid bends. Bends whom sinuosity is below this threshold are considered
     invalid. Defaults to 1.05.
+
 * ``n`` (float): exponent value for bend apex detection using curvature cumulative 
     spatial distribution method. Defaults to 2.
+
 * ``compute_curvature`` (bool, optional): If True, recompute and filter
     curvature along channel points. Defaults to True.
+
 * ``interpol_props`` (bool, optional): If True, interpolate channel point
     properties along channel points after resampling. Defaults to True.
+
 * ``find_bends`` (bool, optional): If True, automatically compute
     curvature, interpolate properties, and detect meander bends
     along channel centerline. Defaults to True.
@@ -220,6 +234,7 @@ and the FLUMY file ``tests/data/centerlines.csv``.
 *Example of loading an evolving centerline from a FLUMY CSV file:*
 
 .. code-block:: python
+
     import os
     import pandas as pd
     from pybend import load_centerline_collection_from_a_file, CenterlineIOFormat
@@ -277,6 +292,7 @@ are centerline ages, and values are the corresponding file paths.
 *Example of loading an evolving centerline from multiple CSV files:*
 
 .. code-block:: python
+
     import os
     import pandas as pd
     from pybend import load_centerline_collection_from_multiple_files, CenterlineIOFormat
@@ -314,29 +330,39 @@ Once the centerline collection data is loaded into a dictionnary of ``pandas.Dat
 
 Additional parameters are needed to correctly sample the centerlines, similar to those used
 for creating a single :class:`~pybend.model.Centerline.Centerline` object, including:
+
 * ``map_centerline_data`` (dict[int, pd.DataFrame]): dictionnary
     containing for each age a ``pandas.DataFrame`` containing centerline data
+
 * ``spacing`` (float): Target distance (m) between channel points after
     resampling. At first approximation, the spacing must be around channel half-width.
     If spacing equals 0, centerline is not resampled. If ``use_fix_nb_points`` is True,
     spacing becomes the number of points of the resampled centerline.
+
 * ``smooth_distance`` (float): Smoothing distance (m) for Savitsky-Golay
     filter applied on channel path. A reasonable value is 5 times the channel width,
     corresponding to approximatively a meander wavelength.
+
 * ``use_fix_nb_points`` (bool, optional): If True, the resampled
     centerline will contains exactly spacing points, otherwise,
     spacing is the targeted distance between 2 consecutive points. Defaults to False.
+
 * ``curvature_filtering_window`` (int, optional): Number of points used
     for filtering curvature. Defaults to 5.
+
 * ``sinuo_thres`` (float, optional): Sinuosity threshold used to
     discriminate valid bends. Bends whom sinuosity is below this threshold are considered
     invalid. Defaults to 1.05.
+
 * ``n`` (float): exponent value for bend apex detection using curvature cumulative 
     spatial distribution method. Defaults to 2.
+
 * ``compute_curvature`` (bool, optional): If True, recompute and filter
     curvature along channel points. Defaults to True.
+
 * ``interpol_props`` (bool, optional): If True, interpolate channel point
     properties along channel points after resampling. Defaults to True.
+
 * ``find_bends`` (bool, optional): If True, automatically compute
     curvature, interpolate properties, and detect meander bends
     along channel centerline. Defaults to True.

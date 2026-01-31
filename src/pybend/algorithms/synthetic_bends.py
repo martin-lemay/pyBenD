@@ -48,7 +48,6 @@ def circular_bend(nb_pts: int, ampl: float = 1.0) -> npt.NDArray[np.float64]:
     Args:
         nb_pts (int): number of points along bend centerline
         ampl (float, optional): amplitude of bends.
-
             Defaults to 1.
 
     Returns:

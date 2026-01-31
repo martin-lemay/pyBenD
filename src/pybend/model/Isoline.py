@@ -69,7 +69,6 @@ class ChannelCrossSection(Isoline):
 
         Args:
             nb_pts (int, optional): Number of points.
-
                 Defaults to 11.
         """
         # to get an odd number

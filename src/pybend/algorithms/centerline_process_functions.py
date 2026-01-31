@@ -2,6 +2,8 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Algorithms for centerline processing."""
+
 import functools
 import math
 from multiprocessing import Pool
@@ -15,10 +17,6 @@ from scipy.signal import find_peaks  # type: ignore[import-untyped]
 import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
 from pybend.utils.logging import logger
-
-__doc__ = """
-Usefull methods.
-"""
 
 
 def clpoints2coords(cl_pts: list[ClPoint]) -> npt.NDArray[np.float64]:
@@ -50,9 +48,9 @@ def resample_path(
             If nb_pts equals 0, return (x,y) points without resampling.
 
             Defaults to 0.
-        s (float, optional): smoothing parameter of B-spline interpolation
+        s (float, optional): Smoothing parameter of B-spline interpolation.
 
-            Defaults to 0
+            Defaults to 0.
 
     Returns:
         NDArray[float] | tuple[NDArray[float], NDArray[float]]: Coordinates
@@ -68,7 +66,7 @@ def resample_path(
     tck, u = splprep([x, y], s=s, k=k)
     if nb_pts:
         u = np.linspace(0.0, 1.0, nb_pts)
-    return splev(u, tck)
+    return splev(u, tck)  # type: ignore[return-value]
 
 
 def compute_cuvilinear_abscissa(

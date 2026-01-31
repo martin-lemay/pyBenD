@@ -1,15 +1,18 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
+
+"""Logging utilities.
+
+This module manages logging tools.
+
+Code was modified from:
+https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+"""
+
 import logging
 from typing import Optional
 
 from typing_extensions import Self
-
-__doc__ = """
-Logging module manages logging tools.
-
-Code was modified from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
-"""
 
 # types redefinition to import logging.* from this module
 Logger = logging.Logger  #: logger type

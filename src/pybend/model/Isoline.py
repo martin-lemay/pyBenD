@@ -2,6 +2,17 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Isoline models.
+
+Defines `Isoline` and derived types such as channel cross-sections. Children
+objects specified the type IsolineType and the geometry from parametric
+function.
+
+An Isoline object corresponds to a line defined by an isovalue (such as the
+age). ChannelCrossSection object allows to represent channel section geometry
+from a reference point and a paramteric shape.
+"""
+
 from enum import Enum
 from typing import Self
 
@@ -9,17 +20,6 @@ import numpy as np
 import numpy.typing as npt
 
 from pybend.model.ClPoint import ClPoint
-
-__doc__ = r"""
-Isoline module define Isoline abstract object and children objects including
-ChannelCrossSection. Children objects specified the type IsolineType and the
-geometry from parametric function.
-
-An Isoline object corresponds to a line defined by an isovalue (such as the
-age). ChannelCrossSection object allows to represent channel section geometry
-from a reference point and a paramteric shape.
-
-"""
 
 
 class IsolineType(Enum):
@@ -32,6 +32,8 @@ class IsolineType(Enum):
 
 
 class Isoline:
+    """A polyline associated with a constant isovalue (e.g., age)."""
+
     def __init__(
         self: Self, age: int, cl_pt_ref: ClPoint, isoline_type: IsolineType
     ) -> None:
@@ -51,6 +53,8 @@ class Isoline:
 
 
 class ChannelCrossSection(Isoline):
+    """A channel cross-section isoline derived from a reference `ClPoint`."""
+
     def __init__(self: Self, age: int, cl_pt_ref: ClPoint) -> None:
         """Isoline for channel cross-section.
 

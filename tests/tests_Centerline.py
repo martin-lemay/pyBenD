@@ -15,9 +15,9 @@ import numpy as np
 import numpy.typing as npt
 
 import pybend.algorithms.plot_functions as plot
-from pybend.algorithms.pybend_io import (
-    load_centerline_dataset_from_csv,
-    load_centerline_dataset_from_Flumy_csv,
+from pybend.io import (
+    CenterlineIOFormat,
+    load_centerline_from_file,
 )
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import BendSide, PropertyNames
@@ -37,7 +37,7 @@ fig_path: str = "tests/.out/"
 if not os.path.exists(fig_path):
     os.makedirs(fig_path)
 
-filepath1: str = "tests/data/centerline_xyz_data.csv"
+filepath1: str = os.getcwd() + "/tests/data/centerline_xyz_data.csv"
 spacing: float = 1  # spacing between channel point (m)
 smooth_distance: float = 5  # channel point location smoothing distance (m)
 window: int = 5  # number of points for filtered curvature
@@ -51,13 +51,12 @@ l_apex_proba_weights: tuple[tuple[float, float, float], ...] = (
     (0.0, 0.0, 1.0),
 )
 
-age = 0
-dataset = load_centerline_dataset_from_csv(
-    filepath1, x_prop="X", y_prop="Y", z_prop="Z"
+age, dataset = load_centerline_from_file(
+    filepath1, kind=CenterlineIOFormat.CSV, x_prop="X", y_prop="Y", z_prop="Z"
 )
 
 # Flumy dataset inputs
-filepath_flumy: str = "tests/data/centerline_flumy2500.csv"
+filepath_flumy: str = os.getcwd() + "/tests/data/centerline_flumy2500.csv"
 spacing_flumy: float = 200  # spacing between channel point (m)
 use_fix_nb_points: bool = False
 smooth_distance_flumy: float = 500  # channel point location smoothing distance
@@ -71,8 +70,8 @@ l_apex_proba_weights_flumy: tuple[tuple[float, float, float], ...] = (
     (1.0, 1.0, 1.0),
 )
 
-age_flumy, dataset_flumy = load_centerline_dataset_from_Flumy_csv(
-    filepath_flumy
+age_flumy, dataset_flumy = load_centerline_from_file(
+    filepath_flumy, kind=CenterlineIOFormat.FLUMY_CSV
 )
 
 # expected results

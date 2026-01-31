@@ -2,13 +2,11 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-import numpy as np
-import numpy.typing as npt
-from typing_extensions import Self
+"""Bend-evolution model.
 
-__doc__ = r"""
-BendEvolution module defines BendEvolution object that stores the successive
-indexes of a same bend in a CenterlineCollection.
+Bend evolutions store how a bend (or a group of bends) evolves through time in
+a `CenterlineCollection`.
+
 
 A bend at a give time may progressively become multilobate, including multiple
 smaller order bends. This is why Bend collection stores a list of bend index at
@@ -35,8 +33,14 @@ and t+1 (O°°X°°O)*
 
 """
 
+import numpy as np
+import numpy.typing as npt
+from typing_extensions import Self
+
 
 class BendEvolution:
+    """A tracked bend (or bend group) evolving through time."""
+
     def __init__(
         self: Self,
         bend_indexes: dict[int, list[int]],

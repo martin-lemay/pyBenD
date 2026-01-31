@@ -2,6 +2,8 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
+"""Plotting helpers for pybend."""
+
 from typing import Optional
 
 import matplotlib.colors as colors
@@ -19,10 +21,6 @@ from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import BendSide
 from pybend.model.Section import Section
 from pybend.utils.logging import logger
-
-__doc__ = """
-Plot methods.
-"""
 
 
 def plot_centerline_collection(

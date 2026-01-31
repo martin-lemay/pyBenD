@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
 
-from enum import StrEnum
+"""Enumerations used throughout pybend."""
 
-__doc__ = r"""
-This module defines enumerations used in pyBenD.
-"""
+from enum import StrEnum
 
 
 # TODO replace property name in the code with this enum

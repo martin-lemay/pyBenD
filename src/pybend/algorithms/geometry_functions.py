@@ -1,15 +1,12 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
+"""Useful geometry functions."""
 
 from typing import Sequence
 
 import numpy as np
 import numpy.typing as npt
-
-__doc__ = """
-Usefull geometry functions.
-"""
 
 
 def compute_colinear(

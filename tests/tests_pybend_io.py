@@ -14,26 +14,31 @@ Run with input data:
 """
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from typing import Self
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 
-from pybend.algorithms.pybend_io import (
-    create_dataset_from_xy,
-    dump_centerline_to_csv,
+from pybend.io.centerline_collection_io import (
     load_centerline_collection_dataset_from_Flumy_csv,
-    load_centerline_dataset_from_csv,
-    load_centerline_dataset_from_Flumy_csv,
-    load_centerline_dataset_from_kml,
     load_centerline_evolution_from_multiple_xy_csv,
     load_centerline_evolution_from_single_xy_csv,
 )
+from pybend.io.centerline_io import (
+    create_dataset_from_xy,
+    dump_centerline_to_csv,
+    load_centerline_dataset_from_csv,
+    load_centerline_dataset_from_Flumy_csv,
+    load_centerline_dataset_from_kml,
+)
+from pybend.io.common import resolve_path
 from pybend.model.Centerline import Centerline
 
 # inputs
-dir_path: str = "tests/data/"
+dir_path: str = os.getcwd() + "/tests/data/"
 filepath1: str = dir_path + "centerline_xyz_data.csv"
 filepath2: str = dir_path + "centerline_flumy_data.csv"
 filepath3: str = dir_path + "centerline_kml.kml"
@@ -50,7 +55,7 @@ filepath_cl_collection_xy: str = (
 )
 
 # output directory
-out_path: str = "tests/.out/"
+out_path: str = os.getcwd() + "/tests/.out/"
 # create it if absent
 if not os.path.exists(out_path):
     os.makedirs(out_path)
@@ -59,6 +64,72 @@ filepath_out: str = out_path + "centerline_out.csv"
 
 
 class TestsPybendIO(unittest.TestCase):
+    def test_resolve_path_absolute_existing(self: Self) -> None:
+        """resolve_path() returns the same absolute path when it exists."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            fpath = tmp_path / "test.csv"
+            fpath.write_text("a;b\n1;2\n", encoding="utf-8")
+
+            resolved = resolve_path(
+                base_dir=None, raw_url=str(fpath), ctx="test"
+            )
+            self.assertEqual(fpath, resolved)
+
+    def test_resolve_path_absolute_missing_raises(self: Self) -> None:
+        """resolve_path() raises for missing absolute path."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            missing = tmp_path / "missing.csv"
+            with self.assertRaises(FileNotFoundError):
+                resolve_path(base_dir=None, raw_url=str(missing), ctx="test")
+
+    def test_resolve_path_relative_with_base_dir(self: Self) -> None:
+        """resolve_path() resolves relative paths against base_dir."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            base = Path(tmp_dir)
+            rel = Path("sub") / "file.csv"
+            full = base / rel
+            full.parent.mkdir(parents=True, exist_ok=True)
+            full.write_text("a;b\n1;2\n", encoding="utf-8")
+
+            resolved = resolve_path(
+                base_dir=base, raw_url=str(rel), ctx="test"
+            )
+            self.assertEqual(full.resolve(), resolved)
+
+    def test_resolve_path_relative_without_base_dir_uses_cwd(
+        self: Self,
+    ) -> None:
+        """resolve_path() resolves relative paths against the CWD."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            rel = Path("file.csv")
+            (tmp_path / rel).write_text("a;b\n1;2\n", encoding="utf-8")
+
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(str(tmp_path))
+                resolved = resolve_path(
+                    base_dir=None, raw_url=str(rel), ctx="test"
+                )
+                self.assertEqual((tmp_path / rel).resolve(), resolved)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_resolve_path_relative_missing_raises(self: Self) -> None:
+        """resolve_path() raises for missing relative path."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(tmp_dir)
+                with self.assertRaises(FileNotFoundError):
+                    resolve_path(
+                        base_dir=None, raw_url="missing.csv", ctx="test"
+                    )
+            finally:
+                os.chdir(old_cwd)
+
     def test_import_xyz_centerline1(self: Self) -> None:
         """Test of load_centerline_dataset_from_csv() function."""
         dataset1: pd.DataFrame = load_centerline_dataset_from_csv(

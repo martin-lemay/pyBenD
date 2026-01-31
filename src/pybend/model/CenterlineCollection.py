@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: Copyright 2025 Martin Lemay <martin.lemay@mines-paris.org>
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
+
+"""Centerline-collection model.
+
+Defines `CenterlineCollection`, which stores successive channel centerlines
+through time for a single channel belt.
+"""
+
 import functools
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor as Pool
@@ -40,15 +47,9 @@ from pybend.utils.logging import ERROR, logger
 logger.setLevel(ERROR)
 
 
-__doc__ = r"""
-This module defines CenterlineCollection objet that stores the successive
-positions of a sinuous channel from a single channel-belt through time as well
-as utilities.
-
-"""
-
-
 class CenterlineCollection:
+    """A time series of `Centerline` objects representing channel evolution."""
+
     def __init__(
         self: Self,
         map_centerline_data: dict[int, pd.DataFrame],

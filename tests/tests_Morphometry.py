@@ -15,8 +15,9 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 
-from pybend.algorithms.pybend_io import (
-    load_centerline_dataset_from_Flumy_csv,
+from pybend.io import (
+    CenterlineIOFormat,
+    load_centerline_from_file,
 )
 from pybend.model.Centerline import Centerline
 from pybend.model.Morphometry import Morphometry
@@ -27,8 +28,8 @@ set_nb_procs(1)
 # inputs
 
 # output directory for figures
-dir_path: str = "tests/data/"
-fig_path: str = "tests/.out/"
+dir_path: str = os.getcwd() + "/tests/data/"
+fig_path: str = os.getcwd() + "/tests/.out/"
 # create it if absent
 if not os.path.exists(fig_path):
     os.makedirs(fig_path)
@@ -51,7 +52,9 @@ flow_dir: npt.NDArray[np.float64] = np.array([1.0, 0.0])
 nb_procs: int = 3  # number of procs
 
 
-age, dataset = load_centerline_dataset_from_Flumy_csv(filepath)
+age, dataset = load_centerline_from_file(
+    filepath, kind=CenterlineIOFormat.FLUMY_CSV
+)
 centerline = Centerline(
     age,
     dataset,
@@ -67,13 +70,13 @@ centerline = Centerline(
 )
 centerline.find_bends(sinuo_thres, 3)
 
-assert (
-    centerline.get_nb_bends() == 46
-), "Number of bends in invalid. Run tests_Centerline.py first."
+assert centerline.get_nb_bends() == 46, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
 
-assert (
-    centerline.get_nb_valid_bends() == 34
-), "Number of bends in invalid. Run tests_Centerline.py first."
+assert centerline.get_nb_valid_bends() == 34, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
 
 
 valid_bend_indexes: list[int] = centerline.get_valid_bend_indexes()

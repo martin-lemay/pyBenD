@@ -16,8 +16,9 @@ import numpy as np
 import numpy.typing as npt
 
 import pybend.algorithms.plot_functions as plot
-from pybend.algorithms.pybend_io import (
-    load_centerline_collection_dataset_from_Flumy_csv,
+from pybend.io import (
+    CenterlineIOFormat,
+    load_centerline_collection_from_a_file,
 )
 from pybend.model.CenterlineCollection import (
     CenterlineCollection,
@@ -35,11 +36,13 @@ fig_path: str = "tests/.out/"
 if not os.path.exists(fig_path):
     os.makedirs(fig_path)
 
-filepath_cl_collection: str = "tests/data/centerline_Collection_test_data.csv"
+filepath_cl_collection: str = (
+    os.getcwd() + "/tests/data/centerline_Collection_test_data.csv"
+)
 map_file: dict[int, str] = {
-    10: "tests/data/centerline_Collection_test_data10.csv",
-    40: "tests/data/centerline_Collection_test_data40.csv",
-    70: "tests/data/centerline_Collection_test_data70.csv",
+    10: os.getcwd() + "/tests/data/centerline_Collection_test_data10.csv",
+    40: os.getcwd() + "/tests/data/centerline_Collection_test_data40.csv",
+    70: os.getcwd() + "/tests/data/centerline_Collection_test_data70.csv",
 }
 
 spacing: float = 2  # spacing between channel point (m)
@@ -3072,8 +3075,8 @@ class TestsCenterlineCollection(unittest.TestCase):
         self: Self,
     ) -> None:
         """Test of initialisation from csv file using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         if map_dataset is None:
             self.skipTest(
@@ -3115,8 +3118,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     ) -> None:
         """Test of initialisation from Flumy dataset using single proc."""
         set_nb_procs(nb_procs)
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         if map_dataset is None:
             self.skipTest(
@@ -3156,8 +3159,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_create_properties(self: Self) -> None:
         """Test of adding properties to CenterlineCollection."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3237,8 +3240,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # # @unittest.skip("")
     def test_centerlines_matching_monoproc(self: Self) -> None:
         """Test of match_centerlines function using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3298,8 +3301,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     def test_centerlines_matching_multiproc(self: Self) -> None:
         """Test of match_centerlines function using multi-processing."""
         set_nb_procs(nb_procs)
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3360,8 +3363,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_bend_connection(self: Self) -> None:
         """Test of connect_bends function using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3420,8 +3423,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_compute_all_bend_middle_monoproc(self: Self) -> None:
         """Test of find_all_bend_middle function using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3481,8 +3484,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     def test_compute_all_bend_middle_multiprocs(self: Self) -> None:
         """Test of find_all_bend_middle function using multi-processing."""
         set_nb_procs(nb_procs)
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3523,8 +3526,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_compute_all_bend_centroid_monoproc(self: Self) -> None:
         """Test of find_all_bend_centroid function using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3585,8 +3588,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     def test_compute_all_bend_centroid_multiprocs(self: Self) -> None:
         """Test of find_all_bend_centroid function using multi-processing."""
         set_nb_procs(nb_procs)
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3626,8 +3629,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_find_all_bend_apex_monoproc(self: Self) -> None:
         """Test of find_all_bend_apex function using single processing."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3686,8 +3689,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     def test_find_all_bend_apex_multiproc(self: Self) -> None:
         """Test of find_all_bend_apex function using multi-processing."""
         set_nb_procs(nb_procs)
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3727,8 +3730,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     # @unittest.skip("")
     def test_set_section_lines(self: Self) -> None:
         """Test of CenterlineCollection.set_section_lines function."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3794,8 +3797,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     @unittest.skip("To be updated")
     def test_create_section_lines(self: Self) -> None:
         """Test of CenterlineCollection.create_section_lines function."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,
@@ -3889,8 +3892,8 @@ class TestsCenterlineCollection(unittest.TestCase):
     @unittest.skip("To be updated")
     def test_find_points_on_sections(self: Self) -> None:
         """Test of CenterlineCollection.find_points_on_sections function."""
-        map_dataset = load_centerline_collection_dataset_from_Flumy_csv(
-            filepath_cl_collection, sep=";"
+        map_dataset = load_centerline_collection_from_a_file(
+            filepath_cl_collection, kind=CenterlineIOFormat.FLUMY_CSV, sep=";"
         )
         centerline_collec = CenterlineCollection(
             map_dataset,

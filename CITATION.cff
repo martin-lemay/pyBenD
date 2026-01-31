@@ -1,0 +1,109 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata in this file.
+  For work specifically using bend apex detection, see the references section.
+title: "pyBenD: Python Bend Dynamics"
+type: software
+license: MIT
+version: 1.0.0
+repository-code: "https://github.com/martin-lemay/pyBenD"
+url: "https://github.com/martin-lemay/pyBenD"
+authors:
+  - family-names: Lemay
+    given-names: Martin
+    email: martinlemay@mines-paris.org
+    orcid: "https://orcid.org/0000-0002-5538-7885"
+keywords:
+  - geomorphology
+  - meanders
+  - river centerline
+  - bend apex detection
+  - morphometry
+  - kinematics
+preferred-citation:
+  type: software
+  title: "pyBenD: Python Bend Dynamics"
+  authors:
+    - family-names: Lemay
+      given-names: Martin
+      orcid: "https://orcid.org/0000-0002-5538-7885"
+  version: 1.0.0
+  repository-code: "https://github.com/martin-lemay/pyBenD"
+  url: "https://github.com/martin-lemay/pyBenD"
+references:
+  - type: article
+    title: "Geomorphic variability of submarine channelized systems along continental margins: Comparison with fluvial meandering channels"
+    authors:
+      - family-names: Lemay
+        given-names: Martin
+      - family-names: Grimaud
+        given-names: J. L.
+      - family-names: Cojan
+        given-names: I.
+      - family-names: Rivoirard
+        given-names: J.
+      - family-names: Ors
+        given-names: F.
+    journal: "Marine and Petroleum Geology"
+    year: 2020
+    volume: 115
+    doi: "10.1016/j.marpetgeo.2020.104295"
+  - type: article
+    title: "Lateral river erosion impacts the preservation of Neolithic enclosures in alluvial plains"
+    authors:
+      - family-names: Grimaud
+        given-names: J. L.
+      - family-names: Gouge
+        given-names: P.
+      - family-names: Huyghe
+        given-names: D.
+      - family-names: Petit
+        given-names: C.
+      - family-names: Lestel
+        given-names: L.
+      - family-names: Eschbach
+        given-names: D.
+      - family-names: Lemay
+        given-names: Martin
+      - family-names: Catry
+        given-names: J.
+      - family-names: Quaisse
+        given-names: I.
+      - family-names: Imperor
+        given-names: A.
+      - family-names: Szewczyk
+        given-names: L.
+      - family-names: Mordant
+        given-names: D.
+    journal: "Scientific Reports"
+    year: 2023
+    volume: 13
+    pages: 16566
+    doi: "10.1038/s41598-023-43849-6"
+  - type: article
+    title: "Submarine channel stacking patterns controlled by the 3D kinematics of meander bends"
+    authors:
+      - family-names: Lemay
+        given-names: Martin
+      - family-names: Grimaud
+        given-names: J. L.
+      - family-names: Cojan
+        given-names: I.
+      - family-names: Rivoirard
+        given-names: J.
+      - family-names: Ors
+        given-names: F.
+    journal: "Geological Society, London, Special Publications"
+    year: 2024
+    doi: "10.1144/SP540-2022-143"
+  - type: article
+    title: "Automated detection of the apex of a meander bend using the cumulative spatial distribution of curvature."
+    authors:
+      - family-names: Lemay
+        given-names: Martin
+      - family-names: Grimaud
+        given-names: J. L.
+      - family-names: Limaye
+        given-names: A. B.
+    year: 2026
+    notes: "Submitted (update this entry with journal/DOI once available)."

@@ -2,18 +2,11 @@
 # SPDX-FileContributor: Martin Lemay
 # ruff: noqa: E402 # disable Module level import not at top of file
 
-from __future__ import annotations
+"""Centerline point model.
 
-from typing import Self
+Defines `ClPoint`, a single point along a channel centerline with coordinates
+and associated properties.
 
-import numpy as np
-import numpy.typing as npt
-import pandas as pd  # type: ignore[import-untyped]
-
-from pybend.model.enumerations import PropertyNames
-from pybend.utils.logging import logger
-
-__doc__ = r"""
 Let's consider a channel centerline discretized into successive channel points.
 This module defines channel point object that stores channel point properties.
 These properties include channel point cartesian and curvilinear coordinates,
@@ -44,11 +37,23 @@ To use it:
     age :int
     data :pd.Series
     clPt :ClPoint = ClPoint(ide, age, data)
-
 """
+
+from __future__ import annotations
+
+from typing import Self
+
+import numpy as np
+import numpy.typing as npt
+import pandas as pd  # type: ignore[import-untyped]
+
+from pybend.model.enumerations import PropertyNames
+from pybend.utils.logging import logger
 
 
 class ClPoint:
+    """A single point along a `Centerline` with stored properties."""
+
     def __init__(self: Self, ide: str, age: int, dataset: pd.Series) -> None:
         """Centerline point stores coordinates and associated variables.
 

@@ -479,6 +479,169 @@ a mapping from ages to bend indices (``bend_indexes``). A :class:`~pybend.model.
 can be flagged as valid if it contains enough time steps; this is controlled by
 ``bend_evol_validity``.
 
+Section across channel belt
+----------------------------
+
+pyBenD can build 2D stratigraphic sections across a channel belt by intersecting a
+set of user-defined (or automatically generated) section lines with all centerlines
+stored in a :class:`~pybend.model.CenterlineCollection.CenterlineCollection`.
+
+The workflow is implemented in
+:meth:`~pybend.model.CenterlineCollection.CenterlineCollection.find_points_on_sections`
+and produces a list of :class:`~pybend.model.Section.Section` objects, each storing
+the channel position through time in a section-aligned coordinate system.
+
+Defining section lines
+^^^^^^^^^^^^^^^^^^^^^^
+
+Sections are defined in plan view as straight line segments (``shapely.LineString``)
+stored in ``CenterlineCollection.section_lines``. Two approaches are available:
+
+- **Manual definition** with
+  :meth:`~pybend.model.CenterlineCollection.CenterlineCollection.set_section_lines`,
+  by providing lists of start and end coordinates (``pts_start`` and ``pts_end``).
+  This is the approach used in ``notebooks/bend_kinematics_analysis.ipynb`` where
+  section endpoints are chosen so that each section intersects the centerlines of a
+  given channel belt.
+- **Automatic definition** with
+  :meth:`~pybend.model.CenterlineCollection.CenterlineCollection.create_section_lines`.
+  The method uses the youngest (last) centerline and creates one section per
+  *valid* interior bend (first and last bends are skipped). The section line
+  depends on the selected :class:`~pybend.model.enumerations.CreateSectionMethod`:
+
+  - ``MIDDLE``: line from bend apex to chord midpoint (``Bend.pt_center``).
+  - ``CENTROID``: line from bend apex to bend centroid (``Bend.pt_centroid``).
+  - ``APEX``: line from the bend apex to the midpoint between neighboring bend
+	 apexes (fallbacks use bend midpoints when apexes are undefined).
+
+Finding channel location on a section
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a section line, pyBenD searches for its intersections with every centerline
+polyline. For each age:
+
+1. A local search window is built around the section line to avoid testing all
+	segments.
+2. Each candidate centerline segment (two consecutive
+	:class:`~pybend.model.ClPoint.ClPoint`) is intersected with the section line.
+3. When an intersection exists, channel-point properties are interpolated at the
+	intersection location using the relative distance along the segment.
+
+Each intersection produces an :class:`~pybend.model.Isoline.ChannelCrossSection`
+isoline (type ``CHANNEL``) whose reference point is the interpolated
+:class:`~pybend.model.ClPoint.ClPoint`. An idealized cross-section geometry is then
+generated with :meth:`~pybend.model.Isoline.ChannelCrossSection.complete_channel_shape`
+(parabolic shape whose width and depth come from the reference point properties).
+
+Finally, if a section line intersects enough centerlines (controlled by the
+``thres`` argument), a :class:`~pybend.model.Section.Section` object is created and
+stored in ``CenterlineCollection.sections``. During this process, the bend
+intersected by each channel position is also identified from the intersected point
+index and the bend is tagged with the section index (used later for kinematic
+summaries).
+
+Section coordinate system
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Within a :class:`~pybend.model.Section.Section`, the channel position at each age is
+stored relative to the first intersected channel position according to the
+coordinates ``(d, dz)``, where:
+
+- $d$ is the signed lateral position along the section, measured relative to the
+	first channel occurrence on the section.
+- $dz$ is the vertical offset relative to that first occurrence.
+
+The sign of $d$ is determined from the user-provided flow direction (``flow_dir``):
+the migration vector between the reference channel position and the current one is
+projected onto the direction perpendicular to ``flow_dir`` to assign the left/right
+side of migration. These $(d, dz)$ coordinates form ``Section.isolines_origin`` and
+are used to compute stacking-pattern classes
+(:meth:`~pybend.model.Section.Section.get_stacking_pattern_type`),
+apparent channel displacements
+(:meth:`~pybend.model.Section.Section.channel_apparent_displacements`), and
+section-averaged mobility metrics
+(:meth:`~pybend.model.Section.Section.section_averaged_channel_displacements`).
+
+Stacking pattern classification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When a channel belt is observed on a 2D stratigraphic section, the successive
+intersections of the channel with the section can be interpreted as a trajectory
+of the channel (here, represented by the channel reference point of each
+intersected :class:`~pybend.model.Isoline.ChannelCrossSection`).
+
+pyBenD classifies this trajectory into stacking-pattern types using
+:meth:`~pybend.model.Section.Section.get_stacking_pattern_type`. The implemented
+classification follows the workflow used in:
+
+Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., and Ors, F. (2024).
+*Submarine channel stacking patterns controlled by the 3D kinematics of meander
+bends*. Geological Society, London, Special Publications, SP540-2022-143.
+`doi.org/10.1144/SP540-2022-143 <https://doi.org/10.1144/SP540-2022-143>`_.
+
+Step classification
+"""""""""""""""""""
+
+The classification operates on the ordered list ``Section.isolines_origin`` of
+channel points for each time step containing pairs ``(d, dz)``.
+For each consecutive pair of time steps, pyBenD computes a signed lateral
+migration increment:
+
+.. math::
+
+	 \Delta d_k = d_{k} - d_{k-1}
+
+and discretizes it into a ternary sequence:
+
+- ``0`` if $|\Delta d_k| < \texttt{mig_threshold}$ (treated as aggradation-only),
+- ``+1`` if $\Delta d_k \ge \texttt{mig_threshold}$,
+- ``-1`` if $\Delta d_k \le -\texttt{mig_threshold}$.
+
+The parameter ``mig_threshold`` therefore controls when lateral motion is
+considered significant. In ``notebooks/bend_kinematics_analysis.ipynb`` it is set
+proportionally to channel width (``mig_threshold = 0.0125 * width``).
+
+From steps to stacking-pattern types
+""""""""""""""""""""""""""""""""""""
+
+Let $f_0$, $f_{+}$, and $f_{-}$ be the fractions of steps classified as
+``0``, ``+1`` and ``-1`` respectively. A first-order decision is made from these
+fractions using ``frac_threshold`` (default 0.95; also used in the notebook):
+
+- **Aggradation Only** (``StackingPatternType.AGGRADATION``) if $f_0$ exceeds
+	``frac_threshold``.
+- **One Way** (``StackingPatternType.ONE_WAY``) if either $f_{+}$ or $f_{-}$
+	exceeds ``frac_threshold``.
+
+When the trajectory contains both aggradation steps and a dominant migration
+direction such that $(f_0 + f_{+})$ or $(f_0 + f_{-})$ exceeds
+``frac_threshold``, pyBenD distinguishes between:
+
+- **Aggradation then One Way** (``StackingPatternType.AGGRAD_ONE_WAY``): a
+	sustained early aggradation phase followed by a sustained migration phase.
+- **One Way** (``StackingPatternType.ONE_WAY``): migration dominates from early
+	time steps.
+
+In practice, the implementation groups consecutive steps of the dominant sign and
+of ``0`` into runs, and compares the run lengths to a small fraction of the
+record length (``begin_threshold``, default 0.1). This is the criterion used to
+decide whether the initial part of the trajectory is long enough to be treated as
+a distinct aggradation phase.
+
+When neither direction dominates and aggradation is not overwhelming, the
+classification is based on the number of direction reversals after removing
+aggradation steps (``0``):
+
+- **Two Way** (``StackingPatternType.TWO_WAYS``) when the non-zero migration
+	steps can be reduced to two main runs of opposite sign.
+- **Multiple Ways** (``StackingPatternType.MULTIPLE_WAYS``) when more than two
+	alternating runs are required.
+
+The resulting class is stored in ``Section.stacking_pattern_type`` and can be
+used downstream to compute “bend-scale” vs “whole-trajectory” section-averaged
+mobility metrics (see
+:meth:`~pybend.model.Section.Section.section_averaged_channel_displacements`).
+
 
 Kinematic Parameter Calculation
 --------------------------------

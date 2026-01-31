@@ -42,7 +42,7 @@ Related publication is:
 
 Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2024). Submarine channel stacking patterns
 controlled by the 3D kinematics of meander bends. Geological Society, London, Special Publications, SP540-2022-143.
-https://doi.org/10.1144/SP540-2022-143. 
+`doi.org/10.1144/SP540-2022-143 <https://doi.org/10.1144/SP540-2022-143>`_. 
 
 Download the notebook: :download:`bend_kinematics_analysis.ipynb <../notebooks/bend_kinematics_analysis.ipynb>`
 
@@ -65,7 +65,7 @@ Related publication is:
 
 Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2020). Geomorphic variability of submarine channelized systems
 along continental margins: Comparison with fluvial meandering channels. Marine and Petroleum Geology, 115, 104295.
-https://doi.org/10.1016/j.marpetgeo.2020.104295 
+`doi.org/10.1016/j.marpetgeo.2020.104295 <https://doi.org/10.1016/j.marpetgeo.2020.104295>`_
 
 Download the notebook: :download:`meander_morphometry_analysis.ipynb <../notebooks/meander_morphometry_analysis.ipynb>`
 
@@ -86,6 +86,6 @@ Related publication is:
 Grimaud, J. L., Gouge, P., Huyghe, D., Petit, C., Lestel, L., Eschbach, D., Lemay, M.,
 Catry, J., Quaisse, I., Imperor, A., Szewczyk, L., Mordant, D. Lateral river erosion
 impacts the preservation of Neolithic enclosures in alluvial plains. 
-Sci Rep 13, 16566 (2023). https://doi.org/10.1038/s41598-023-43849-6
+Sci Rep 13, 16566 (2023). `doi.org/10.1038/s41598-023-43849-6 <https://doi.org/10.1038/s41598-023-43849-6>`_
 
 Download the notebook: :download:`seine_river_migration_analysis.ipynb <../notebooks/seine_river_migration_analysis.ipynb>`

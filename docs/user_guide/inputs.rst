@@ -11,6 +11,16 @@ pyBenD defines two main objects:
 * ``CenterlineCollection``: represents a series of channel centerlines over time,
     allowing analysis of channel kinematics.
 
+.. NOTE::
+
+    Centerline data can be obtained from manual digitization using GIS software,
+    or extracted from Remote Sensing data using specialized tools, such as:
+    * Python tools:
+        - `RivaMap <https://github.com/isikdogan/rivamap>`_
+        - `PyRIS <https://github.com/hchicchon/pyris>`_
+    * Matlab tool: `RivMap <https://www.mathworks.com/matlabcentral/fileexchange/58264-rivmap-river-morphodynamics-from-analysis-of-planforms>`_
+    * Google Earth Engine: `RivWidthCloud <https://ieeexplore.ieee.org/document/8752013>`_
+
 
 Loading Centerline Data
 ------------------------

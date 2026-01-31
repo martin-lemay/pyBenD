@@ -20,7 +20,7 @@ Lemay, M., Grimaud, J. L., Limaye, A. B. (2026). Automated detection
 of the apex of a meander bend using the cumulative spatial distribution of curvature.
 Submitted to *Earth Surface Processes and Landforms*.
 
-Download the notebook: :download:`bend_apex_detection.ipynb <../notebooks/bend_apex_detection.ipynb>`
+Download the notebook: `bend_apex_detection.ipynb <notebooks/bend_apex_detection.ipynb>`_
 
 
 Bend kinematic analysis
@@ -44,7 +44,7 @@ Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2024). Submarine
 controlled by the 3D kinematics of meander bends. Geological Society, London, Special Publications, SP540-2022-143.
 `doi.org/10.1144/SP540-2022-143 <https://doi.org/10.1144/SP540-2022-143>`_. 
 
-Download the notebook: :download:`bend_kinematics_analysis.ipynb <../notebooks/bend_kinematics_analysis.ipynb>`
+Download the notebook: `bend_kinematics_analysis.ipynb <notebooks/bend_kinematics_analysis.ipynb>`_
 
 
 Meander morphometry analysis
@@ -67,7 +67,7 @@ Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2020). Geomorphi
 along continental margins: Comparison with fluvial meandering channels. Marine and Petroleum Geology, 115, 104295.
 `doi.org/10.1016/j.marpetgeo.2020.104295 <https://doi.org/10.1016/j.marpetgeo.2020.104295>`_
 
-Download the notebook: :download:`meander_morphometry_analysis.ipynb <../notebooks/meander_morphometry_analysis.ipynb>`
+Download the notebook: `meander_morphometry_analysis.ipynb <notebooks/meander_morphometry_analysis.ipynb>`_
 
 
 Seine River migration analysis
@@ -88,4 +88,4 @@ Catry, J., Quaisse, I., Imperor, A., Szewczyk, L., Mordant, D. Lateral river ero
 impacts the preservation of Neolithic enclosures in alluvial plains. 
 Sci Rep 13, 16566 (2023). `doi.org/10.1038/s41598-023-43849-6 <https://doi.org/10.1038/s41598-023-43849-6>`_
 
-Download the notebook: :download:`seine_river_migration_analysis.ipynb <../notebooks/seine_river_migration_analysis.ipynb>`
+Download the notebook: `seine_river_migration_analysis.ipynb <notebooks/seine_river_migration_analysis.ipynb>`_

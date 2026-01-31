@@ -98,7 +98,8 @@ class Centerline:
                 filter applied on channel path.
             use_fix_nb_points (bool, optional): If True, the resampled
                 centerline will contains exactly spacing points, otherwise,
-                spacing is the targeted distance between 2 consecutive points.                Defaults to False.
+                spacing is the targeted distance between 2 consecutive points.
+                Defaults to False.
             curvature_filtering_window (int, optional): Number of points used
                 for filtering curvature.
                 Defaults to 5.

@@ -76,15 +76,17 @@ def kinoshita_bend(
 
     .. math::
 
-        $\Theta=\Theta_0.\cos(\frac{2\pi.s}{\lambda})+\Theta_0^3.(Js.\sin(3\frac{2\pi.s}{\lambda})-Jf.\cos(3\frac{2\pi.s}{\lambda}))$
+        \Theta = \Theta_0 \cos\left(\frac{2\pi s}{\lambda}\right)
+        + \Theta_0^3\left(J_s \sin\left(3\frac{2\pi s}{\lambda}\right)
+        - J_f \cos\left(3\frac{2\pi s}{\lambda}\right)\right)
 
-    where :math:`$\Theta$` is the local angle from x axis, :math:`$\Theta_0$`
-    the maximum angle, :math:`$s$` the curvilinear coordinate,
-    :math:`$\lambda$` the wavelength, :math:`$Js$` the skewness coefficient,
-    and :math:`$Jf$` the flattening coefficient.
+    where :math:`\Theta` is the local angle from x axis, :math:`\Theta_0`
+    the maximum angle, :math:`s` the curvilinear coordinate,
+    :math:`\lambda` the wavelength, :math:`J_s` the skewness coefficient,
+    and :math:`J_f` the flattening coefficient.
 
     Inflection point may be downstream the first point at
-    :math:`$\Theta=\Theta_0$`, then the bend between inflection points is
+    :math:`\Theta = \Theta_0`, then the bend between inflection points is
     determined from:
 
         1. compute point coordinates over a bit more than a wavelength,

@@ -5,14 +5,12 @@ User Guide
 
     This section is a work in progress.
 
-    For now, see:
+    See also:
 
     * the notebooks in the Examples section
     * the API reference under Packages
 
 
-Contents
-----------
 
 .. toctree::
    :maxdepth: 1

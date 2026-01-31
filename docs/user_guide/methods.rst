@@ -376,6 +376,9 @@ builds a *pairwise cost matrix* and solves a Dynamic Time Warping (DTW) problem
 to obtain an alignment between point indices. Centerlines are tracked sequentially from
 the oldest to the youngest.
 
+The methodology for channel point tracking is inspired from
+`zsylvester/meanderpy <https://github.com/zsylvester/meanderpy>`_.
+
 **Cost matrix components**
 
 For points $i$ on the current centerline and $j$ on the previous one, three

@@ -10,6 +10,12 @@ The methodology for channel point tracking is inspired from [zsylvester/meanderp
 
 A full documentation of the code can be found here: https://mlemay-pybend.readthedocs.io/en/latest/
 
+
+If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
+
+* pyBenD v1.0.0: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18442370 
+* pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18442369 
+
 ## Quickstart
 
 Install from GitHub:
@@ -172,6 +178,7 @@ The `notebooks/` folder contains end-to-end case studies used in publications. I
 ## Credits
 
 pyBenD was written by [Martin Lemay](https://github.com/martin-lemay) <br>[![ORCID Badge](https://img.shields.io/badge/ORCID-A6CE39?logo=orcid&logoColor=fff&style=flat-square)](https://orcid.org/my-orcid?orcid=0000-0002-5538-7885)</br>
+
 
 ## License
 

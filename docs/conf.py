@@ -14,7 +14,6 @@
 #
 import os
 import sys
-import shutil
 from pathlib import Path
 
 # Add python modules to be documented
@@ -47,7 +46,7 @@ release = u'0'
 # ones.
 extensions = [
     'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 
-    'sphinx.ext.imgmath', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary', 
+    'sphinx.ext.mathjax', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary', 
     'sphinxcontrib.programoutput'
 ]
 
@@ -96,6 +95,12 @@ html_theme_options = { 'navigation_depth': -1, 'collapse_navigation': False }
 
 html_static_path = [ './_static' ]
 
+# Copy extra non-source files directly into the built HTML output.
+# This lets us link to downloadable notebooks without copying them into `docs/`.
+html_extra_path = [
+    str(Path(project_root) / "notebooks"),
+]
+
 html_css_files = [
     'theme_overrides.css',
 ]
@@ -103,42 +108,3 @@ html_css_files = [
 # -- Options for HTMLHelp output ---------------------------------------------
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyBenDDoc'
-
-
-def _sync_example_notebooks() -> None:
-    """Copy project notebooks into the Sphinx source tree.
-
-    Sphinx (and toctree entries) require sources to live under the docs source
-    directory. We keep notebooks in the top-level `notebooks/` folder and
-    copy them into `docs/notebooks/` at build time.
-    """
-
-    docs_dir = Path(config_file_dir)
-    repo_root = Path(project_root)
-
-    notebook_src_dir = repo_root / "notebooks"
-    notebook_dst_dir = docs_dir / "notebooks"
-    notebook_dst_dir.mkdir(parents=True, exist_ok=True)
-
-    notebook_names = [
-        "bend_apex_detection.ipynb",
-        "bend_kinematics_analysis.ipynb",
-        "meander_morphometry_analysis.ipynb",
-        "seine_river_migration_analysis.ipynb",
-    ]
-
-    for name in notebook_names:
-        src_path = notebook_src_dir / name
-        dst_path = notebook_dst_dir / name
-        if src_path.exists():
-            shutil.copy2(src_path, dst_path)
-
-    # Copy notebook data folder (useful when users download/run notebooks)
-    data_src = notebook_src_dir / "data"
-    data_dst = notebook_dst_dir / "data"
-    if data_src.exists() and data_src.is_dir():
-        shutil.copytree(data_src, data_dst, dirs_exist_ok=True)
-
-
-def setup(app):
-    app.connect("builder-inited", lambda app: _sync_example_notebooks())

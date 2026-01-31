@@ -214,9 +214,9 @@ class CenterlineCollection:
 
             centerlines: dict[int, Centerline] = {}
             for age, centerline in zip(inputs, outputs, strict=False):
-                assert (
-                    centerline is not None
-                ), f"Centerline {age} is undefined."
+                assert centerline is not None, (
+                    f"Centerline {age} is undefined."
+                )
 
                 centerlines[age] = centerline
 
@@ -990,12 +990,12 @@ class CenterlineCollection:
                     ):
                         # compute the distance between upstream inflex points
                         # (more stable than apex)
-                        assert (
-                            bend_saved[-1].pt_centroid is not None
-                        ), "Centroid is undefined"
-                        assert (
-                            bend.pt_centroid is not None
-                        ), "Centroid is undefined"
+                        assert bend_saved[-1].pt_centroid is not None, (
+                            "Centroid is undefined"
+                        )
+                        assert bend.pt_centroid is not None, (
+                            "Centroid is undefined"
+                        )
                         dist[k] = geom.distance(
                             bend_saved[-1].pt_centroid, bend.pt_centroid
                         )
@@ -1351,9 +1351,9 @@ class CenterlineCollection:
                     "Unkown method for section line creation. Methods are "
                     + "either: ".join(methods)
                 )
-            assert (
-                pt_end is not None
-            ), "Undefined end point for section line creation"
+            assert pt_end is not None, (
+                "Undefined end point for section line creation"
+            )
             assert bend.index_apex > -1, "Bend apex is undefined."
             pt_apex: npt.NDArray[np.float64] = (
                 self.centerlines[key].cl_points[bend.index_apex].pt

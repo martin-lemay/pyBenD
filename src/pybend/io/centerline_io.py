@@ -7,6 +7,7 @@ This module contains helpers to load and dump centerline-related datasets.
 """
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -22,7 +23,7 @@ from pybend.model.enumerations import PropertyNames
 def load_centerline_from_file(
     filepath: str,
     kind: CenterlineIOFormat,
-    **args,  # ruff: noqa: ANN003 # type: ignore
+    **kwargs: Any,
 ) -> tuple[int, pd.DataFrame]:
     """Load a centerline from a file.
 
@@ -31,7 +32,7 @@ def load_centerline_from_file(
     Args:
         filepath (str): Path to the file.
         kind (CenterlineIOFormat): Format of the file to load.
-        **args: Loader-specific options.
+        **kwargs (Any): Loader-specific options.
 
             For ``CenterlineIOFormat.CSV``:
                 - ``x_prop`` (str): X column name (default ``"X"``)
@@ -59,11 +60,11 @@ def load_centerline_from_file(
             assert ext == "csv", (
                 "File extension does not match specified format."
             )
-            xprop = args.get("x_prop", "X")
-            yprop = args.get("y_prop", "Y")
-            zprop = args.get("z_prop", "Z")
-            dropcols = args.get("drop_columns", ())
-            sep = args.get("sep", ";")
+            xprop = kwargs.get("x_prop", "X")
+            yprop = kwargs.get("y_prop", "Y")
+            zprop = kwargs.get("z_prop", "Z")
+            dropcols = kwargs.get("drop_columns", ())
+            sep = kwargs.get("sep", ";")
             dataset = load_centerline_dataset_from_csv(
                 filepath,
                 x_prop=xprop,
@@ -76,7 +77,7 @@ def load_centerline_from_file(
             assert ext == "csv", (
                 "File extension does not match specified format."
             )
-            sep = args.get("sep", ";")
+            sep = kwargs.get("sep", ";")
             age, dataset = load_centerline_dataset_from_Flumy_csv(
                 filepath, sep=sep
             )
@@ -84,7 +85,7 @@ def load_centerline_from_file(
             assert ext == "kml", (
                 "File extension does not match specified format."
             )
-            keyword = args.get("keyword", "coordinates")
+            keyword = kwargs.get("keyword", "coordinates")
             dataset = load_centerline_dataset_from_kml(
                 filepath, keyword=keyword
             )

@@ -6,6 +6,8 @@
 This module contains helpers to load centerline-collection related datasets.
 """
 
+from typing import Any
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
@@ -22,7 +24,7 @@ from pybend.model.enumerations import PropertyNames
 def load_centerline_collection_from_a_file(
     filepath: str,
     kind: CenterlineIOFormat,
-    **args,  # type: ignore # ruff: noqa: ANN003
+    **kwargs: Any,
 ) -> dict[int, pd.DataFrame]:
     """Load a centerline collection from a single file.
 
@@ -31,7 +33,7 @@ def load_centerline_collection_from_a_file(
     Args:
         filepath (str): Path to the file.
         kind (CenterlineIOFormat): File format.
-        **args: Loader-specific options.
+        **kwargs (Any): Loader-specific options.
 
             For ``CenterlineIOFormat.CSV``:
                 - ``x_prop`` (str): X column name (default ``"X"``)
@@ -58,12 +60,12 @@ def load_centerline_collection_from_a_file(
             assert ext == "csv", (
                 "File extension does not match specified format."
             )
-            x_prop = args.get("x_prop", "X")
-            y_prop = args.get("y_prop", "Y")
-            z_prop = args.get("z_prop", "Z")
-            age_prop = args.get("age_prop", "Age")
-            drop_columns = args.get("drop_columns", ())
-            sep = args.get("sep", ";")
+            x_prop = kwargs.get("x_prop", "X")
+            y_prop = kwargs.get("y_prop", "Y")
+            z_prop = kwargs.get("z_prop", "Z")
+            age_prop = kwargs.get("age_prop", "Age")
+            drop_columns = kwargs.get("drop_columns", ())
+            sep = kwargs.get("sep", ";")
             dataset = load_centerline_evolution_from_single_xy_csv(
                 filepath,
                 x_prop=x_prop,
@@ -77,7 +79,7 @@ def load_centerline_collection_from_a_file(
             assert ext == "csv", (
                 "File extension does not match specified format."
             )
-            sep = args.get("sep", ";")
+            sep = kwargs.get("sep", ";")
             dataset = load_centerline_collection_dataset_from_Flumy_csv(
                 filepath, sep=sep
             )
@@ -89,7 +91,7 @@ def load_centerline_collection_from_a_file(
 def load_centerline_collection_from_multiple_files(
     map_file: dict[int, str],
     kind: CenterlineIOFormat,
-    **args,  # ruff: noqa: ANN003 # type: ignore
+    **kwargs: Any,
 ) -> dict[int, pd.DataFrame]:
     """Load a centerline collection from multiple files in a directory.
 
@@ -98,7 +100,7 @@ def load_centerline_collection_from_multiple_files(
     Args:
         map_file (dict[int, str]): Mapping of ages to file paths.
         kind (CenterlineIOFormat): File format.
-        **args: Loader-specific options.
+        **kwargs (Any): Loader-specific options.
 
             For ``CenterlineIOFormat.CSV``:
                 - ``x_prop`` (str): X column name (default ``"X"``)
@@ -119,11 +121,11 @@ def load_centerline_collection_from_multiple_files(
     """
     match kind:
         case CenterlineIOFormat.CSV:
-            x_prop = args.get("x_prop", "X")
-            y_prop = args.get("y_prop", "Y")
-            z_prop = args.get("z_prop", "Z")
-            drop_columns = args.get("drop_columns", ())
-            sep = args.get("sep", ";")
+            x_prop = kwargs.get("x_prop", "X")
+            y_prop = kwargs.get("y_prop", "Y")
+            z_prop = kwargs.get("z_prop", "Z")
+            drop_columns = kwargs.get("drop_columns", ())
+            sep = kwargs.get("sep", ";")
             dataset = load_centerline_evolution_from_multiple_xy_csv(
                 map_file,
                 x_prop=x_prop,
@@ -133,8 +135,8 @@ def load_centerline_collection_from_multiple_files(
                 sep=sep,
             )
         case CenterlineIOFormat.KML:
-            directory: str = args.get("directory", "")
-            keyword = args.get("keyword", "coordinates")
+            directory: str = kwargs.get("directory", "")
+            keyword = kwargs.get("keyword", "coordinates")
             dataset = load_centerline_evolution_from_multiple_kml(
                 directory, map_file=map_file, keyword=keyword
             )

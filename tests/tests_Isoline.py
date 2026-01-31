@@ -139,5 +139,6 @@ class TestsIsoline(unittest.TestCase):
             "Channel cross-section list of points is wrong.",
         )
 
+
 if __name__ == "__main__":
     unittest.main()

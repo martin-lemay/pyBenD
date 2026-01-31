@@ -70,13 +70,13 @@ centerline = Centerline(
 )
 centerline.find_bends(sinuo_thres, 3)
 
-assert (
-    centerline.get_nb_bends() == 46
-), "Number of bends in invalid. Run tests_Centerline.py first."
+assert centerline.get_nb_bends() == 46, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
 
-assert (
-    centerline.get_nb_valid_bends() == 34
-), "Number of bends in invalid. Run tests_Centerline.py first."
+assert centerline.get_nb_valid_bends() == 34, (
+    "Number of bends in invalid. Run tests_Centerline.py first."
+)
 
 
 valid_bend_indexes: list[int] = centerline.get_valid_bend_indexes()

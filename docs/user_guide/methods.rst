@@ -39,11 +39,12 @@ Resampling and path smoothing
 	If ``spacing > 0``, the centerline is resampled with a parametric spline so that the
 	output contains either:
 
-	- a *target spacing* between consecutive points (default behavior), or
-	- a *fixed number of points* when ``use_fix_nb_points=True``. In this case, the
-    	number of points can be set with ``spacing`` parameter (integer value).
-		If ``spacing == 0``, the centerline is not resampled and the original
-		point positions are used.
+	* a *target spacing* between consecutive points (default behavior), or
+	* a *fixed number of points* when ``use_fix_nb_points=True``. In this case, the
+	  number of points can be set with the ``spacing`` parameter (integer value).
+
+	If ``spacing == 0``, the centerline is not resampled and the original point
+	positions are used.
 
 3. **Smoothing of the resampled XY path**
 
@@ -132,9 +133,9 @@ The workflow implemented in :meth:`~pybend.model.Centerline.Centerline.find_bend
 
 	For each bend, pyBenD computes:
 
-	- **Bend side** (:class:`~pybend.model.enumerations.BendSide`): based on the sign of the *sum* of filtered curvature
-	  along the bend. Positive sum gives ``BendSide.UP``, negative gives
-	  ``BendSide.DOWN``.
+	- **Bend side** (:class:`~pybend.model.enumerations.BendSide`): based on the
+	  sign of the *sum* of filtered curvature along the bend. Positive sum
+	  gives ``BendSide.UP``, negative gives ``BendSide.DOWN``.
 
 	- **Bend validity**: based on a sinuosity criterion computed between the two
 	  :ref:`inflection points <glossary-inflection-point>`.
@@ -154,10 +155,12 @@ The workflow implemented in :meth:`~pybend.model.Centerline.Centerline.find_bend
 	  A bend is marked valid if ``S >= sinuo_thres`` and ``S < 10`` (the upper bound is
 	  currently hard-coded).
 
-	- **Bend middle point** (``Bend.pt_center``): the midpoint of the inflection-point chord
-	  (the :ref:`bend chord <glossary-bend-chord>`) (XY midpoint), with Z set to the average Z of the two inflection points.
+	- **Bend middle point** (``Bend.pt_center``): the midpoint of the
+	  inflection-point chord (the :ref:`bend chord <glossary-bend-chord>`)
+	  (XY midpoint), with Z set to the average Z of the two inflection points.
 
-	- **Bend apex index** (``Bend.index_apex``): by default, the :ref:`bend apex <glossary-bend-apex>` is determined
+	- **Bend apex index** (``Bend.index_apex``): by default, the
+	  :ref:`bend apex <glossary-bend-apex>` is determined
 	  from the filtered curvature distribution (see below).
 
 When multiple CPU cores are available, bend creation and per-bend property computation
@@ -345,11 +348,9 @@ pyBenD also provides two meander-scale metrics consistent with Leopold and
 Wolman (1960). These use apex points of three consecutive bends:
 
 - **Meander wavelength** (``WAVELENGTH_LEOPOLD``): Euclidean distance between the
-	apex of the previous bend and the apex of the next bend.
-
+  apex of the previous bend and the apex of the next bend.
 - **Meander amplitude** (``AMPLITUDE_LEOPOLD``): orthogonal distance from the
-	current bend apex to the straight line joining the previous and next bend
-	apexes.
+  current bend apex to the straight line joining the previous and next bend apexes.
 
 
 Centerline and Bend tracking
@@ -384,15 +385,14 @@ For points $i$ on the current centerline and $j$ on the previous one, three
 non-negative distances can be combined:
 
 - **Planform distance**: Euclidean distance between $(x_i, y_i)$ and
-	$(x_j, y_j)$. If the distance exceeds ``dmax``, it is set to a very large
-	penalty so that DTW avoids matching distant points. ``dmax`` is usually set to
-    a meander wavelength.
-
-- **Curvature distance**: difference in *filtered curvature magnitude* $||\kappa_i| - |\kappa_j||$.
-
+  $(x_j, y_j)$. If the distance exceeds ``dmax``, it is set to a very large
+  penalty so that DTW avoids matching distant points. ``dmax`` is usually set to
+  a meander wavelength.
+- **Curvature distance**: difference in *filtered curvature magnitude*
+  :math:`\left|\,|\kappa_i| - |\kappa_j|\,\right|`.
 - **Velocity-perturbation distance** (optional): absolute difference of the
-	``VELOCITY_PERTURBATION`` property after Savitzky-Golay filtering
-	(``window_length=window``, ``polyorder=2``), when the property exists.
+  ``VELOCITY_PERTURBATION`` property after Savitzky-Golay filtering
+  (``window_length=window``, ``polyorder=2``), when the property exists.
 
 Each component is normalized by its maximum (when non-zero) so that the weights
 can be interpreted consistently. The final DTW cost is:
@@ -414,12 +414,11 @@ the previous centerline (``dtw.warp``).
 pyBenD then stores the matching in both directions:
 
 - On the *current* centerline: ``index_cl_pts_prev_centerline`` stores, for
-	each current point index, the matched index in the previous centerline (or
-	``-1`` when no acceptable match exists).
-
+  each current point index, the matched index in the previous centerline (or
+  ``-1`` when no acceptable match exists).
 - On the *previous* centerline: ``index_cl_pts_next_centerline`` stores, for
-	each previous point index, the list of current indices that map to it
-	(one-to-many links may occur due to DTW).
+  each previous point index, the list of current indices that map to it
+  (one-to-many links may occur due to DTW).
 
 In addition, the per-point link lists on each channel point ``ClPoint`` are updated:
 ``cl_pt_index_prev`` and ``cl_pt_index_next``.
@@ -445,10 +444,9 @@ bends are connected by minimizing the Euclidean distance between successive *ape
 at the current age:
 
 - candidate trajectories are restricted to those whose last bend belongs to the
-	immediately previous age and has the same bend side (``Bend.side``),
-
+  immediately previous age and has the same bend side (``Bend.side``),
 - the closest apex is selected if its distance is below ``dmax``;
-	otherwise a new trajectory is started.
+  otherwise a new trajectory is started.
 
 2) Centroid-distance connection
 """"""""""""""""""""""""""""""""
@@ -508,7 +506,6 @@ stored in ``CenterlineCollection.section_lines``. Two approaches are available:
   This is the approach used in ``notebooks/bend_kinematics_analysis.ipynb`` where
   section endpoints are chosen so that each section intersects the centerlines of a
   given channel belt.
-
 - **Automatic definition** with
   :meth:`~pybend.model.CenterlineCollection.CenterlineCollection.create_section_lines`.
   The method uses the youngest (last) centerline and creates one section per
@@ -554,8 +551,7 @@ stored relative to the first intersected channel position according to the
 coordinates ``(d, dz)``, where:
 
 - $d$ is the signed lateral position along the section, measured relative to the
-	first channel occurrence on the section.
-
+  first channel occurrence on the section.
 - $dz$ is the vertical offset relative to that first occurrence.
 
 The sign of $d$ is determined from the user-provided flow direction (``flow_dir``):
@@ -661,7 +657,6 @@ Two complementary families of kinematic measurements are commonly used:
 
 - **Real (planform) kinematics**: measured from successive mapped/simulated
   centerlines, after point-to-point tracking (DTW matching).
-
 - **Apparent (section-based) kinematics**: measured from channel positions
   recorded on stratigraphic sections, in a section-aligned
   coordinate system.

@@ -358,7 +358,8 @@ def dump_centerline_to_csv(
     p = Path(filepath).expanduser()
     if p.exists() and p.is_dir():
         raise IsADirectoryError(
-            f"dump_centerline_to_csv() expected a file path, got directory: {p}"
+            f"dump_centerline_to_csv() expected a file path, "
+            f"got directory: {p}"
         )
 
     # Resolve to an absolute path without requiring the file to pre-exist.

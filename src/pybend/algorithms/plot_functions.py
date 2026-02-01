@@ -690,7 +690,11 @@ def plot_section(
         # print(ly)
         # print()
         color: str | tuple[float, float, float, float]
-        if not color_same_bend:
+        if (
+            (not color_same_bend)
+            and (colors_norm is not None)
+            and (cmap is not None)
+        ):
             color = cmap(colors_norm(i))
         else:
             color = "b"
@@ -817,7 +821,7 @@ def _get_keys_to_plot(
         keys = np.empty_like(ite).astype(np.int64)
         for i, it in enumerate(ite):
             diff = np.abs(all_keys - it)
-            keys[i] = all_keys[diff == np.min(diff)]
+            keys[i] = all_keys[diff == np.min(diff)][0]
     return keys
 
 
@@ -925,12 +929,22 @@ def _update_plot_properties(
             Defaults to False.
 
     """
-    if (len(domain) == 0) or (len(domain[0]) == 0) or (len(domain[1]) == 0):
-        plt.axis("equal")  # type: ignore[unreachable]
-    elif len(domain[0]) > 0:
-        plt.xlim(domain[0])  # type: ignore[unreachable]
-    elif len(domain[1]) > 0:  # type: ignore[unreachable]
-        plt.ylim(domain[1])  # type: ignore[unreachable]
+    ax = plt.gca()
+    has_x_domain = (len(domain) > 0) and (len(domain[0]) == 2)
+    has_y_domain = (len(domain) > 1) and (len(domain[1]) == 2)
+
+    if has_x_domain:
+        ax.set_xlim(domain[0])
+    if has_y_domain:
+        ax.set_ylim(domain[1])
+
+    # Ensure 1 unit in X == 1 unit in Y.
+    # When limits are explicitly set, use a fixed box so the data isn't
+    # stretched.
+    ax.set_aspect(
+        "equal",
+        adjustable="box" if (has_x_domain or has_y_domain) else "datalim",
+    )
 
     plt.grid(True, which="both", axis="both")
     plt.xlabel("X (m)")

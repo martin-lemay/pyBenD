@@ -22,7 +22,7 @@ keywords:
   - kinematics
 preferred-citation:
   type: software
-  title: "pyBenD: Python Bend Dynamics (v1.0.0)."
+  title: "pyBenD: Python Bend Dynamics."
   authors:
     - family-names: Lemay
       given-names: Martin

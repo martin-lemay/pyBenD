@@ -385,7 +385,7 @@ For points :math:`i` on the current centerline and :math:`j` on the previous one
 non-negative distances can be combined:
 
 - **Planform distance**: Euclidean distance between :math:`(x_i, y_i)` and
-	:math:`(x_j, y_j)`. If the distance exceeds ``dmax``, it is set to a very large
+  :math:`(x_j, y_j)`. If the distance exceeds ``dmax``, it is set to a very large
   penalty so that DTW avoids matching distant points. ``dmax`` is usually set to
   a meander wavelength.
 - **Curvature distance**: difference in *filtered curvature magnitude*

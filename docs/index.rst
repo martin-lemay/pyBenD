@@ -19,9 +19,9 @@ meandering system morphodynamic analysis.
 
    If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
 
-   - pyBenD v1.0.0: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0).
-     Zenodo. `doi.org/10.5281/zenodo.18442370 <https://doi.org/10.5281/zenodo.18442370>`_
-   - pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0).
+   - pyBenD v1.0.1: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.1).
+     Zenodo. `doi.org/10.5281/zenodo.18451972 <https://doi.org/10.5281/zenodo.18451972>`_
+   - pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics.
      Zenodo. `doi.org/10.5281/zenodo.18442369 <https://doi.org/10.5281/zenodo.18442369>`_
 
 
@@ -30,8 +30,8 @@ Installation
 
 To install pyBenD, you may either clone the ``GitHub`` `repository <https://github.com/martin-lemay/pyBenD.git>`_
 or download an archive in
-:download:`zip <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.0.zip>` or
-:download:`tar.gz <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.0.tar.gz>` 
+:download:`zip <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.1.zip>` or
+:download:`tar.gz <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.1.tar.gz>` 
 format. In both cases, it is recommended to use a 
 `virtual Python environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`_.
 
@@ -59,21 +59,21 @@ From pyBenD GitHub repository, run the following commands:
 
 
 If you downloaded an archive, install the package from the following commands
-(replace `PATH/TO/pyBenD-1.0.0.zip` to the actual path to the downloaded archive):
+(replace `PATH/TO/pyBenD-1.0.1.zip` to the actual path to the downloaded archive):
 
 - using pip (where .venv is your virtual environment directory):
 
 .. code-block:: bash
    
    source .venv/bin/activate
-   pip install PATH/TO/pyBenD-1.0.0.zip
+   pip install PATH/TO/pyBenD-1.0.1.zip
 
 - using conda (where venv is the name of an existing conda virtual environment):
 
 .. code-block:: bash
    
    conda activate venv
-   conda install PATH/TO/pyBenD-1.0.0.zip
+   conda install PATH/TO/pyBenD-1.0.1.zip
 
 
 Testing

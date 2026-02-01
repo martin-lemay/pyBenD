@@ -27,10 +27,10 @@ preferred-citation:
     - family-names: Lemay
       given-names: Martin
       orcid: "https://orcid.org/0000-0002-5538-7885"
-  version: 1.0.0
+  version: 1.0.1
   repository-code: "https://github.com/martin-lemay/pyBenD"
   url: "https://github.com/martin-lemay/pyBenD"
-  doi: "10.5281/zenodo.18442370"
+  doi: "10.5281/zenodo.18451972"
 references:
   - type: article
     title: "Geomorphic variability of submarine channelized systems along continental margins: Comparison with fluvial meandering channels"

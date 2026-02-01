@@ -596,9 +596,9 @@ migration increment:
 
 and discretizes it into a ternary sequence:
 
-- ``0`` if :math:`|\Delta d_k| < \texttt{mig_threshold}` (treated as aggradation-only),
-- ``+1`` if :math:`\Delta d_k \ge \texttt{mig_threshold}`,
-- ``-1`` if :math:`\Delta d_k \le -\texttt{mig_threshold}`.
+- ``0`` if :math:`|\Delta d_k| < \mathtt{mig\_threshold}` (treated as aggradation-only),
+- ``+1`` if :math:`\Delta d_k \ge \mathtt{mig\_threshold}`,
+- ``-1`` if :math:`\Delta d_k \le -\mathtt{mig\_threshold}`.
 
 The parameter ``mig_threshold`` therefore controls when lateral motion is
 considered significant. In ``notebooks/bend_kinematics_analysis.ipynb`` it is set

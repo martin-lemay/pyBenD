@@ -22,7 +22,7 @@ keywords:
   - kinematics
 preferred-citation:
   type: software
-  title: "pyBenD: Python Bend Dynamics"
+  title: "pyBenD: Python Bend Dynamics (v1.0.0)."
   authors:
     - family-names: Lemay
       given-names: Martin
@@ -30,6 +30,7 @@ preferred-citation:
   version: 1.0.0
   repository-code: "https://github.com/martin-lemay/pyBenD"
   url: "https://github.com/martin-lemay/pyBenD"
+  doi: "10.5281/zenodo.18442370"
 references:
   - type: article
     title: "Geomorphic variability of submarine channelized systems along continental margins: Comparison with fluvial meandering channels"

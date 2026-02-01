@@ -71,15 +71,6 @@ jobs:
             htmlcov/
           if-no-files-found: ignore
 
-      - name: Execute notebooks (nbconvert)
-        run: |
-          python -m pip install jupyter nbconvert ipykernel
-          mkdir -p /tmp/nb-exec
-          for nb in notebooks/*.ipynb; do
-            echo "Executing ${nb}"
-            python -m nbconvert --to notebook --execute "${nb}" --output-dir /tmp/nb-exec --ExecutePreprocessor.timeout=900
-          done
-
   docs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest

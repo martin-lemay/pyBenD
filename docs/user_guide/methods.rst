@@ -178,14 +178,14 @@ Curvature-distribution method (default)
 The default apex definition used in :meth:`~pybend.model.Centerline.Centerline.find_bend_apex`
 is based on the *median* of the cumulative filtered curvature distribution within the bend.
 
-Let $\kappa_i$ be the filtered curvature magnitude within the bend. The cumulative weighting
-function is built from $\kappa_i^n$ (``n`` is an exponent parameter):
+Let :math:`\kappa_i` be the filtered curvature magnitude within the bend. The cumulative weighting
+function is built from :math:`\kappa_i^n` (``n`` is an exponent parameter):
 
 .. math::
 
 	F(j) = \frac{\sum_{i \le j} |\kappa_i|^n}{\sum_i |\kappa_i|^n}
 
-The apex is the first index where $F(j) > 0.5$. Larger values of ``n`` put more emphasis
+The apex is the first index where :math:`F(j) > 0.5`. Larger values of ``n`` put more emphasis
 on the highest-curvature part of the bend.
 
 Probability-from-weights method
@@ -241,12 +241,12 @@ Morphometric parameters (bend scale)
 
 Let *o* be the two inflection points delimiting a bend and *x* the bend apex
 (:ref:`inflection points <glossary-inflection-point>` and :ref:`bend apex <glossary-bend-apex>`).
-Let $s$ denote the curvilinear abscissa along the
+Let :math:`s` denote the curvilinear abscissa along the
 centerline.
 
 - **Bend arc length** (:class:`~pybend.model.enumerations.MorphometricNames` ``ARC_LENGTH``):
 
-	The :ref:`bend arc length <glossary-bend-arc-length>` $L_b$ is the curvilinear distance between the two inflection
+	The :ref:`bend arc length <glossary-bend-arc-length>` :math:`L_b` is the curvilinear distance between the two inflection
 	points:
 
 	.. math::
@@ -258,7 +258,7 @@ centerline.
 
 - **Bend wavelength** (:class:`~pybend.model.enumerations.MorphometricNames` ``WAVELENGTH``):
 
-	The :ref:`bend wavelength <glossary-bend-wavelength>` $\lambda_b$ is the Euclidean distance between the upstream and
+	The :ref:`bend wavelength <glossary-bend-wavelength>` :math:`\lambda_b` is the Euclidean distance between the upstream and
 	downstream inflection points:
 
 	.. math::
@@ -267,10 +267,10 @@ centerline.
 
 - **Bend sinuosity** (:class:`~pybend.model.enumerations.MorphometricNames` ``SINUOSITY``):
 
-	Computed as :ref:`sinuosity <glossary-sinuosity>` $S = L_b / \lambda_b$ when $\lambda_b > 0$.
+	Computed as :ref:`sinuosity <glossary-sinuosity>` :math:`S = L_b / \lambda_b` when :math:`\lambda_b > 0`.
 
 - **Bend amplitude** (:class:`~pybend.model.enumerations.MorphometricNames` ``AMPLITUDE``):
-	The :ref:`bend amplitude <glossary-bend-amplitude>` $A_b$ is the orthogonal (perpendicular) distance from the apex
+	The :ref:`bend amplitude <glossary-bend-amplitude>` :math:`A_b` is the orthogonal (perpendicular) distance from the apex
 	point to the bend chord (the line through the two inflection points):
 
 	.. math::
@@ -282,14 +282,14 @@ centerline.
 
 - **Bend extension** (:class:`~pybend.model.enumerations.MorphometricNames` ``EXTENSION``):
 
-	The :ref:`bend extension <glossary-bend-extension>` $E_b$ is the distance from the apex to the midpoint of the chord
+	The :ref:`bend extension <glossary-bend-extension>` :math:`E_b` is the distance from the apex to the midpoint of the chord
 	(:ref:`bend center <glossary-bend-center>`):
 
 	.. math::
 
 			E_b = \|\mathbf{p}_{\mathrm{apex}} - \mathbf{p}_{\mathrm{center}}\|
 
-	where $\mathbf{p}_{\mathrm{center}}$ is the chord midpoint (XY midpoint; Z set
+	where :math:`\mathbf{p}_{\mathrm{center}}` is the chord midpoint (XY midpoint; Z set
 	to the mean Z of the two inflection points).
 
 - **Radius of curvature** (:class:`~pybend.model.enumerations.MorphometricNames` ``RADIUS_CURVATURE``):
@@ -301,7 +301,7 @@ centerline.
 
 			R = \frac{1}{|\kappa_{\mathrm{apex}}|}
 
-	If $|\kappa_{\mathrm{apex}}| = 0$, the radius is reported as NaN.
+	If :math:`|\kappa_{\mathrm{apex}}| = 0`, the radius is reported as NaN.
 
 - **Asymmetry coefficient** (:class:`~pybend.model.enumerations.MorphometricNames` ``ASYMMETRY``):
 
@@ -313,14 +313,14 @@ centerline.
 
 			AC = \frac{L_{\mathrm{up}} - L_{\mathrm{down}}}{L_b}
 
-	where $L_{\mathrm{up}}$ is the arc length from the upstream inflection point
-	to the apex, and $L_{\mathrm{down}}$ is the arc length from the apex to the
+	where :math:`L_{\mathrm{up}}` is the arc length from the upstream inflection point
+	to the apex, and :math:`L_{\mathrm{down}}` is the arc length from the apex to the
 	downstream inflection point.
 
 - **Roundness** (:class:`~pybend.model.enumerations.MorphometricNames` ``ROUNDNESS``):
 
 	The :ref:`roundness <glossary-bend-roundness>` coefficient (Schwenk et al., 2015) is computed from the
-	distribution of *filtered curvature magnitude* $|\kappa|$ within the bend:
+	distribution of *filtered curvature magnitude* :math:`|\kappa|` within the bend:
 
 	.. math::
 
@@ -330,14 +330,14 @@ centerline.
 
 	The skewness corresponds to Pearson's skewness coefficient of the curvature
 	spatial distribution. The curvilinear abscissa is first normalized to
-	$s' \in [0, 1]$ within the bend, and the skewness is evaluated as:
+	:math:`s' \in [0, 1]` within the bend, and the skewness is evaluated as:
 
 	.. math::
 
 			\mathrm{Skewness} = \frac{3\,(\mu - s'_{\mathrm{apex}})}{\sigma}
 
-	where $\mu$ and $\sigma$ are the mean and standard deviation of the curvature
-	spatial distribution computed from $|\kappa|$ and $s'$, and $s'_{\mathrm{apex}}$
+	where :math:`\mu` and :math:`\sigma` are the mean and standard deviation of the curvature
+	spatial distribution computed from :math:`|\kappa|` and :math:`s'`, and :math:`s'_{\mathrm{apex}}`
 	is the normalized curvilinear abscissa at the apex index.
 
 Morphometric parameters (meander scale, Leopold & Wolman)
@@ -381,11 +381,11 @@ The methodology for channel point tracking is inspired from
 
 **Cost matrix components**
 
-For points $i$ on the current centerline and $j$ on the previous one, three
+For points :math:`i` on the current centerline and :math:`j` on the previous one, three
 non-negative distances can be combined:
 
-- **Planform distance**: Euclidean distance between $(x_i, y_i)$ and
-  $(x_j, y_j)$. If the distance exceeds ``dmax``, it is set to a very large
+- **Planform distance**: Euclidean distance between :math:`(x_i, y_i)` and
+	:math:`(x_j, y_j)`. If the distance exceeds ``dmax``, it is set to a very large
   penalty so that DTW avoids matching distant points. ``dmax`` is usually set to
   a meander wavelength.
 - **Curvature distance**: difference in *filtered curvature magnitude*
@@ -550,14 +550,14 @@ Within a :class:`~pybend.model.Section.Section`, the channel position at each ag
 stored relative to the first intersected channel position according to the
 coordinates ``(d, dz)``, where:
 
-- $d$ is the signed lateral position along the section, measured relative to the
+- :math:`d` is the signed lateral position along the section, measured relative to the
   first channel occurrence on the section.
-- $dz$ is the vertical offset relative to that first occurrence.
+- :math:`dz` is the vertical offset relative to that first occurrence.
 
-The sign of $d$ is determined from the user-provided flow direction (``flow_dir``):
+The sign of :math:`d` is determined from the user-provided flow direction (``flow_dir``):
 the migration vector between the reference channel position and the current one is
 projected onto the direction perpendicular to ``flow_dir`` to assign the left/right
-side of migration. These $(d, dz)$ coordinates form ``Section.isolines_origin`` and
+side of migration. These :math:`(d, dz)` coordinates form ``Section.isolines_origin`` and
 are used to compute stacking-pattern classes
 (:meth:`~pybend.model.Section.Section.get_stacking_pattern_type`),
 apparent channel displacements
@@ -596,9 +596,9 @@ migration increment:
 
 and discretizes it into a ternary sequence:
 
-- ``0`` if $|\Delta d_k| < \texttt{mig_threshold}$ (treated as aggradation-only),
-- ``+1`` if $\Delta d_k \ge \texttt{mig_threshold}$,
-- ``-1`` if $\Delta d_k \le -\texttt{mig_threshold}$.
+- ``0`` if :math:`|\Delta d_k| < \texttt{mig_threshold}` (treated as aggradation-only),
+- ``+1`` if :math:`\Delta d_k \ge \texttt{mig_threshold}`,
+- ``-1`` if :math:`\Delta d_k \le -\texttt{mig_threshold}`.
 
 The parameter ``mig_threshold`` therefore controls when lateral motion is
 considered significant. In ``notebooks/bend_kinematics_analysis.ipynb`` it is set
@@ -607,17 +607,17 @@ proportionally to channel width (``mig_threshold = 0.0125 * width``).
 From steps to stacking-pattern types
 """"""""""""""""""""""""""""""""""""
 
-Let $f_0$, $f_{+}$, and $f_{-}$ be the fractions of steps classified as
+Let :math:`f_0`, :math:`f_{+}`, and :math:`f_{-}` be the fractions of steps classified as
 ``0``, ``+1`` and ``-1`` respectively. A first-order decision is made from these
 fractions using ``frac_threshold`` (default 0.95; also used in the notebook):
 
-- **Aggradation Only** (``StackingPatternType.AGGRADATION``) if $f_0$ exceeds
+- **Aggradation Only** (``StackingPatternType.AGGRADATION``) if :math:`f_0` exceeds
 	``frac_threshold``.
-- **One Way** (``StackingPatternType.ONE_WAY``) if either $f_{+}$ or $f_{-}$
+- **One Way** (``StackingPatternType.ONE_WAY``) if either :math:`f_{+}` or :math:`f_{-}`
 	exceeds ``frac_threshold``.
 
 When the trajectory contains both aggradation steps and a dominant migration
-direction such that $(f_0 + f_{+})$ or $(f_0 + f_{-})$ exceeds
+direction such that :math:`(f_0 + f_{+})` or :math:`(f_0 + f_{-})` exceeds
 ``frac_threshold``, pyBenD distinguishes between:
 
 - **Aggradation then One Way** (``StackingPatternType.AGGRAD_ONE_WAY``): a
@@ -684,12 +684,12 @@ Channel-point migration (Seine river example)
 The simplest kinematic metric is the **migration distance** of each
 :ref:`channel point <glossary-channel-point>` between two consecutive centerlines.
 
-After DTW matching, each centerline of age $t$ stores an index mapping
-``index_cl_pts_prev_centerline`` such that for a point $i$ on the current
-centerline, the matched point index on the previous centerline is $j$.
+After DTW matching, each centerline of age :math:`t` stores an index mapping
+``index_cl_pts_prev_centerline`` such that for a point :math:`i` on the current
+centerline, the matched point index on the previous centerline is :math:`j`.
 
-Let $\mathbf{p}_t(i)$ be the XY position of point $i$ at age $t$ and
-$\mathbf{p}_{t-1}(j)$ the matched XY position at age $t-1$. The planform
+Let :math:`\mathbf{p}_t(i)` be the XY position of point :math:`i` at age :math:`t` and
+:math:`\mathbf{p}_{t-1}(j)` the matched XY position at age :math:`t-1`. The planform
 migration vector and distance are:
 
 .. math::
@@ -790,7 +790,7 @@ and the local (dimensionless) :ref:`stratigraphic mobility number <glossary-stra
 
 	 M_{\mathrm{sb}} = \frac{\Delta x}{\Delta z}\,\frac{H}{W}
 
-where $W$ is channel width and $H$ is channel depth (see
+where :math:`W` is channel width and :math:`H` is channel depth (see
 :meth:`~pybend.model.Section.Section.section_averaged_channel_displacements`,
 after Jobe et al., 2016).
 

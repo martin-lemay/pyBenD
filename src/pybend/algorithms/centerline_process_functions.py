@@ -273,7 +273,7 @@ def find_inflection_points(
 
     Inflection points are determine such as the curvature change of sign. A
     given point at index i is an inflection point if the following condition
-    is met: :math:`$sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})$`.
+    is met: :math:`sign(C_{i-1}+C_{i}) != sign(C_{i}+C_{i+1})`.
 
     Args:
         curvature(NDArray[np.float64]): List of inflection point indexes.

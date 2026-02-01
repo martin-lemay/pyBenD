@@ -1,5 +1,5 @@
-[![CI](https://github.com/martin-lemay/pyBenD/actions/workflows/python-package.yml/badge.svg)](https://github.com/martin-lemay/pyBenD/actions)
-[![docs](https://readthedocs.com/projects/mlemay-pybend/badge/?version=latest)](https://mlemay-pybend.readthedocs.io/en/latest/)
+[![CI](https://github.com/martin-lemay/pyBenD/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/martin-lemay/pyBenD/actions/workflows/python-package.yml?query=branch%3Amain)
+[![docs](https://readthedocs.org/projects/mlemay-pybend/badge/?version=latest)](https://mlemay-pybend.readthedocs.io/en/latest/)
 
 # pyBenD (Python Bend Dynamics)
 pyBenD is a Python library to process channel centerlines of meandering systems and quantify meander morphology and dynamics (bends, cross-sections, morphometry, kinematics, and apex detection). It replaces the legacy [ChannelPy](https://github.com/martin-lemay/ChannelPy) repository.

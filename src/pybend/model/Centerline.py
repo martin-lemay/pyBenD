@@ -1164,7 +1164,7 @@ class Centerline:
     ) -> npt.NDArray[np.float64]:
         """Compute bend apex probability according to input weights.
 
-        Apex probability corresponds to the probability $[0, 1]$ of a channel
+        Apex probability corresponds to the probability :math:`[0, 1]` of a channel
         point being an apex according to its curvature, its distance to the
         bend middle point, and its distance to the closest inflection point.
 

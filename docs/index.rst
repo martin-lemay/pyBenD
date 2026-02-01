@@ -163,7 +163,7 @@ On each Pull Request, GitHub Actions runs:
 - ``ruff check`` (lint; currently non-blocking in CI)
 - ``mypy`` (static type checks)
 - ``pytest`` (tests + doctests)
-
+- ``sphinx`` (documentation build)
 
 Contents
 ----------

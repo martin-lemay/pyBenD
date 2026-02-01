@@ -13,8 +13,8 @@ A full documentation of the code can be found here: https://mlemay-pybend.readth
 
 If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
 
-* pyBenD v1.0.0: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18442370 
-* pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.18442369 
+* pyBenD v1.0.1: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.18442370 
+* pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.18442369 
 
 ## Quickstart
 
@@ -156,33 +156,33 @@ The `notebooks/` folder contains end-to-end case studies used in publications. I
 
 - to measure channel geomorphic parameters (see this [Jupyter notebook](https://github.com/martin-lemay/pyBenD/blob/main/notebooks/meander_morphometry_analysis.ipynb)):
 
-  Run it in the cloud (pinned to `v1.0.0`):
-  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.0?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb
-  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.0/notebooks/meander_morphometry_analysis.ipynb
+  Run it in the cloud (pinned to `v1.0.1`):
+  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb
+  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/meander_morphometry_analysis.ipynb
 
   Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2020). **Geomorphic variability of submarine channelized systems along continental margins: Comparison with fluvial meandering channels**. Marine and Petroleum Geology, 115, 104295. https://doi.org/10.1016/j.marpetgeo.2020.104295
 
 - to measure channel lateral migration (see this [Jupyter notebook](https://github.com/martin-lemay/pyBenD/blob/main/notebooks/seine_river_migration_analysis.ipynb)):
 
-  Run it in the cloud (pinned to `v1.0.0`):
-  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.0?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb
-  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.0/notebooks/seine_river_migration_analysis.ipynb
+  Run it in the cloud (pinned to `v1.0.1`):
+  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb
+  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/seine_river_migration_analysis.ipynb
 
   Grimaud, J. L., Gouge, P., Huyghe, D., Petit, C., Lestel, L., Eschbach, D., Lemay, M., Catry, J., Quaisse, I., Imperor, A., Szewczyk, L., Mordant, D. **Lateral river erosion impacts the preservation of Neolithic enclosures in alluvial plains**. Sci Rep 13, 16566 (2023). https://doi.org/10.1038/s41598-023-43849-6
 
 - to analyse channel evolution and measure kinematics (see this [Jupyter notebook](https://github.com/martin-lemay/pyBenD/blob/main/notebooks/bend_kinematics_analysis.ipynb)):
 
-  Run it in the cloud (pinned to `v1.0.0`):
-  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.0?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb
-  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.0/notebooks/bend_kinematics_analysis.ipynb
+  Run it in the cloud (pinned to `v1.0.1`):
+  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb
+  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/bend_kinematics_analysis.ipynb
 
   Lemay, M., Grimaud, J. L., Cojan, I., Rivoirard, J., & Ors, F. (2024). **Submarine channel stacking patterns controlled by the 3D kinematics of meander bends**. Geological Society, London, Special Publications, SP540-2022-143. https://doi.org/10.1144/SP540-2022-143. 
 
 - meander bend apex detection algorithm based on the cumulative curvature spatial distribution (see this notebook: [bend_apex_detection.ipynb](https://github.com/martin-lemay/pyBenD/blob/main/notebooks/bend_apex_detection.ipynb)):
 
-  Run it in the cloud (pinned to `v1.0.0`):
-  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.0?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb
-  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.0/notebooks/bend_apex_detection.ipynb
+  Run it in the cloud (pinned to `v1.0.1`):
+  - Binder (JupyterLab): https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb
+  - Google Colab: https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/bend_apex_detection.ipynb
 
   Lemay, M., Grimaud, J. L., & Limaye, A. B. (submitted to Earth Surface Processes and Landforms) **Automated detection of the apex of a meander bend using the cumulative spatial distribution of curvature.**
 

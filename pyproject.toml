@@ -15,7 +15,7 @@ name = "pybend"
 version = "1.0.0"
 description = "The Python package pyBenD is dedicated to process channel centerline data of meandering systems to measure and analyze meander morphology and dynamics."
 authors = [{name = "Martin Lemay", email = "martinlemay@mines-paris.org"}]
-license = {text = "MIT licnce"}
+license = {text = "MIT licence"}
 classifiers = [
     "Intended Audience :: Developers",
     "Development Status :: 4 - Beta",
@@ -173,6 +173,6 @@ module = [
 ignore_errors = true
 
 [project.urls]
-Homepage = "https://github.com/GEOS-DEV/martin-lemay/pyBenD"
+Homepage = "https://github.com/martin-lemay/pyBenD"
 Documentation = "https://mlemay-pybend.readthedocs.io/en/latest/index.html"
 Repository = "https://github.com/martin-lemay/pyBenD.git"

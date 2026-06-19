@@ -19,6 +19,7 @@ from pybend.io import (
     CenterlineIOFormat,
     load_centerline_from_file,
 )
+from pybend.model.Bend import get_bend_uid
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import BendSide, PropertyNames
 from pybend.utils.globalParameters import set_nb_procs
@@ -199,6 +200,8 @@ inflex_index_out_flumy: tuple[int, ...] = (
 
 # side of bends
 sides_out_flumy: tuple[BendSide, ...] = (
+    BendSide.STRAIGHT,
+    BendSide.STRAIGHT,
     BendSide.DOWN,
     BendSide.UP,
     BendSide.DOWN,
@@ -207,40 +210,38 @@ sides_out_flumy: tuple[BendSide, ...] = (
     BendSide.UP,
     BendSide.DOWN,
     BendSide.UP,
+    BendSide.STRAIGHT,
+    BendSide.STRAIGHT,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.STRAIGHT,
+    BendSide.STRAIGHT,
     BendSide.DOWN,
     BendSide.UP,
     BendSide.DOWN,
     BendSide.UP,
     BendSide.DOWN,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.STRAIGHT,
+    BendSide.DOWN,
+    BendSide.DOWN,
+    BendSide.UP,
+    BendSide.STRAIGHT,
+    BendSide.UP,
+    BendSide.DOWN,
+    BendSide.DOWN,
+    BendSide.STRAIGHT,
+    BendSide.STRAIGHT,
     BendSide.UP,
     BendSide.DOWN,
     BendSide.UP,
-    BendSide.DOWN,
+    BendSide.STRAIGHT,
     BendSide.UP,
     BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
-    BendSide.DOWN,
-    BendSide.UP,
+    BendSide.STRAIGHT,
     BendSide.DOWN,
     BendSide.UP,
     BendSide.DOWN,
@@ -1309,6 +1310,162 @@ class TestsCenterline(unittest.TestCase):
             self.fail("Unable to plot imported centerline.")
 
         set_nb_procs(1)
+
+
+class TestsBuildSpatialGraph(unittest.TestCase):
+    """Tests for Centerline.build_spatial_graph."""
+
+    def test_returns_graph(self: Self) -> None:
+        """build_spatial_graph returns a networkx Graph."""
+        import networkx as nx
+
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            sinuo_thres=sinuo_threshold, n=n,
+        )
+        g = cl.build_spatial_graph()
+        self.assertIsInstance(g, nx.Graph)
+
+    def test_node_count_matches_bends(self: Self) -> None:
+        """Number of nodes equals number of bends."""
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            sinuo_thres=sinuo_threshold, n=n,
+        )
+        g = cl.build_spatial_graph()
+        self.assertEqual(g.number_of_nodes(), len(cl.bends))
+
+    def test_cached_on_second_call(self: Self) -> None:
+        """Second call returns the same cached graph object."""
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            sinuo_thres=sinuo_threshold, n=n,
+        )
+        g1 = cl.build_spatial_graph()
+        g2 = cl.build_spatial_graph()
+        self.assertIs(g1, g2)
+        self.assertTrue(cl.spatial_graph_computed)
+
+    def test_flag_set_after_computation(self: Self) -> None:
+        """spatial_graph_computed is True after first call."""
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            sinuo_thres=sinuo_threshold, n=n,
+        )
+        self.assertFalse(cl.spatial_graph_computed)
+        cl.build_spatial_graph()
+        self.assertTrue(cl.spatial_graph_computed)
+
+    def test_stored_on_instance(self: Self) -> None:
+        """Graph is stored in self.spatial_graph."""
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            sinuo_thres=sinuo_threshold, n=n,
+        )
+        g = cl.build_spatial_graph()
+        self.assertIs(cl.spatial_graph, g)
+
+    def test_empty_when_no_bends(self: Self) -> None:
+        """No bends yields an empty graph."""
+        cl = Centerline(
+            age, dataset, spacing, smooth_distance,
+            find_bends=False,
+        )
+        g = cl.build_spatial_graph()
+        self.assertEqual(g.number_of_nodes(), 0)
+
+
+class TestMergeStraightBends(unittest.TestCase):
+    """Tests for _merge_consecutive_straight_bends."""
+
+    # Use a high sinuosity threshold to force STRAIGHT bends
+    high_sinuo_thres: float = 2.0
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Build centerlines with and without merging."""
+        cls.cl_no_merge = Centerline(
+            age_flumy,
+            dataset_flumy,
+            spacing_flumy,
+            smooth_distance_flumy,
+            use_fix_nb_points,
+            window_flumy,
+            cls.high_sinuo_thres,
+            n,
+        )
+        cls.cl_merged = Centerline(
+            age_flumy,
+            dataset_flumy,
+            spacing_flumy,
+            smooth_distance_flumy,
+            use_fix_nb_points,
+            window_flumy,
+            cls.high_sinuo_thres,
+            n,
+            merge_straight_bends=True,
+        )
+
+    def test_merge_straight_bends_default_off(
+        self: Self,
+    ) -> None:
+        """Default merge_straight_bends=False preserves all bends."""
+        # With high threshold, there should be consecutive STRAIGHT
+        # bends that are NOT merged
+        straight_count = sum(
+            1
+            for b in self.cl_no_merge.bends
+            if b.side == BendSide.STRAIGHT
+        )
+        self.assertGreater(straight_count, 0)
+        # Check for consecutive STRAIGHT bends
+        has_consecutive = any(
+            self.cl_no_merge.bends[i].side == BendSide.STRAIGHT
+            and self.cl_no_merge.bends[i + 1].side == BendSide.STRAIGHT
+            for i in range(len(self.cl_no_merge.bends) - 1)
+        )
+        self.assertTrue(has_consecutive)
+
+    def test_merge_straight_bends_merges_consecutive(
+        self: Self,
+    ) -> None:
+        """Merging reduces bend count by collapsing STRAIGHT runs."""
+        self.assertLess(
+            len(self.cl_merged.bends),
+            len(self.cl_no_merge.bends),
+        )
+        # No consecutive STRAIGHT bends remain
+        for i in range(len(self.cl_merged.bends) - 1):
+            if self.cl_merged.bends[i].side == BendSide.STRAIGHT:
+                self.assertNotEqual(
+                    self.cl_merged.bends[i + 1].side,
+                    BendSide.STRAIGHT,
+                )
+
+    def test_merge_straight_bends_ids_reassigned(
+        self: Self,
+    ) -> None:
+        """Bend IDs are sequential after merging."""
+        for i, bend in enumerate(self.cl_merged.bends):
+            self.assertEqual(bend.id, i)
+            expected_uid = get_bend_uid(i, self.cl_merged.age)
+            self.assertEqual(bend.uid, expected_uid)
+
+    def test_merge_straight_bends_valid_bends_untouched(
+        self: Self,
+    ) -> None:
+        """Valid bends are preserved with same inflection points."""
+        valid_no_merge = [
+            (b.index_inflex_up, b.index_inflex_down)
+            for b in self.cl_no_merge.bends
+            if b.is_valid
+        ]
+        valid_merged = [
+            (b.index_inflex_up, b.index_inflex_down)
+            for b in self.cl_merged.bends
+            if b.is_valid
+        ]
+        self.assertEqual(valid_no_merge, valid_merged)
 
 
 if __name__ == "__main__":

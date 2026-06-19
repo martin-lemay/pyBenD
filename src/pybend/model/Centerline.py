@@ -43,7 +43,7 @@ To use it:
 
 import functools
 from multiprocessing import Pool
-from typing import Optional, Self, cast
+from typing import TYPE_CHECKING, Optional, Self, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -57,7 +57,7 @@ from shapely.geometry import LineString, Polygon  # type: ignore
 
 import pybend.algorithms.centerline_process_functions as cpf
 import pybend.algorithms.geometry_functions as geom
-from pybend.model.Bend import Bend
+from pybend.model.Bend import Bend, get_bend_uid
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
     BendSide,
@@ -66,6 +66,9 @@ from pybend.model.enumerations import (
 )
 from pybend.utils.globalParameters import get_nb_procs
 from pybend.utils.logging import logger
+
+if TYPE_CHECKING:
+    import networkx as nx
 
 
 class Centerline:
@@ -84,6 +87,7 @@ class Centerline:
         compute_curvature: bool = True,
         interpol_props: bool = True,
         find_bends: bool = True,
+        merge_straight_bends: bool = False,
     ) -> None:
         """Store channel centerline as a collection of ClPoint.
 
@@ -118,6 +122,10 @@ class Centerline:
                 curvature and interpolate properties and detect meander bends
                 along channel centerline.
                 Defaults to True.
+            merge_straight_bends (bool, optional): If True, merge
+                consecutive STRAIGHT bends into a single bend after
+                bend detection.
+                Defaults to False.
         """
         #: age of the enterline
         self.age: int = age
@@ -125,12 +133,18 @@ class Centerline:
         self.cl_points: list[ClPoint] = []
         #: list od bends
         self.bends: list[Bend] = []
+        # Deprecated: unused, kept for reference.
         self.bends_filtered: list[Bend] = []
 
         #: indexes of each channel point in the previous centerline
         self.index_cl_pts_prev_centerline: list[int] = []
         #: indexes of each channel point in the next centerline
         self.index_cl_pts_next_centerline: list[list[int]] = []
+
+        #: spatial graph of bend adjacency
+        self.spatial_graph: Optional[nx.Graph] = None
+        #: True if spatial graph was computed
+        self.spatial_graph_computed: bool = False
 
         # if find bends, automatically compute curvature and interpolate
         # properties
@@ -145,8 +159,29 @@ class Centerline:
             interpol_props | find_bends,
         )
 
-        if find_bends and self.find_bends(sinuo_thres, n):
+        if find_bends and self.find_bends(
+            sinuo_thres, n, merge_straight_bends
+        ):
             logger.info("Bends found")
+
+    def build_spatial_graph(self: Self) -> "nx.Graph":
+        """Build the spatial graph of bend adjacency.
+
+        If the graph was already computed, returns the cached
+        result. Otherwise builds it, stores it, and returns it.
+
+        Returns:
+            nx.Graph: undirected path graph of bends.
+
+        """
+        if not self.spatial_graph_computed:
+            from pybend.model.BendGraph import (
+                build_spatial_graph,
+            )
+
+            self.spatial_graph = build_spatial_graph(self)
+            self.spatial_graph_computed = True
+        return self.spatial_graph  # type: ignore[return-value]
 
     def _init_centerline(
         self: Self,
@@ -314,7 +349,7 @@ class Centerline:
             list[int]: List of valid bends index
 
         """
-        return [bend.id for bend in self.bends if bend.isvalid]
+        return [bend.id for bend in self.bends if bend.is_valid]
 
     def get_property_list(self: Self) -> tuple[str]:
         """Get the list of property name stored on channel points.
@@ -819,16 +854,24 @@ class Centerline:
             inflex_pts = np.append(inflex_pts, [self.get_nb_points() - 1])
         return inflex_pts
 
-    def find_bends(self: Self, sinuo_thres: float, n: float) -> bool:
+    def find_bends(
+        self: Self,
+        sinuo_thres: float,
+        n: float,
+        merge_straight_bends: bool = False,
+    ) -> bool:
         """Find bends along the centerline.
 
-        Bends are defined as the points between two consecutive inflection
-        points.
+        Bends are defined as the points between two consecutive
+        inflection points.
 
         Args:
-            sinuo_thres (float): Sinuosity threshold used to discriminate valid
-                bends.
+            sinuo_thres (float): Sinuosity threshold used to
+                discriminate valid bends.
             n (float): exponent value
+            merge_straight_bends (bool, optional): If True,
+                merge consecutive STRAIGHT bends into a single
+                bend. Defaults to False.
 
         Returns:
             bool: True if calculation successfully ended.
@@ -839,8 +882,9 @@ class Centerline:
             PropertyNames.CURVATURE_FILTERED.value
             in self.cl_points[0].get_data().index
         ), (
-            "Smoothed curvature is not defined. Bends cannot be computed. "
-            + "Set compute_curvature option to True when importing centerline."
+            "Smoothed curvature is not defined. Bends cannot be "
+            "computed. Set compute_curvature option to True when "
+            "importing centerline."
         )
         try:
             inflex_pts_index: npt.NDArray[np.int64] = (
@@ -848,9 +892,16 @@ class Centerline:
             )
 
             if get_nb_procs() == 1:
-                self._create_bends_monoproc(inflex_pts_index, sinuo_thres, n)
+                self._create_bends_monoproc(
+                    inflex_pts_index, sinuo_thres, n
+                )
             else:
-                self._create_bends_multiproc(inflex_pts_index, sinuo_thres, n)
+                self._create_bends_multiproc(
+                    inflex_pts_index, sinuo_thres, n
+                )
+
+            if merge_straight_bends:
+                self._merge_consecutive_straight_bends()
 
         except Exception as err:
             logger.error("Bends were not detected due to:")
@@ -858,6 +909,38 @@ class Centerline:
 
             return False
         return True
+
+    def _merge_consecutive_straight_bends(self: Self) -> None:
+        """Merge consecutive STRAIGHT bends into a single bend.
+
+        Iterates ``self.bends`` and folds runs of consecutive
+        STRAIGHT bends using :meth:`Bend.__add__`. Valid bends
+        (UP/DOWN) pass through untouched. After merging, bend
+        IDs and UIDs are reassigned sequentially.
+
+        Merged STRAIGHT bends do not have their properties
+        (apex, center, centroid) recomputed.
+        """
+        if not self.bends:
+            return
+
+        merged: list[Bend] = [self.bends[0]]
+        for bend in self.bends[1:]:
+            prev = merged[-1]
+            if (
+                prev.side == BendSide.STRAIGHT
+                and bend.side == BendSide.STRAIGHT
+            ):
+                merged[-1] = prev + bend
+            else:
+                merged.append(bend)
+
+        # Reassign IDs and UIDs sequentially.
+        for i, bend in enumerate(merged):
+            bend.id = i
+            bend.uid = get_bend_uid(i, self.age)
+
+        self.bends = merged
 
     def _create_bend(
         self: Self, bend_id: int, inflex_index_up: int, inflex_index_down: int
@@ -898,10 +981,10 @@ class Centerline:
                 bend_index, inflex_index_up, inflex_index_down
             )
             self.bends += [bend]
-            side, isvalid, index_apex, pt_center = (
+            side, index_apex, pt_center = (
                 self._compute_bend_properties(sinuo_thres, n, bend_index)
             )
-            self._update_bend(bend.id, side, isvalid, index_apex, pt_center)
+            self._update_bend(bend.id, side, index_apex, pt_center)
 
     def _create_bends_multiproc(
         self: Self,
@@ -952,42 +1035,36 @@ class Centerline:
             )
 
         # update bends
-        for bend_index, (side, isvalid, index_apex, pt_center) in enumerate(
+        for bend_index, (side, index_apex, pt_center) in enumerate(
             outputs
         ):
-            self._update_bend(bend_index, side, isvalid, index_apex, pt_center)
+            self._update_bend(bend_index, side, index_apex, pt_center)
 
     def _update_bend(
         self: Self,
         bend_index: int,
         side: Optional[BendSide] = None,
-        valid: Optional[bool] = None,
         index_apex: Optional[int] = None,
         pt_center: Optional[npt.NDArray[np.float64]] = None,
         pt_centroid: Optional[npt.NDArray[np.float64]] = None,
     ) -> None:
-        """Update bend properties (side, validity, apex and middle points).
+        """Update bend properties (side, apex and middle points).
 
         Args:
             bend_index (int): Bend index.
             side (BendSide, optional): bend side
                 Defaults to None.
-            valid (bool, optional): bend validity
-                Defaults to None.
             index_apex (int, optional): bend apex index
                 Defaults to None.
-            pt_center (npt.NDArray[np.float64], optional): bend middle point
-                Defaults to None.
+            pt_center (npt.NDArray[np.float64], optional): bend middle
+                point. Defaults to None.
             pt_centroid (npt.NDArray[np.float64], optional): bend centroid
-                point
-                Defaults to None.
+                point. Defaults to None.
 
         """
         bend: Bend = self.bends[bend_index]
         if side is not None:
             bend.side = side
-        if valid is not None:
-            bend.isvalid = valid
         if index_apex is not None:
             bend.index_apex = index_apex
         if pt_center is not None:
@@ -997,29 +1074,28 @@ class Centerline:
 
     def _compute_bend_properties(
         self: Self, sinuo_thres: float, n: float, bend_index: int
-    ) -> tuple[BendSide, bool, int, npt.NDArray[np.float64]]:
-        """Compute bend properties (side, validity, apex and middle points).
+    ) -> tuple[BendSide, int, npt.NDArray[np.float64]]:
+        """Compute bend properties (side, apex and middle points).
 
         Args:
-            sinuo_thres (float): Sinuosity threshold used to discriminate valid
-                bends.
+            sinuo_thres (float): Sinuosity threshold used to discriminate
+                valid bends.
             n (float): exponent value
             bend_index (int): Bend index.
 
         Returns:
-            tuple[BendSide, bool, int, npt.NDArray[np.float64]]: tuple
-            containing side, isvalid, apex_index, and pt_center
+            tuple[BendSide, int, npt.NDArray[np.float64]]: tuple
+            containing side, apex_index, and pt_center
 
         """
-        side: BendSide = self.get_bend_side(bend_index)
-        isvalid: bool = self.check_if_bend_is_valid(sinuo_thres, bend_index)
+        side: BendSide = self.get_bend_side(bend_index, sinuo_thres)
         index_apex: int = self.find_bend_apex(n, bend_index)
         pt_center: npt.NDArray[np.float64] = self.compute_bend_middle(
             bend_index
         )
-        return side, isvalid, index_apex, pt_center
+        return side, index_apex, pt_center
 
-    # TODO: work in progress
+    # Deprecated: unused, kept for reference.
     def gather_consecutive_invalid_bends(
         self: Self, sinuo_thres: float
     ) -> None:
@@ -1035,13 +1111,13 @@ class Centerline:
             if self.check_if_bend_is_valid(sinuo_thres, i):
                 continue
 
-            while i + 1 < len(self.bends) and not self.bends[i + 1].isvalid:
+            while i + 1 < len(self.bends) and not self.bends[i + 1].is_valid:
                 new_bends[-1] = new_bends[-1] + self.bends[i + 1]
                 i += 1
         self.bends_filtered = new_bends
         logger.info("bends filtered")
 
-    # work in progress
+    # Deprecated: unused, kept for reference.
     def filter_bends(self: Self) -> bool:
         """Filter bends when some are unvalid.
 
@@ -1057,13 +1133,13 @@ class Centerline:
                 continue
 
             # if the bend i is valid it is saved
-            if bend.isvalid:
+            if bend.is_valid:
                 self.bends_filtered += [bend]
             else:
                 # look for the next valid bend
                 k = 1
                 while (
-                    i + k < len(self.bends) and not self.bends[i + k].isvalid
+                    i + k < len(self.bends) and not self.bends[i + k].is_valid
                 ):
                     k += 1
 
@@ -1086,7 +1162,7 @@ class Centerline:
                 # add all bends (until the next valid one included) to the
                 # last valid bend
                 if (k % 2 != 0) or (
-                    i + k == len(self.bends) - 1 and self.bends[i + k].isvalid
+                    i + k == len(self.bends) - 1 and self.bends[i + k].is_valid
                 ):
                     for j in range(1, k + 1):
                         self.bends_filtered[-1] = (
@@ -1332,16 +1408,23 @@ class Centerline:
         # TODO: refactor to manually set max threshold
         return (sinuo >= sinuo_thres) and (sinuo < 10.0)
 
-    def get_bend_side(self: Self, bend_index: int) -> BendSide:
+    def get_bend_side(
+        self: Self, bend_index: int, sinuo_thres: float
+    ) -> BendSide:
         """Compute bend side.
+
+        Returns STRAIGHT if the bend sinuosity is below the threshold.
 
         Args:
             bend_index (int): Index of the bend to treat.
+            sinuo_thres (float): Sinuosity threshold.
 
         Returns:
-            Bend_side: Bend side, either Bend_side.UP or Bend_side.DOWN.
+            BendSide: UP, DOWN, or STRAIGHT.
 
         """
+        if not self.check_if_bend_is_valid(sinuo_thres, bend_index):
+            return BendSide.STRAIGHT
         bend: Bend = self.bends[bend_index]
         curv: float = 0.0
         for cl_pt in self.cl_points[

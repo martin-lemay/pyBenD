@@ -16,6 +16,7 @@ from scipy.signal import find_peaks  # type: ignore[import-untyped]
 
 import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
+from pybend.model.enumerations import BendSide
 from pybend.utils.logging import logger
 
 
@@ -797,3 +798,42 @@ def get_keys_from_to(
         lkeys = sort_key(lkeys, sort_reverse)
 
     return [str(key) for key in lkeys]
+
+
+def compute_bend_side_from_curvature(
+    curvature: npt.NDArray[np.float64],
+    sinuosity: float,
+    sinuo_thres: float,
+) -> BendSide:
+    """Determine bend side from a curvature series.
+
+    Args:
+        curvature: Filtered curvature values over the bend span.
+        sinuosity: Precomputed sinuosity (arc length / wavelength).
+        sinuo_thres: Sinuosity threshold below which the bend
+            is considered straight.
+
+    Returns:
+        BendSide: UP if curvature sum > 0, DOWN otherwise,
+            or STRAIGHT if sinuosity is below the threshold.
+    """
+    if sinuosity < sinuo_thres:
+        return BendSide.STRAIGHT
+    curv_sum: float = float(np.sum(curvature))
+    return BendSide.UP if curv_sum > 0 else BendSide.DOWN
+
+
+def compute_bend_apex_from_curvature(
+    curvature: npt.NDArray[np.float64],
+    n: float,
+) -> int:
+    """Find apex relative index within a curvature series.
+
+    Args:
+        curvature: Absolute curvature values over the bend span.
+        n: Exponent for the median curvature computation.
+
+    Returns:
+        Relative index (0-based within the series) of the apex.
+    """
+    return compute_median_curvature_index(np.abs(curvature), n)

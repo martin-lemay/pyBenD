@@ -129,31 +129,18 @@ The workflow implemented in :meth:`~pybend.model.Centerline.Centerline.find_bend
 	:ref:`inflection points <glossary-inflection-point>` (upstream and downstream). Internally, this creates one
 	:class:`~pybend.model.Bend.Bend` object per interval.
 
-3. **Compute bend properties (side, validity, apex, and middle point)**
+3. **Compute bend properties (side, apex, and middle point)**
 
 	For each bend, pyBenD computes:
 
-	- **Bend side** (:class:`~pybend.model.enumerations.BendSide`): based on the
-	  sign of the *sum* of filtered curvature along the bend. Positive sum
-	  gives ``BendSide.UP``, negative gives ``BendSide.DOWN``.
+	- **Bend side** (:class:`~pybend.model.enumerations.BendSide`): determined
+	  by the sinuosity threshold and the sign of the *sum* of filtered curvature
+	  along the bend. If the bend sinuosity is below the threshold,
+	  ``BendSide.STRAIGHT`` is assigned. Otherwise, positive sum gives
+	  ``BendSide.UP``, negative gives ``BendSide.DOWN``.
 
-	- **Bend validity**: based on a sinuosity criterion computed between the two
-	  :ref:`inflection points <glossary-inflection-point>`.
-
-	  (See :ref:`Sinuosity <glossary-sinuosity>` in the Glossary.)
-
-	  - bend arc-length *L* is measured as the curvilinear abscissa difference,
-	  - bend chord length *D* is the Euclidean distance between inflection-point
-		 coordinates.
-
-	  The bend sinuosity is then:
-
-	  .. math::
-
-		  S = \frac{L}{D}
-
-	  A bend is marked valid if ``S >= sinuo_thres`` and ``S < 10`` (the upper bound is
-	  currently hard-coded).
+	  A bend is considered *valid* when its side is not ``STRAIGHT``
+	  (i.e. ``Bend.is_valid`` returns ``True``).
 
 	- **Bend middle point** (``Bend.pt_center``): the midpoint of the
 	  inflection-point chord (the :ref:`bend chord <glossary-bend-chord>`)

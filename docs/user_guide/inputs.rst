@@ -161,8 +161,8 @@ Additional parameters are needed to correctly sample the centerline, including:
     for filtering curvature. Defaults to 5.
 
 * ``sinuo_thres`` (float, optional): Sinuosity threshold used to
-    discriminate valid bends. Bends whom sinuosity is below this threshold are considered
-    invalid. Defaults to 1.05.
+    discriminate valid bends. Bends whose sinuosity is below this threshold
+    are assigned ``BendSide.STRAIGHT``. Defaults to 1.05.
 
 * ``n`` (float): exponent value for bend apex detection using curvature cumulative 
     spatial distribution method. Defaults to 2.
@@ -351,8 +351,8 @@ for creating a single :class:`~pybend.model.Centerline.Centerline` object, inclu
     for filtering curvature. Defaults to 5.
 
 * ``sinuo_thres`` (float, optional): Sinuosity threshold used to
-    discriminate valid bends. Bends whom sinuosity is below this threshold are considered
-    invalid. Defaults to 1.05.
+    discriminate valid bends. Bends whose sinuosity is below this threshold
+    are assigned ``BendSide.STRAIGHT``. Defaults to 1.05.
 
 * ``n`` (float): exponent value for bend apex detection using curvature cumulative 
     spatial distribution method. Defaults to 2.

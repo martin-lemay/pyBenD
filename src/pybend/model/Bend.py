@@ -87,8 +87,7 @@ class Bend:
         index_inflex_up: int,
         index_inflex_down: int,
         age: int = 0,
-        side: BendSide = BendSide.UNKNWON,
-        isvalid: bool = False,
+        side: BendSide = BendSide.UNKNOWN,
     ) -> None:
         """Store bend parameters associated to a Centerline object.
 
@@ -101,10 +100,7 @@ class Bend:
             age (int, optional): Age of the bend.
                 Defaults to 0.
             side (BendSide, optional): Bend side (UP, DOWN, or UNKNOWN).
-                Defaults to BendSide.UNKNWON.
-            isvalid (bool, optional): bend is valid if its sinuosity is greater
-                than a user defined threshold.
-                Defaults to False.
+                Defaults to BendSide.UNKNOWN.
 
         """
         #: bend id
@@ -113,8 +109,6 @@ class Bend:
         self.age: int = age
         #: bend unique id
         self.uid: int = get_bend_uid(bend_id, age)
-        #: bend is valid
-        self.isvalid: bool = isvalid
         #: bend side
         self.side: BendSide = side
 
@@ -160,6 +154,15 @@ class Bend:
         # meander geometry averaged over a given window (computed later)
         self.params_averaged: Optional[pd.DataFrame] = None
 
+    @property
+    def is_valid(self: Self) -> bool:
+        """Whether the bend is valid (not straight).
+
+        Returns:
+            bool: True if side is not STRAIGHT.
+        """
+        return self.side != BendSide.STRAIGHT
+
     def __repr__(self: Self) -> str:
         """Return a concise string representation.
 
@@ -185,7 +188,6 @@ class Bend:
             bend.index_inflex_down,
             self.age,
             self.side,
-            self.isvalid,
         )
         return new_bend
 

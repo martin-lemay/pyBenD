@@ -190,11 +190,11 @@ class TestsMorphometry(unittest.TestCase):
             "Radius are not equal.",
         )
 
-    def test_compute_bend_asymmetry(self: Self) -> None:
-        """Test of compute_bend_asymmetry method."""
+    def test_compute_bend_asymmetry_apex(self: Self) -> None:
+        """Test of compute_bend_asymmetry_apex method."""
         morph: Morphometry = Morphometry(centerline)
         obs = [
-            morph.compute_bend_asymmetry(i)
+            morph.compute_bend_asymmetry_apex(i)
             for i in range(morph.centerline.get_nb_bends())
         ]
         print(obs)

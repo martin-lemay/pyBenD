@@ -77,7 +77,6 @@ class TestsBend(unittest.TestCase):
                     index_inflex_down,
                     age,
                     side,
-                    True,
                 )
             except Exception as err:
                 print(err)
@@ -86,7 +85,7 @@ class TestsBend(unittest.TestCase):
             self.assertEqual(bend.id, bend_id)
             self.assertEqual(bend.age, age)
             self.assertEqual(bend.uid, uid)
-            self.assertTrue(bend.isvalid)
+            self.assertTrue(bend.is_valid)
             self.assertEqual(bend.side, side)
             self.assertEqual(bend.index_inflex_up, index_inflex_up)
             self.assertEqual(bend.index_inflex_down, index_inflex_down)
@@ -94,7 +93,7 @@ class TestsBend(unittest.TestCase):
     def test_bend_get_nb_points(self: Self) -> None:
         """Test of Bend.get_nb_points() method."""
         bend: Bend = Bend(
-            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True
+            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1
         )
         self.assertEqual(
             bend.get_nb_points(), index_inflex_down1 - index_inflex_up1 + 1
@@ -107,7 +106,7 @@ class TestsBend(unittest.TestCase):
             (bend_id2, index_inflex_up2, index_inflex_down2, age2, side2),
         ):
             bend: Bend = Bend(
-                bend_id, index_inflex_up, index_inflex_down, age, side, True
+                bend_id, index_inflex_up, index_inflex_down, age, side
             )
             if bend is None:
                 self.skipTest("Bend object was not created.")
@@ -116,10 +115,10 @@ class TestsBend(unittest.TestCase):
     def test_bend_add(self: Self) -> None:
         """Test of Bend.__add__() method."""
         bend1 = Bend(
-            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True
+            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1
         )
         bend2 = Bend(
-            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True
+            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2
         )
         if (bend1 is None) or (bend2 is None):
             self.skipTest("Bend object was not created.")
@@ -128,7 +127,7 @@ class TestsBend(unittest.TestCase):
         self.assertEqual(bend.id, bend_id1)
         self.assertEqual(bend.age, age1)
         self.assertEqual(bend.uid, uid_out1)
-        self.assertTrue(bend.isvalid)
+        self.assertTrue(bend.is_valid)
         self.assertEqual(bend.side, side1)
         self.assertEqual(bend.index_inflex_up, index_inflex_up1)
         self.assertEqual(bend.index_inflex_down, index_inflex_down2)
@@ -139,10 +138,10 @@ class TestsBend(unittest.TestCase):
     def test_equality(self: Self) -> None:
         """Test of Bend.__eq__() method."""
         bend1 = Bend(
-            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1, True
+            bend_id1, index_inflex_up1, index_inflex_down1, age1, side1
         )
         bend2 = Bend(
-            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2, True
+            bend_id2, index_inflex_up2, index_inflex_down2, age2, side2
         )
         if (bend1 is None) or (bend2 is None):
             self.skipTest("Bend object was not created.")
@@ -156,7 +155,7 @@ class TestsBend(unittest.TestCase):
             (bend_id2, index_inflex_up2, index_inflex_down2, age2, side2),
         ):
             bend: Bend = Bend(
-                bend_id, index_inflex_up, index_inflex_down, age, side, True
+                bend_id, index_inflex_up, index_inflex_down, age, side
             )
             if bend is None:
                 self.skipTest("Bend object was not created.")
@@ -173,7 +172,7 @@ class TestsBend(unittest.TestCase):
             (bend_id2, index_inflex_up2, index_inflex_down2, age2, side2),
         ):
             bend: Bend = Bend(
-                bend_id, index_inflex_up, index_inflex_down, age, side, True
+                bend_id, index_inflex_up, index_inflex_down, age, side
             )
             if bend is None:
                 self.skipTest("Bend object was not created.")

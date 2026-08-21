@@ -45,20 +45,30 @@ class BendConnectionMethod(StrEnum):
     CENTROID = "From Centroid"
     #: Connected bends: greatest number of cnnected channel points.
     MATCHING = "From Matching"
+    #: Connected bends: Needleman-Wunsch sequence alignment.
+    SEQUENCE_ALIGNMENT = "From Sequence Alignment"
+    #: Connected bends: Dynamic Time Warping alignment.
+    DTW = "From DTW"
+    #: Connected bends: Generalized NW alignment with
+    #: merge/split transitions.
+    GENERALIZED_ALIGNMENT = "From Generalized Alignment"
 
 
 class BendSide(StrEnum):
     """Enum for bend side.
 
-    Bend is UP if curvature is positive and is DOWN if curvature is negative.
+    Bend is UP if curvature is positive, DOWN if curvature is negative,
+    and STRAIGHT if the bend sinuosity is below the validity threshold.
     """
 
     #: positive curvature bend
     UP = "up"
     #: negative curvature bend
     DOWN = "down"
+    #: bend below sinuosity threshold (invalid)
+    STRAIGHT = "straight"
     #: undefined side
-    UNKNWON = "unknown"
+    UNKNOWN = "unknown"
 
 
 class CreateSectionMethod(StrEnum):
@@ -91,7 +101,11 @@ class MorphometricNames(StrEnum):
     EXTENSION = "Extension"
     RADIUS_CURVATURE = "RadiusCurvature"
     ASYMMETRY = "Asymmetry"
+    ASYMMETRY_CENTROID = "Asymmetry_Centroid"
     ROUNDNESS = "Roundness"
     SKEWNESS = "Skewness"
+    MAX_AMPLITUDE = "Max_Amplitude"
+    MAX_EXTENSION = "Max_Extension"
+    MATURITY_INDEX = "Maturity_Index"
     WAVELENGTH_LEOPOLD = "Wavelength_Leopold"
     AMPLITUDE_LEOPOLD = "Amplitude_Leopold"

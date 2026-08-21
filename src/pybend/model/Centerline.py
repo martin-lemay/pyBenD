@@ -57,6 +57,10 @@ from shapely.geometry import LineString, Polygon  # type: ignore
 
 import pybend.algorithms.centerline_process_functions as cpf
 import pybend.algorithms.geometry_functions as geom
+from pybend.algorithms.centerline_process_functions import (
+    compute_bend_apex_from_curvature,
+    compute_bend_side_from_curvature,
+)
 from pybend.model.Bend import Bend, get_bend_uid
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
@@ -892,15 +896,14 @@ class Centerline:
             )
 
             if get_nb_procs() == 1:
-                self._create_bends_monoproc(
-                    inflex_pts_index, sinuo_thres, n
-                )
+                self._create_bends_monoproc(inflex_pts_index, sinuo_thres, n)
             else:
-                self._create_bends_multiproc(
-                    inflex_pts_index, sinuo_thres, n
-                )
+                self._create_bends_multiproc(inflex_pts_index, sinuo_thres, n)
 
             if merge_straight_bends:
+                # first remove small straight segments
+                # self._merge_nearly_compound_bends(sinuo_thres, n)
+                # then merge consecutive straight segments
                 self._merge_consecutive_straight_bends()
 
         except Exception as err:
@@ -918,29 +921,91 @@ class Centerline:
         (UP/DOWN) pass through untouched. After merging, bend
         IDs and UIDs are reassigned sequentially.
 
-        Merged STRAIGHT bends do not have their properties
-        (apex, center, centroid) recomputed.
+        Merged STRAIGHT bends have their ``index_apex`` and
+        ``pt_center`` recomputed.
         """
         if not self.bends:
             return
 
         merged: list[Bend] = [self.bends[0]]
+        compounds: set[int] = set()
         for bend in self.bends[1:]:
             prev = merged[-1]
             if (
                 prev.side == BendSide.STRAIGHT
                 and bend.side == BendSide.STRAIGHT
             ):
-                merged[-1] = prev + bend
+                new = prev + bend
+                merged[-1] = new
+                compounds.add(id(new))
             else:
                 merged.append(bend)
 
-        # Reassign IDs and UIDs sequentially.
-        for i, bend in enumerate(merged):
+        self.bends = merged
+
+        # Reassign IDs/UIDs and recompute properties for merged.
+        for i, bend in enumerate(self.bends):
             bend.id = i
             bend.uid = get_bend_uid(i, self.age)
+            if id(bend) in compounds:
+                bend.index_apex = (
+                    bend.index_inflex_up + bend.index_inflex_down
+                ) // 2
+                bend.pt_center = self.compute_bend_middle(i)
 
-        self.bends = merged
+    def _merge_nearly_compound_bends(
+        self: Self, sinuo_thres: float, n: float
+    ) -> None:
+        """Merge nearly compound bends (valid–straight–valid with same side).
+
+        When a STRAIGHT bend is bounded by two valid bends that share
+        the same :class:`BendSide`, all three are merged into a single
+        valid bend using :meth:`Bend.__add__`.  The resulting bend
+        keeps the side of the surrounding valid bends.
+
+        The method iterates until no more merges can be performed, then
+        reassigns bend IDs and UIDs sequentially and recomputes
+        properties (side, apex, center) for every merged bend.
+
+        Args:
+            sinuo_thres: Sinuosity threshold for bend validity.
+            n: Exponent of curvature distribution function.
+        """
+        changed = True
+        # Track bends produced by merging (by identity).
+        compounds: set[int] = set()
+        while changed:
+            changed = False
+            merged: list[Bend] = []
+            i = 0
+            while i < len(self.bends):
+                if (
+                    i + 2 < len(self.bends)
+                    and self.bends[i].is_valid
+                    and self.bends[i + 1].side == BendSide.STRAIGHT
+                    and self.bends[i + 2].is_valid
+                    and self.bends[i].side == self.bends[i + 2].side
+                ):
+                    compound = self.bends[i] + self.bends[i + 1]
+                    compound = compound + self.bends[i + 2]
+                    merged.append(compound)
+                    compounds.add(id(compound))
+                    i += 3
+                    changed = True
+                else:
+                    merged.append(self.bends[i])
+                    i += 1
+            self.bends = merged
+
+        # Reassign IDs/UIDs and recompute properties for compounds.
+        for i, bend in enumerate(self.bends):
+            bend.id = i
+            bend.uid = get_bend_uid(i, self.age)
+            if id(bend) in compounds:
+                side, index_apex, pt_center = self._compute_bend_properties(
+                    sinuo_thres, n, i
+                )
+                self._update_bend(i, side, index_apex, pt_center)
 
     def _create_bend(
         self: Self, bend_id: int, inflex_index_up: int, inflex_index_down: int
@@ -981,8 +1046,8 @@ class Centerline:
                 bend_index, inflex_index_up, inflex_index_down
             )
             self.bends += [bend]
-            side, index_apex, pt_center = (
-                self._compute_bend_properties(sinuo_thres, n, bend_index)
+            side, index_apex, pt_center = self._compute_bend_properties(
+                sinuo_thres, n, bend_index
             )
             self._update_bend(bend.id, side, index_apex, pt_center)
 
@@ -1035,9 +1100,7 @@ class Centerline:
             )
 
         # update bends
-        for bend_index, (side, index_apex, pt_center) in enumerate(
-            outputs
-        ):
+        for bend_index, (side, index_apex, pt_center) in enumerate(outputs):
             self._update_bend(bend_index, side, index_apex, pt_center)
 
     def _update_bend(
@@ -1423,15 +1486,22 @@ class Centerline:
             BendSide: UP, DOWN, or STRAIGHT.
 
         """
-        if not self.check_if_bend_is_valid(sinuo_thres, bend_index):
-            return BendSide.STRAIGHT
         bend: Bend = self.bends[bend_index]
-        curv: float = 0.0
-        for cl_pt in self.cl_points[
-            bend.index_inflex_up : bend.index_inflex_down + 1
-        ]:
-            curv += cl_pt.curvature_filtered()
-        return BendSide.UP if curv > 0 else BendSide.DOWN
+        cl_pt_up: ClPoint = self.cl_points[bend.index_inflex_up]
+        cl_pt_down: ClPoint = self.cl_points[bend.index_inflex_down]
+        arc_length: float = abs(cl_pt_down._s - cl_pt_up._s)
+        d_inflex: float = geom.distance(cl_pt_up.pt, cl_pt_down.pt)
+        sinuosity: float = (
+            arc_length / d_inflex if d_inflex > 0.0 else 1.0
+        )
+        # Bends with unrealistically high sinuosity are treated as straight
+        # (mirrors the upper-bound check in check_if_bend_is_valid).
+        if sinuosity >= 10.0:
+            sinuosity = 0.0
+        curvature = self.get_bend_curvature_filtered(bend.id)
+        return compute_bend_side_from_curvature(
+            curvature, sinuosity, sinuo_thres
+        )
 
     # apex from apex probability using automatic calculation
     def find_bend_apex_from_weights(self: Self, bend_index: int) -> int:
@@ -1493,11 +1563,10 @@ class Centerline:
                 self._update_bend(bend_index, index_apex=index_apex)
 
     def find_bend_apex(self: Self, n: float, bend_index: int) -> int:
-        """Find bend apex from cummulative curvature function.
+        """Find bend apex from cumulative curvature function.
 
         Args:
             n (float): exponent value
-
             bend_index (int): Index of the bend to treat.
 
         Returns:
@@ -1505,11 +1574,10 @@ class Centerline:
 
         """
         bend: Bend = self.bends[bend_index]
-        curvature: npt.NDArray[np.float64] = np.abs(
-            self.get_bend_curvature_filtered(bend.id)
+        curvature = self.get_bend_curvature_filtered(bend.id)
+        return bend.index_inflex_up + compute_bend_apex_from_curvature(
+            curvature, n
         )
-        apex_index = cpf.compute_median_curvature_index(curvature, n)
-        return bend.index_inflex_up + apex_index
 
     def find_all_bend_apex(self: Self, n: float) -> None:
         """Find bend apex and update Bend for all bends of the centerline.

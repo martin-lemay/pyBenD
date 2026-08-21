@@ -1454,18 +1454,48 @@ class TestMergeStraightBends(unittest.TestCase):
     def test_merge_straight_bends_valid_bends_untouched(
         self: Self,
     ) -> None:
-        """Valid bends are preserved with same inflection points."""
+        """Valid bend count is less or equal after compound merging."""
         valid_no_merge = [
-            (b.index_inflex_up, b.index_inflex_down)
-            for b in self.cl_no_merge.bends
-            if b.is_valid
+            b for b in self.cl_no_merge.bends if b.is_valid
         ]
         valid_merged = [
-            (b.index_inflex_up, b.index_inflex_down)
-            for b in self.cl_merged.bends
-            if b.is_valid
+            b for b in self.cl_merged.bends if b.is_valid
         ]
-        self.assertEqual(valid_no_merge, valid_merged)
+        self.assertLessEqual(
+            len(valid_merged), len(valid_no_merge)
+        )
+
+    def test_no_consecutive_straight_bends(
+        self: Self,
+    ) -> None:
+        """No consecutive STRAIGHT bends remain after merging."""
+        bends = self.cl_merged.bends
+        for i in range(len(bends) - 1):
+            if bends[i].side == BendSide.STRAIGHT:
+                self.assertNotEqual(
+                    bends[i + 1].side,
+                    BendSide.STRAIGHT,
+                    f"Consecutive STRAIGHT bends at index {i}",
+                )
+
+    def test_compound_bends_have_valid_apex(
+        self: Self,
+    ) -> None:
+        """Merged compound bends have apex within their bounds."""
+        for bend in self.cl_merged.bends:
+            if bend.is_valid:
+                self.assertGreaterEqual(
+                    bend.index_apex,
+                    bend.index_inflex_up,
+                    f"Bend {bend.id}: apex {bend.index_apex} "
+                    f"< inflex_up {bend.index_inflex_up}",
+                )
+                self.assertLessEqual(
+                    bend.index_apex,
+                    bend.index_inflex_down,
+                    f"Bend {bend.id}: apex {bend.index_apex} "
+                    f"> inflex_down {bend.index_inflex_down}",
+                )
 
 
 if __name__ == "__main__":

@@ -1320,8 +1320,12 @@ class TestsBuildSpatialGraph(unittest.TestCase):
         import networkx as nx
 
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
-            sinuo_thres=sinuo_threshold, n=n,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
+            sinuo_thres=sinuo_threshold,
+            n=n,
         )
         g = cl.build_spatial_graph()
         self.assertIsInstance(g, nx.Graph)
@@ -1329,8 +1333,12 @@ class TestsBuildSpatialGraph(unittest.TestCase):
     def test_node_count_matches_bends(self: Self) -> None:
         """Number of nodes equals number of bends."""
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
-            sinuo_thres=sinuo_threshold, n=n,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
+            sinuo_thres=sinuo_threshold,
+            n=n,
         )
         g = cl.build_spatial_graph()
         self.assertEqual(g.number_of_nodes(), len(cl.bends))
@@ -1338,8 +1346,12 @@ class TestsBuildSpatialGraph(unittest.TestCase):
     def test_cached_on_second_call(self: Self) -> None:
         """Second call returns the same cached graph object."""
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
-            sinuo_thres=sinuo_threshold, n=n,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
+            sinuo_thres=sinuo_threshold,
+            n=n,
         )
         g1 = cl.build_spatial_graph()
         g2 = cl.build_spatial_graph()
@@ -1349,8 +1361,12 @@ class TestsBuildSpatialGraph(unittest.TestCase):
     def test_flag_set_after_computation(self: Self) -> None:
         """spatial_graph_computed is True after first call."""
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
-            sinuo_thres=sinuo_threshold, n=n,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
+            sinuo_thres=sinuo_threshold,
+            n=n,
         )
         self.assertFalse(cl.spatial_graph_computed)
         cl.build_spatial_graph()
@@ -1359,8 +1375,12 @@ class TestsBuildSpatialGraph(unittest.TestCase):
     def test_stored_on_instance(self: Self) -> None:
         """Graph is stored in self.spatial_graph."""
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
-            sinuo_thres=sinuo_threshold, n=n,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
+            sinuo_thres=sinuo_threshold,
+            n=n,
         )
         g = cl.build_spatial_graph()
         self.assertIs(cl.spatial_graph, g)
@@ -1368,7 +1388,10 @@ class TestsBuildSpatialGraph(unittest.TestCase):
     def test_empty_when_no_bends(self: Self) -> None:
         """No bends yields an empty graph."""
         cl = Centerline(
-            age, dataset, spacing, smooth_distance,
+            age,
+            dataset,
+            spacing,
+            smooth_distance,
             find_bends=False,
         )
         g = cl.build_spatial_graph()
@@ -1380,6 +1403,8 @@ class TestMergeStraightBends(unittest.TestCase):
 
     # Use a high sinuosity threshold to force STRAIGHT bends
     high_sinuo_thres: float = 2.0
+    cl_no_merge: Centerline
+    cl_merged: Centerline
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1413,9 +1438,7 @@ class TestMergeStraightBends(unittest.TestCase):
         # With high threshold, there should be consecutive STRAIGHT
         # bends that are NOT merged
         straight_count = sum(
-            1
-            for b in self.cl_no_merge.bends
-            if b.side == BendSide.STRAIGHT
+            1 for b in self.cl_no_merge.bends if b.side == BendSide.STRAIGHT
         )
         self.assertGreater(straight_count, 0)
         # Check for consecutive STRAIGHT bends
@@ -1455,15 +1478,9 @@ class TestMergeStraightBends(unittest.TestCase):
         self: Self,
     ) -> None:
         """Valid bend count is less or equal after compound merging."""
-        valid_no_merge = [
-            b for b in self.cl_no_merge.bends if b.is_valid
-        ]
-        valid_merged = [
-            b for b in self.cl_merged.bends if b.is_valid
-        ]
-        self.assertLessEqual(
-            len(valid_merged), len(valid_no_merge)
-        )
+        valid_no_merge = [b for b in self.cl_no_merge.bends if b.is_valid]
+        valid_merged = [b for b in self.cl_merged.bends if b.is_valid]
+        self.assertLessEqual(len(valid_merged), len(valid_no_merge))
 
     def test_no_consecutive_straight_bends(
         self: Self,

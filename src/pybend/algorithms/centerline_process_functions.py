@@ -649,7 +649,7 @@ def compute_skewness(
     curv_abscissa: npt.NDArray[np.float64],
     n: float,
 ) -> float:
-    """Compute Fisher-Pearson's skewness coeff of curvature distribution function.
+    """Compute Fisher-Pearson's skewness coeff of curvature distribution.
 
     Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function

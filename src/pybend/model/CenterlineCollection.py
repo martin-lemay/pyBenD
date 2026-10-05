@@ -30,9 +30,6 @@ import pybend.algorithms.centerline_process_functions as cpf
 import pybend.algorithms.geometry_functions as geom
 from pybend.model.Bend import Bend, parse_bend_uid
 from pybend.model.BendEvolution import BendEvolution
-from pybend.model.BendGraph import (
-    build_bend_evolutions_from_graph,
-)
 from pybend.model.Centerline import Centerline
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
@@ -863,73 +860,11 @@ class CenterlineCollection:
                     bend_evol_validity,
                     weighting_func_type=weighting_func_type,
                 )
-            case BendConnectionMethod.SEQUENCE_ALIGNMENT:
-                if norm_width <= 0:
-                    raise ValueError(
-                        "norm_width must be > 0 for SEQUENCE_ALIGNMENT."
-                    )
-                return self._connect_bends_sequence_alignment(
-                    bend_evol_validity,
-                    norm_width,
-                    weights,
-                    gap_penalty_metric,
-                    gap_penalty_scale,
-                    spatial_tolerance,
-                )
-            case BendConnectionMethod.DTW:
-                if norm_width <= 0:
-                    raise ValueError("norm_width must be > 0 for DTW.")
-                return self._connect_bends_dtw(
-                    bend_evol_validity,
-                    norm_width,
-                    weights,
-                    step_pattern,
-                    birth_death_threshold,
-                    max_apex_distance_factor,
-                )
             case _:
                 methods = [str(meth) for meth in list(BendConnectionMethod)]  # type: ignore[unreachable]
                 raise TypeError(
                     "Input method is wrong. Methods are: ".join(methods)
                 )
-
-    def _connect_bends_sequence_alignment(
-        self: Self,
-        bend_evol_validity: int,
-        norm_width: float,
-        weights: dict[str, float] | None,
-        gap_penalty_metric: str,
-        gap_penalty_scale: float,
-        spatial_tolerance: float,
-    ) -> bool:
-        """Connect bends using NW sequence alignment.
-
-        Args:
-            bend_evol_validity: min time steps for validity.
-            norm_width: channel width for normalization.
-            weights: cost function weights.
-            gap_penalty_metric: "sinuosity" or "curvature".
-            gap_penalty_scale: gap penalty multiplier.
-            spatial_tolerance: max distance in norm_width units.
-
-        Returns:
-            bool: True if successful.
-
-        """
-        graph = self.build_temporal_graph(
-            norm_width,
-            weights,
-            gap_penalty_metric,
-            gap_penalty_scale,
-            spatial_tolerance,
-        )
-        self.bends_evol = build_bend_evolutions_from_graph(
-            graph,
-            self,
-            bend_evol_validity,
-        )
-        self.bends_tracking_computed = True
-        return True
 
     # TODO: refactor with same method as _connect_bends_from_matching
     def _connect_bends_apex(

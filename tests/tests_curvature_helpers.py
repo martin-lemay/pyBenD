@@ -23,7 +23,9 @@ class TestComputeBendSideFromCurvature(unittest.TestCase):
         """Positive curvature sum with valid sinuosity returns UP."""
         curvature = np.array([0.1, 0.3, 0.5, 0.3, 0.1])
         result = compute_bend_side_from_curvature(
-            curvature, sinuosity=1.5, sinuo_thres=1.05,
+            curvature,
+            sinuosity=1.5,
+            sinuo_thres=1.05,
         )
         self.assertEqual(result, BendSide.UP)
 
@@ -31,7 +33,9 @@ class TestComputeBendSideFromCurvature(unittest.TestCase):
         """Negative curvature sum with valid sinuosity returns DOWN."""
         curvature = np.array([-0.1, -0.3, -0.5, -0.3, -0.1])
         result = compute_bend_side_from_curvature(
-            curvature, sinuosity=1.5, sinuo_thres=1.05,
+            curvature,
+            sinuosity=1.5,
+            sinuo_thres=1.05,
         )
         self.assertEqual(result, BendSide.DOWN)
 
@@ -39,7 +43,9 @@ class TestComputeBendSideFromCurvature(unittest.TestCase):
         """Sinuosity below threshold returns STRAIGHT."""
         curvature = np.array([0.1, 0.3, 0.5, 0.3, 0.1])
         result = compute_bend_side_from_curvature(
-            curvature, sinuosity=1.01, sinuo_thres=1.05,
+            curvature,
+            sinuosity=1.01,
+            sinuo_thres=1.05,
         )
         self.assertEqual(result, BendSide.STRAIGHT)
 
@@ -47,7 +53,9 @@ class TestComputeBendSideFromCurvature(unittest.TestCase):
         """Zero curvature sum (not > 0) returns DOWN."""
         curvature = np.array([0.1, -0.1, 0.0])
         result = compute_bend_side_from_curvature(
-            curvature, sinuosity=1.5, sinuo_thres=1.05,
+            curvature,
+            sinuosity=1.5,
+            sinuo_thres=1.05,
         )
         self.assertEqual(result, BendSide.DOWN)
 

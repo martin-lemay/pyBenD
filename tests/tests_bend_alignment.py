@@ -124,6 +124,12 @@ class TestSplitMergeResultDataclass(unittest.TestCase):
 class TestComputeSubstitutionCost(unittest.TestCase):
     """Tests for _compute_substitution_cost function."""
 
+    cl_1: Centerline
+    cl_2: Centerline
+    morpho_1: Morphometry
+    morpho_2: Morphometry
+    norm_width: float
+
     @classmethod
     def setUpClass(cls) -> None:
         """Create two centerlines with bends for cost tests."""
@@ -244,6 +250,9 @@ class TestComputeSubstitutionCost(unittest.TestCase):
 class TestComputeGapPenalty(unittest.TestCase):
     """Tests for _compute_gap_penalty function."""
 
+    cl: Centerline
+    morpho: Morphometry
+
     @classmethod
     def setUpClass(cls) -> None:
         """Create a centerline for gap penalty tests."""
@@ -286,6 +295,11 @@ class TestComputeGapPenalty(unittest.TestCase):
 
 class TestAlignBendSequences(unittest.TestCase):
     """Tests for align_bend_sequences function."""
+
+    cl_1: Centerline
+    cl_2: Centerline
+    cl_few: Centerline
+    norm_width: float
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -336,6 +350,10 @@ class TestAlignBendSequences(unittest.TestCase):
 
 class TestSplitMergeDetection(unittest.TestCase):
     """Tests for detect_splits_and_merges function."""
+
+    cl_1: Centerline
+    cl_2: Centerline
+    norm_width: float
 
     @classmethod
     def setUpClass(cls) -> None:

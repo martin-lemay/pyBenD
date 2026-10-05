@@ -91,19 +91,19 @@ class TestsProcessFunctions(unittest.TestCase):
         self.assertTrue(np.array_equal(expected, np.round(bend, 4)))
 
         # visual check
-        plt.figure(dpi=150)
-        plt.plot(bend.T[0], bend.T[1], "k--", label="Kinoshita bend")
-        plt.plot(
-            expected.T[0],
-            expected.T[1],
-            "bo",
-            markersize=2,
-            label="Expected path",
-        )
-        plt.legend()
-        plt.axis("equal")
-        plt.savefig(fig_path + "test_kinoshita_bend.png", dpi=150)
-        plt.close()
+        # plt.figure(dpi=150)
+        # plt.plot(bend.T[0], bend.T[1], "k--", label="Kinoshita bend")
+        # plt.plot(
+        #     expected.T[0],
+        #     expected.T[1],
+        #     "bo",
+        #     markersize=2,
+        #     label="Expected path",
+        # )
+        # plt.legend()
+        # plt.axis("equal")
+        # plt.savefig(fig_path + "test_kinoshita_bend.png", dpi=150)
+        # plt.close()
 
         # self.assertTrue(False)
 

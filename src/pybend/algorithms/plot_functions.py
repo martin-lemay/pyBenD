@@ -67,8 +67,8 @@ def plot_centerline_collection(
             Defaults to False.
         annot_text_size (int, optional): Text size for annotations.
             Defaults to 10.
-        color_bend (bool, optional): if True, bends are colored in blue and red
-            according to UP and DOWN side respectively.
+        color_bend (bool, optional): if True, bends are colored in blue (UP),
+            red (DOWN), and light grey (STRAIGHT).
             Defaults to False.
         plot_apex_trajec (bool, optional): if True, plot apex trajectory.
             Defaults to False.
@@ -207,8 +207,8 @@ def plot_centerline_single(
             Defaults to 1.0.
         annot_text_size (float, optional): Text size for annotations.
             Defaults to 10.
-        color_bend (bool, optional): if True, bends are colored in blue and red
-            according to UP and DOWN side respectively.
+        color_bend (bool, optional): if True, bends are colored in blue (UP),
+            red (DOWN), and light grey (STRAIGHT).
             Defaults to True.
         linewidth (float, optional): Line width.
             Defaults to 1.
@@ -308,8 +308,8 @@ def plot_bend_evol(
             Defaults to False.
         annot_text_size (float, optional): Text size for annotations.
             Defaults to 10.
-        color_bend (bool, optional): if True, bends are colored in blue and red
-            according to UP and DOWN side respectively.
+        color_bend (bool, optional): if True, bends are colored in blue (UP),
+            red (DOWN), and light grey (STRAIGHT).
             Defaults to True.
         linewidth (float, optional): Line width.
             Defaults to 1.
@@ -443,8 +443,8 @@ def plot_bends(
             Defaults to 1.0.
         annot_text_size (float, optional): Text size for annotations.
             Defaults to 10.
-        color_bend (bool, optional): if True, bends are colored in blue and red
-            according to UP and DOWN side respectively.
+        color_bend (bool, optional): if True, bends are colored in blue (UP),
+            red (DOWN), and light grey (STRAIGHT).
             Defaults to True.
         alpha (float, optional): Transparency.
             Defaults to 1.0.
@@ -501,9 +501,12 @@ def plot_bends(
             coords -= (coords[0] + coords[1]) / 2.0
 
         if color_bend:
-            color = "r"
-            if bend.side == BendSide.UP:
+            if bend.side == BendSide.STRAIGHT:
+                color = "lightgrey"
+            elif bend.side == BendSide.UP:
                 color = "b"
+            else:
+                color = "r"
 
         ax.plot(
             coords[:, 0],
@@ -534,7 +537,7 @@ def plot_bends(
                     markersize=markersize,
                 )
 
-        if plot_apex and bend.isvalid and bend.index_apex > -1:
+        if plot_apex and bend.is_valid and bend.index_apex > -1:
             index = bend.index_apex - bend.index_inflex_up
             ax.plot(
                 coords[index, 0],
@@ -545,7 +548,7 @@ def plot_bends(
                 markersize=1.5 * markersize,
             )
 
-        if plot_middle and bend.isvalid and bend.pt_center is not None:
+        if plot_middle and bend.is_valid and bend.pt_center is not None:
             pt_center: npt.NDArray[np.float64] = bend.pt_center
             if rotate:
                 pt_center = (coords[-1] + coords[0]) / 2.0
@@ -557,7 +560,7 @@ def plot_bends(
                 markersize=0.8 * markersize,
             )
 
-        if plot_centroid and bend.isvalid and bend.pt_centroid is not None:
+        if plot_centroid and bend.is_valid and bend.pt_centroid is not None:
             pt_centroid: npt.NDArray[np.float64] = bend.pt_centroid
             if rotate:
                 pt_centroid = np.mean(coords, axis=0)
@@ -572,7 +575,7 @@ def plot_bends(
 
         if (
             plot_apex_proba
-            and bend.isvalid
+            and bend.is_valid
             and bend.apex_probability is not None
         ):
             ax.scatter(

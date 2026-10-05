@@ -13,9 +13,11 @@ import numpy.typing as npt
 import pandas as pd  # type: ignore[import-untyped]
 from scipy.interpolate import splev, splprep  # type: ignore[import-untyped]
 from scipy.signal import find_peaks  # type: ignore[import-untyped]
+from shapely.geometry import Polygon  # type: ignore[import-untyped]
 
 import pybend.algorithms.geometry_functions as geom
 from pybend.model.ClPoint import ClPoint
+from pybend.model.enumerations import BendSide
 from pybend.utils.logging import logger
 
 
@@ -647,7 +649,7 @@ def compute_skewness(
     curv_abscissa: npt.NDArray[np.float64],
     n: float,
 ) -> float:
-    """Compute Pearson's skewness coeff of curvature distribution function.
+    """Compute Fisher-Pearson's skewness coeff of curvature distribution.
 
     Args:
         curvature (npt.NDArray[np.float64]): curvature distrution function
@@ -682,6 +684,54 @@ def compute_kurtosis(
     var, std_dev = compute_variance(curvature, curv_abscissa, n)
     abs2 = ((curv_abscissa - mean) / std_dev) ** 4
     return float(compute_esperance(curvature, abs2, n))
+
+
+def compute_loop_area_centroid_asymmetry(
+    bend_coords: npt.NDArray[np.float64],
+) -> float:
+    r"""Compute the loop-area centroid asymmetry of a bend.
+
+    The asymmetry is based on the centroid of the region enclosed
+    between the bend arc and the chord joining the inflection
+    points. The centroid (barycenter) of the bend polygon is
+    projected orthogonally onto the chord, and :math:`t_c` is the
+    Cartesian distance from the upstream inflection point to that
+    projection:
+
+    .. math::
+
+        \alpha = \frac{2\,t_c}{L} - 1
+
+    where *L* is the chord length. The result ranges from -1
+    (fully upstream-skewed) to +1 (fully downstream-skewed);
+    0 means symmetric.
+
+    Args:
+        bend_coords: Point coordinates of the bend (N×2 array),
+            ordered from upstream to downstream inflection point.
+
+    Returns:
+        The centroid asymmetry coefficient, or *NaN* if the
+        polygon is degenerate.
+
+    """
+    p_up = bend_coords[0]
+    p_down = bend_coords[-1]
+    l_chord = float(geom.distance(p_up, p_down))
+    if l_chord == 0.0:
+        return float("nan")
+
+    # polygon enclosed between the bend arc and the chord
+    poly = Polygon(bend_coords)
+    if poly.area == 0.0:
+        return float("nan")
+
+    # centroid projected onto the chord
+    centroid = np.array(poly.centroid.coords[0])
+    proj = geom.project_orthogonal(centroid, p_up, p_down)
+    t_c = float(geom.distance(p_up, proj))
+    asc = 2.0 * t_c / l_chord - 1.0
+    return asc
 
 
 def compute_point_displacements(
@@ -797,3 +847,42 @@ def get_keys_from_to(
         lkeys = sort_key(lkeys, sort_reverse)
 
     return [str(key) for key in lkeys]
+
+
+def compute_bend_side_from_curvature(
+    curvature: npt.NDArray[np.float64],
+    sinuosity: float,
+    sinuo_thres: float,
+) -> BendSide:
+    """Determine bend side from a curvature series.
+
+    Args:
+        curvature: Filtered curvature values over the bend span.
+        sinuosity: Precomputed sinuosity (arc length / wavelength).
+        sinuo_thres: Sinuosity threshold below which the bend
+            is considered straight.
+
+    Returns:
+        BendSide: UP if curvature sum > 0, DOWN otherwise,
+            or STRAIGHT if sinuosity is below the threshold.
+    """
+    if sinuosity < sinuo_thres:
+        return BendSide.STRAIGHT
+    curv_sum: float = float(np.sum(curvature))
+    return BendSide.UP if curv_sum > 0 else BendSide.DOWN
+
+
+def compute_bend_apex_from_curvature(
+    curvature: npt.NDArray[np.float64],
+    n: float,
+) -> int:
+    """Find apex relative index within a curvature series.
+
+    Args:
+        curvature: Absolute curvature values over the bend span.
+        n: Exponent for the median curvature computation.
+
+    Returns:
+        Relative index (0-based within the series) of the apex.
+    """
+    return compute_median_curvature_index(np.abs(curvature), n)

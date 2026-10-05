@@ -11,7 +11,7 @@ through time for a single channel belt.
 import functools
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor as Pool
-from typing import Optional, Self, cast
+from typing import TYPE_CHECKING, Optional, Self, cast
 
 import dtw  # type: ignore[import-not-found]
 import numpy as np
@@ -43,6 +43,9 @@ from pybend.model.Section import Section
 from pybend.utils.globalParameters import get_nb_procs
 from pybend.utils.logging import ERROR, logger
 
+if TYPE_CHECKING:
+    pass
+
 # disable info and warnings
 logger.setLevel(ERROR)
 
@@ -62,6 +65,7 @@ class CenterlineCollection:
         compute_curvature: bool = True,
         interpol_props: bool = True,
         find_bends: bool = True,
+        merge_straight_bends: bool = False,
     ) -> None:
         """Store the successive Centerline objects from a single channel-belt.
 
@@ -93,6 +97,10 @@ class CenterlineCollection:
                 curvature and interpolate properties and detect bends along
                 each centerline.
                 Defaults to True.
+            merge_straight_bends (bool, optional): If True, merge
+                consecutive STRAIGHT bends into a single bend after
+                bend detection in each centerline.
+                Defaults to False.
         """
         #: dictionnary to store Centerline object at each age
         self.centerlines: dict[int, Centerline] = {}
@@ -128,6 +136,7 @@ class CenterlineCollection:
                 compute_curvature,
                 interpol_props,
                 find_bends,
+                merge_straight_bends,
             )
         else:
             self.initialize_multiproc(
@@ -141,6 +150,7 @@ class CenterlineCollection:
                 compute_curvature,
                 interpol_props,
                 find_bends,
+                merge_straight_bends,
             )
 
         logger.info("CenterlineCollection instanciated.")
@@ -157,6 +167,7 @@ class CenterlineCollection:
         compute_curvature: bool,
         interpol_props: bool,
         find_bends: bool,
+        merge_straight_bends: bool,
     ) -> bool:
         """Initialize Centerline_evoution object using multiprocessing.
 
@@ -180,6 +191,8 @@ class CenterlineCollection:
               properties along channel points after resampling.
             find_bends (bool): if True, automatically compute curvature
               and interpolate properties and detect bends along each centerline
+            merge_straight_bends (bool): If True, merge consecutive STRAIGHT
+              bends into a single bend after bend detection in each centerline.
 
         Returns:
             bool: True if calculation successfully eneded.
@@ -203,6 +216,7 @@ class CenterlineCollection:
                 compute_curvature,
                 interpol_props,
                 find_bends,
+                merge_straight_bends,
             )
             outputs = pool.map(partial_create_centerline, inputs)
 
@@ -229,6 +243,7 @@ class CenterlineCollection:
         compute_curvature: bool,
         interpol_props: bool,
         find_bends: bool,
+        merge_straight_bends: bool,
     ) -> bool:
         """Initialize Centerline_evoution object using monoprocessing.
 
@@ -252,6 +267,8 @@ class CenterlineCollection:
               properties along channel points after resampling.
             find_bends (bool): if True, automatically compute curvature
               and interpolate properties and detect bends along each centerline
+            merge_straight_bends (bool): If True, merge consecutive STRAIGHT
+              bends into a single bend after bend detection in each centerline.
 
         Returns:
             bool: True if calculation successfully eneded.
@@ -270,6 +287,7 @@ class CenterlineCollection:
                 compute_curvature,
                 interpol_props,
                 find_bends,
+                merge_straight_bends,
                 key,
             )
         return True
@@ -286,6 +304,7 @@ class CenterlineCollection:
         compute_curvature: bool,
         interpol_props: bool,
         find_bends: bool,
+        merge_straight_bends: bool,
         age: int,
     ) -> Centerline:
         """Create self.centerlines dictionnary.
@@ -314,6 +333,9 @@ class CenterlineCollection:
                 properties along channel points after resampling.
             find_bends (bool): if True, automatically compute curvature and
                 interpolate properties and detect bends along each centerline.
+            merge_straight_bends (bool): If True, merge consecutive STRAIGHT
+                bends into a single bend after bend detection in each
+                centerline.
             age (int): centerline age
             data (pd.DataFrame: centerline properties data
             queue (mp.Queue): queue where to dump created Centerline
@@ -334,6 +356,7 @@ class CenterlineCollection:
             compute_curvature,
             interpol_props,
             find_bends,
+            merge_straight_bends,
         )
 
     def get_all_ages(self: Self) -> npt.NDArray[np.int64]:
@@ -778,25 +801,51 @@ class CenterlineCollection:
         method: BendConnectionMethod = BendConnectionMethod.APEX,
         dmax: float = np.inf,
         weighting_func_type: str = "uniform",
+        norm_width: float = 0.0,
+        weights: dict[str, float] | None = None,
+        gap_penalty_metric: str = "sinuosity",
+        gap_penalty_scale: float = 1.0,
+        spatial_tolerance: float = 2.0,
+        step_pattern: str = "asymmetric",
+        birth_death_threshold: float = 10.0,
+        max_apex_distance_factor: float = 10.0,
     ) -> bool:
-        """Pulic method to create BendEvolution objects by connecting bends.
+        """Create BendEvolution objects by connecting bends.
 
         Args:
-            bend_evol_validity (int, optional): Minimum number of bends in the
-                BendEvolution to be considered as valid.
+            bend_evol_validity (int, optional): Minimum number of
+                bends in the BendEvolution to be considered valid.
                 Defaults to 2.
-            method (Bend_connection_method, optional): Method to use to
-                compute BendEvolution.
-                Defaults to Bend_connection_method.MATCHING.
-            dmax (float, optional): Maximum allowed distance (m) between 2
-                successive apex points.
+            method (BendConnectionMethod, optional): Method to use.
+                Defaults to BendConnectionMethod.APEX.
+            dmax (float, optional): Maximum allowed distance (m)
+                between 2 successive apex points.
                 Defaults to np.inf.
-            weighting_func_type (str, optional): Weighting function type to
-                use.
-                Defaults to "uniform".
+            weighting_func_type (str, optional): Weighting function
+                type. Defaults to "uniform".
+            norm_width (float, optional): Channel width for
+                normalization. Required for SEQUENCE_ALIGNMENT.
+                Defaults to 0.0.
+            weights (dict, optional): Cost function weights for
+                SEQUENCE_ALIGNMENT. Defaults to None (equal).
+            gap_penalty_metric (str, optional): Gap penalty metric
+                for SEQUENCE_ALIGNMENT. Defaults to "sinuosity".
+            gap_penalty_scale (float, optional): Gap penalty
+                multiplier. Defaults to 1.0.
+            spatial_tolerance (float, optional): Max distance in
+                norm_width units for split/merge detection.
+                Defaults to 2.0.
+            step_pattern (str, optional): DTW step pattern.
+                Defaults to "asymmetric". Only for DTW.
+            birth_death_threshold (float, optional): Cost
+                above which DTW matches become births/deaths.
+                Defaults to 10.0. Only for DTW.
+            max_apex_distance_factor (float, optional): If
+                apex distance > factor * norm_width, cost is
+                inf. Defaults to 10.0. Only for DTW.
 
         Returns:
-            bool: True if the function ends witout errors
+            bool: True if the function ends without errors
 
         """
         # reset self.bends_evol that will be updated later on
@@ -808,7 +857,8 @@ class CenterlineCollection:
                 return self._connect_bends_centroid(dmax, bend_evol_validity)
             case BendConnectionMethod.MATCHING:
                 return self._connect_bends_from_matching(
-                    bend_evol_validity, weighting_func_type=weighting_func_type
+                    bend_evol_validity,
+                    weighting_func_type=weighting_func_type,
                 )
             case _:
                 methods = [str(meth) for meth in list(BendConnectionMethod)]  # type: ignore[unreachable]
@@ -844,13 +894,13 @@ class CenterlineCollection:
                 bends_evol += [
                     [bend]
                     for bend in self.centerlines[key].bends
-                    if bend.isvalid
+                    if bend.is_valid
                 ]
                 prev_key = key
                 continue
 
             for _, bend in enumerate(self.centerlines[key].bends):
-                if not bend.isvalid:
+                if not bend.is_valid:
                     continue
 
                 # look for the closest apex
@@ -862,7 +912,7 @@ class CenterlineCollection:
                     # if the last bend_saved was added at the previous key
                     # and is on the same side as bend
                     if (
-                        bend_saved[-1].isvalid
+                        bend_saved[-1].is_valid
                         and bend_saved[-1].age == prev_key
                         and bend_saved[-1].side == bend.side
                     ):
@@ -951,13 +1001,13 @@ class CenterlineCollection:
                 bends_evol += [
                     [bend]
                     for bend in self.centerlines[key].bends
-                    if bend.isvalid
+                    if bend.is_valid
                 ]
                 prev_key = key
                 continue
 
             for _, bend in enumerate(self.centerlines[key].bends):
-                if not bend.isvalid:
+                if not bend.is_valid:
                     continue
 
                 # look for the closest apex
@@ -967,7 +1017,7 @@ class CenterlineCollection:
                     # if the last bend_saved was added at the previous key
                     # and is on the same side as bend
                     if (
-                        bend_saved[-1].isvalid
+                        bend_saved[-1].is_valid
                         and bend_saved[-1].age == prev_key
                         and bend_saved[-1].side == bend.side
                     ):
@@ -1310,7 +1360,7 @@ class CenterlineCollection:
             self.centerlines[self.get_all_ages()[-1]].bends
         ):
             if (
-                not bend.isvalid
+                not bend.is_valid
                 or (i == 0)
                 or (
                     i
@@ -1355,7 +1405,7 @@ class CenterlineCollection:
             self.centerlines[self.get_all_ages()[-1]].bends
         ):
             if (
-                not bend.isvalid
+                not bend.is_valid
                 or bend.index_apex < 0
                 or (i == 0)
                 or (
@@ -1369,7 +1419,7 @@ class CenterlineCollection:
             prev_bend = self.centerlines[key].bends[i - 1]
             next_bend = self.centerlines[key].bends[i + 1]
 
-            if prev_bend.isvalid and (prev_bend.index_apex > -1):
+            if prev_bend.is_valid and (prev_bend.index_apex > -1):
                 pt0 = self.centerlines[key].cl_points[prev_bend.index_apex].pt
             else:
                 k = prev_bend.index_inflex_up + int(
@@ -1377,7 +1427,7 @@ class CenterlineCollection:
                 )
                 pt0 = self.centerlines[key].cl_points[k].pt
 
-            if next_bend.isvalid and (next_bend.index_apex > -1):
+            if next_bend.is_valid and (next_bend.index_apex > -1):
                 pt1 = self.centerlines[key].cl_points[next_bend.index_apex].pt
             else:
                 k = next_bend.index_inflex_up + int(

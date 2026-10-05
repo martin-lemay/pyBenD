@@ -13,8 +13,8 @@ A full documentation of the code can be found here: https://mlemay-pybend.readth
 
 If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
 
-* pyBenD v1.0.1: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.18442370 
-* pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.18442369 
+* pyBenD v1.0.2: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.2). Zenodo. [https://doi.org/10.5281/zenodo.23167282 ](https://zenodo.org/records/23167282)
+* pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.2). Zenodo. [https://doi.org/10.5281/zenodo.23167282 ](https://zenodo.org/records/23167282)
 
 ## Quickstart
 

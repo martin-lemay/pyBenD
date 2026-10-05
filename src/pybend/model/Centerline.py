@@ -57,10 +57,6 @@ from shapely.geometry import LineString, Polygon  # type: ignore
 
 import pybend.algorithms.centerline_process_functions as cpf
 import pybend.algorithms.geometry_functions as geom
-from pybend.algorithms.centerline_process_functions import (
-    compute_bend_apex_from_curvature,
-    compute_bend_side_from_curvature,
-)
 from pybend.model.Bend import Bend, get_bend_uid
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
@@ -1491,15 +1487,13 @@ class Centerline:
         cl_pt_down: ClPoint = self.cl_points[bend.index_inflex_down]
         arc_length: float = abs(cl_pt_down._s - cl_pt_up._s)
         d_inflex: float = geom.distance(cl_pt_up.pt, cl_pt_down.pt)
-        sinuosity: float = (
-            arc_length / d_inflex if d_inflex > 0.0 else 1.0
-        )
+        sinuosity: float = arc_length / d_inflex if d_inflex > 0.0 else 1.0
         # Bends with unrealistically high sinuosity are treated as straight
         # (mirrors the upper-bound check in check_if_bend_is_valid).
         if sinuosity >= 10.0:
             sinuosity = 0.0
         curvature = self.get_bend_curvature_filtered(bend.id)
-        return compute_bend_side_from_curvature(
+        return cpf.compute_bend_side_from_curvature(
             curvature, sinuosity, sinuo_thres
         )
 
@@ -1575,7 +1569,7 @@ class Centerline:
         """
         bend: Bend = self.bends[bend_index]
         curvature = self.get_bend_curvature_filtered(bend.id)
-        return bend.index_inflex_up + compute_bend_apex_from_curvature(
+        return bend.index_inflex_up + cpf.compute_bend_apex_from_curvature(
             curvature, n
         )
 

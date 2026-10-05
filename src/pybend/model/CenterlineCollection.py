@@ -33,12 +33,6 @@ from pybend.model.BendEvolution import BendEvolution
 from pybend.model.BendGraph import (
     build_bend_evolutions_from_graph,
 )
-from pybend.model.BendGraph import (
-    build_temporal_graph as _build_temporal_graph,
-)
-from pybend.model.BendGraph import (
-    build_temporal_graph_dtw as _build_temporal_graph_dtw,
-)
 from pybend.model.Centerline import Centerline
 from pybend.model.ClPoint import ClPoint
 from pybend.model.enumerations import (
@@ -53,7 +47,7 @@ from pybend.utils.globalParameters import get_nb_procs
 from pybend.utils.logging import ERROR, logger
 
 if TYPE_CHECKING:
-    import networkx
+    pass
 
 # disable info and warnings
 logger.setLevel(ERROR)
@@ -936,113 +930,6 @@ class CenterlineCollection:
         )
         self.bends_tracking_computed = True
         return True
-
-    def _connect_bends_dtw(
-        self: Self,
-        bend_evol_validity: int,
-        norm_width: float,
-        weights: dict[str, float] | None,
-        step_pattern: str,
-        birth_death_threshold: float,
-        max_apex_distance_factor: float,
-    ) -> bool:
-        """Connect bends using DTW alignment.
-
-        Args:
-            bend_evol_validity: min time steps for validity.
-            norm_width: channel width for normalization.
-            weights: cost function weights.
-            step_pattern: DTW step pattern name.
-            birth_death_threshold: cost threshold for
-                births/deaths.
-            max_apex_distance_factor: apex distance guard.
-
-        Returns:
-            bool: True if successful.
-
-        """
-        graph = self.build_temporal_graph_dtw(
-            norm_width,
-            weights,
-            step_pattern,
-            birth_death_threshold,
-            max_apex_distance_factor,
-        )
-        self.bends_evol = build_bend_evolutions_from_graph(
-            graph,
-            self,
-            bend_evol_validity,
-        )
-        self.bends_tracking_computed = True
-        return True
-
-    def build_temporal_graph(
-        self: Self,
-        norm_width: float,
-        weights: dict[str, float] | None = None,
-        gap_penalty_metric: str = "sinuosity",
-        gap_penalty_scale: float = 1.0,
-        spatial_tolerance: float = 2.0,
-    ) -> "networkx.DiGraph":
-        """Build a temporal graph of bend genealogy.
-
-        Args:
-            norm_width: channel width for normalization.
-            weights: cost function weights.
-            gap_penalty_metric: "sinuosity" or "curvature".
-            gap_penalty_scale: gap penalty multiplier.
-            spatial_tolerance: max distance in norm_width
-                units for split/merge detection.
-
-        Returns:
-            networkx.DiGraph: temporal bend genealogy graph.
-
-        """
-        import networkx
-
-        self.temporal_graph: networkx.DiGraph = _build_temporal_graph(
-            self,
-            norm_width,
-            weights,
-            gap_penalty_metric,
-            gap_penalty_scale,
-            spatial_tolerance,
-        )
-        return self.temporal_graph
-
-    def build_temporal_graph_dtw(
-        self: Self,
-        norm_width: float,
-        weights: dict[str, float] | None = None,
-        step_pattern: str = "asymmetric",
-        birth_death_threshold: float = 10.0,
-        max_apex_distance_factor: float = 10.0,
-    ) -> "networkx.DiGraph":
-        """Build a temporal graph using DTW alignment.
-
-        Args:
-            norm_width: channel width for normalization.
-            weights: cost function weights.
-            step_pattern: DTW step pattern name.
-            birth_death_threshold: cost threshold for
-                births/deaths.
-            max_apex_distance_factor: apex distance guard.
-
-        Returns:
-            networkx.DiGraph: temporal bend genealogy graph.
-
-        """
-        import networkx
-
-        self.temporal_graph: networkx.DiGraph = _build_temporal_graph_dtw(
-            self,
-            norm_width,
-            weights,
-            step_pattern,
-            birth_death_threshold,
-            max_apex_distance_factor,
-        )
-        return self.temporal_graph
 
     # TODO: refactor with same method as _connect_bends_from_matching
     def _connect_bends_apex(

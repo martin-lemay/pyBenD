@@ -123,8 +123,8 @@ def _compute_substitution_cost(
     curv_diff = abs(mean_curv_i - mean_curv_j) * norm_width
 
     # Asymmetry difference (dimensionless)
-    asym_i = morpho_i.compute_bend_asymmetry(bend_i.id)
-    asym_j = morpho_j.compute_bend_asymmetry(bend_j.id)
+    asym_i = morpho_i.compute_bend_asymmetry_apex(bend_i.id)
+    asym_j = morpho_j.compute_bend_asymmetry_apex(bend_j.id)
     asym_diff = abs(asym_i - asym_j)
 
     # Sinuosity difference (dimensionless)

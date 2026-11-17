@@ -13,6 +13,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -33,7 +34,7 @@ author = u'Martin Lemay'
 # The short X.Y version
 version = u'1.0'
 # The full version, including alpha/beta/rc tags
-release = u'0'
+release = u'1.0.3'
 
 # -- General configuration ---------------------------------------------------
 
@@ -47,7 +48,7 @@ release = u'0'
 extensions = [
     'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 
     'sphinx.ext.mathjax', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary', 
-    'sphinxcontrib.programoutput'
+    'sphinxcontrib.programoutput', 'nbsphinx'
 ]
 
 #autodoc_mock_imports = [ "pybend", ]
@@ -77,7 +78,7 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = [ u'_build', 'Thumbs.db', '.DS_Store', 'cmake/*' ]
+exclude_patterns = [ u'_build', 'Thumbs.db', '.DS_Store', 'cmake/*', '**.ipynb_checkpoints' ]
 
 todo_include_todos = True
 
@@ -95,11 +96,6 @@ html_theme_options = { 'navigation_depth': -1, 'collapse_navigation': False }
 
 html_static_path = [ './_static' ]
 
-# Copy extra non-source files directly into the built HTML output.
-# This lets us link to downloadable notebooks without copying them into `docs/`.
-html_extra_path = [
-    str(Path(project_root) / "notebooks"),
-]
 
 html_css_files = [
     'theme_overrides.css',
@@ -108,3 +104,43 @@ html_css_files = [
 # -- Options for HTMLHelp output ---------------------------------------------
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyBenDDoc'
+
+# -- Jupyter notebooks (nbsphinx) --------------------------------------------
+# Notebooks live in `<root>/notebooks`. Sphinx can only render files located
+# inside the source directory, so they are copied into `docs/notebooks/`
+# (git-ignored) at each build. Rendered pages are then available as
+# `notebooks/<name>` and nbsphinx also publishes the .ipynb for download.
+notebooks_src_dir = Path(project_root) / "notebooks"
+notebooks_doc_dir = Path(config_file_dir) / "notebooks"
+notebooks_doc_dir.mkdir(exist_ok=True)
+_src_notebooks = {nb.name: nb for nb in notebooks_src_dir.glob("*.ipynb")}
+for _stale in notebooks_doc_dir.glob("*.ipynb"):
+    if _stale.name not in _src_notebooks:
+        _stale.unlink()
+for _name, _nb in _src_notebooks.items():
+    _dst = notebooks_doc_dir / _name
+    if not _dst.exists() or _dst.stat().st_mtime < _nb.stat().st_mtime:
+        shutil.copy2(_nb, _dst)
+
+# Notebooks are published with their stored outputs and are never executed
+# during the docs build (they need data downloads and multiprocessing).
+# Run them locally and save them with their outputs before publishing.
+nbsphinx_execute = 'never'
+nbsphinx_allow_errors = True
+
+# Banner displayed at the top of every rendered notebook
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) | string | replace('\\', '/') %}
+
+.. raw:: html
+
+    <div class="admonition note">
+      <p>This page was generated from
+        <a href="https://github.com/martin-lemay/pyBenD/blob/main/{{ docname }}">{{ docname }}</a>.
+        Run it online with
+        <a href="https://mybinder.org/v2/gh/martin-lemay/pyBenD/main?urlpath=lab/tree/{{ docname }}">Binder</a>
+        or
+        <a href="https://colab.research.google.com/github/martin-lemay/pyBenD/blob/main/{{ docname }}">Google Colab</a>.
+      </p>
+    </div>
+"""

@@ -17,6 +17,7 @@ sphinx_rtd_theme
 sphinx-argparse>=0.5.2
 sphinx-design
 nbsphinx
+ipython
 # Running CLI programs and capture outputs
 sphinxcontrib-programoutput>=0.17
 statsmodels>=0.14.4

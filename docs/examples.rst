@@ -2,8 +2,22 @@
 Examples
 ###############################################################################
 
+The following Jupyter notebooks illustrate pyBenD features on synthetic and real
+datasets. Each notebook can be read directly in this documentation or executed online.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Notebooks
+
+   notebooks/bend_apex_detection
+   notebooks/bend_kinematics_analysis
+   notebooks/meander_morphometry_analysis
+   notebooks/seine_river_migration_analysis
+
 Bend apex detection
 *********************
+
+Read the notebook: :doc:`notebooks/bend_apex_detection`
 
 The following notebook compare different methods to detect the apex of a meander bend
 and compare morphometric parameters computed using these different methods. 
@@ -22,11 +36,13 @@ Submitted to *Earth Surface Processes and Landforms*.
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/bend_apex_detection.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/bend_apex_detection.ipynb>`_ (need to install pybend first)
 
 Bend kinematic analysis
 ************************
+
+Read the notebook: :doc:`notebooks/bend_kinematics_analysis`
 
 The following notebook compute 3D bend kinematics from successive centerlines of a
 migrating meandering channel. Bend kinematics include apex and bend-average migration
@@ -48,12 +64,14 @@ controlled by the 3D kinematics of meander bends. Geological Society, London, Sp
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/bend_kinematics_analysis.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/bend_kinematics_analysis.ipynb>`_ (need to install pybend first)
 
 
 Meander morphometry analysis
 *******************************
+
+Read the notebook: :doc:`notebooks/meander_morphometry_analysis`
 
 The following notebook compute morphometric parameters of meanders from centerlines
 extracted from real submarine flow pathways. Parameters are compared together and with
@@ -74,18 +92,21 @@ along continental margins: Comparison with fluvial meandering channels. Marine a
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.1/notebooks/meander_morphometry_analysis.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/meander_morphometry_analysis.ipynb>`_ (need to install pybend first)
 
 
 Seine River migration analysis
 ******************************
+
+Read the notebook: :doc:`notebooks/seine_river_migration_analysis`
 
 The following notebook analyze the migration of the Seine River (France) over
 the last two centuries using historical maps. The analysis include
 the computation of lateral migration rates and meander bend kinematics.
 
 This notebook include the following features:
+
 * import successive channel centerlines from csv files
 * compute channel lateral migration rates
 
@@ -98,5 +119,5 @@ Sci Rep 13, 16566 (2023). `doi.org/10.1038/s41598-023-43849-6 <https://doi.org/1
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.1?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb>`_ (recommended)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb>`_ (recommended)
 * `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/main/notebooks/seine_river_migration_analysis.ipynb>`_ (need to install pybend first)

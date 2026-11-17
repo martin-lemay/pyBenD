@@ -95,6 +95,12 @@ def getLogger(title: str) -> Logger:
         logger.error("error message")
         logger.critical("critical message")
 
+    A colored stream handler is added only the first time a logger with
+    a given title is requested, so that repeated calls do not duplicate
+    log messages. The logger does not propagate messages to the root
+    logger. The default level is WARNING (INFO messages are hidden); use
+    ``logger.setLevel(INFO)`` to display progress messages.
+
     Args:
         title (str): Name of the logger.
 
@@ -102,10 +108,12 @@ def getLogger(title: str) -> Logger:
         Logger: logger
     """
     logger: Logger = logging.getLogger(title)
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setFormatter(CustomLoggerFormatter())
-    logger.addHandler(ch)
+    if not logger.handlers:
+        logger.setLevel(logging.WARNING)
+        ch = logging.StreamHandler()
+        ch.setFormatter(CustomLoggerFormatter())
+        logger.addHandler(ch)
+    logger.propagate = False
     return logger
 
 

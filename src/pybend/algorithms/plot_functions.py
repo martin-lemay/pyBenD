@@ -6,6 +6,7 @@
 
 from typing import Optional
 
+import matplotlib
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -273,6 +274,7 @@ def plot_bend_evol(
     color_bend: bool = False,
     markersize: float = 2,
     cmap_name: str = "Blues",
+    annot_text_size: float = 10,
 ) -> None:
     """Plot BendEvolution object.
 
@@ -306,16 +308,15 @@ def plot_bend_evol(
         plot_warping (bool, optional): if True, plot channel point
             trajectories.
             Defaults to False.
-        annot_text_size (float, optional): Text size for annotations.
-            Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue (UP),
             red (DOWN), and light grey (STRAIGHT).
-            Defaults to True.
-        linewidth (float, optional): Line width.
-            Defaults to 1.
+            Defaults to False.
         markersize (float, optional): Marker size.
+            Defaults to 2.
         cmap_name (str, optional): Name of the color map to use.
             Defaults to "Blues".
+        annot_text_size (float, optional): Text size for annotations.
+            Defaults to 10.
 
     """
     bend_evol_all_iter: npt.NDArray[np.int64] = bend_evol.get_all_ages()
@@ -332,7 +333,12 @@ def plot_bend_evol(
             cl_collec[0].centerlines[age].bends[bend_index]
             for bend_index in bend_indexes
         ]
-        indexes[age] = (bends[0].index_inflex_up, bends[-1].index_inflex_down)
+        if len(bends) == 0:
+            continue
+        indexes[age] = (
+            min(bend.index_inflex_up for bend in bends),
+            max(bend.index_inflex_down for bend in bends),
+        )
 
         if age not in keys:
             continue
@@ -352,7 +358,7 @@ def plot_bend_evol(
             plot_inflex=plot_inflex,
             plot_middle=plot_middle,
             plot_centroid=plot_centroid,
-            annot_text_size=10,
+            annot_text_size=annot_text_size,
             color_bend=color_bend,
             alpha=1,
             linewidth=2,
@@ -445,7 +451,7 @@ def plot_bends(
             Defaults to 10.
         color_bend (bool, optional): if True, bends are colored in blue (UP),
             red (DOWN), and light grey (STRAIGHT).
-            Defaults to True.
+            Defaults to False.
         alpha (float, optional): Transparency.
             Defaults to 1.0.
         linewidth (float, optional): Line width.
@@ -476,11 +482,11 @@ def plot_bends(
         coords: npt.NDArray[np.float64] = np.full(
             (bend.get_nb_points(), 2), np.nan
         )
-        for i, cl_pt in enumerate(
+        for k, cl_pt in enumerate(
             cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
         ):
-            coords[i, 0] = cl_pt.pt[0]
-            coords[i, 1] = cl_pt.pt[1]
+            coords[k, 0] = cl_pt.pt[0]
+            coords[k, 1] = cl_pt.pt[1]
 
         if rotate:
             # compute rotation angle
@@ -498,7 +504,8 @@ def plot_bends(
             # rotate x,y coordinates
             rot: npt.NDArray[np.float64] = np.array([[cos, -sin], [sin, cos]])
             coords = np.dot(coords, rot)
-            coords -= (coords[0] + coords[1]) / 2.0
+            # center the bend on the middle of its chord
+            coords -= (coords[0] + coords[-1]) / 2.0
 
         if color_bend:
             if bend.side == BendSide.STRAIGHT:
@@ -537,7 +544,8 @@ def plot_bends(
                     markersize=markersize,
                 )
 
-        if plot_apex and bend.is_valid and bend.index_apex > -1:
+        has_apex: bool = bend.index_apex is not None and bend.index_apex >= 0
+        if plot_apex and bend.is_valid and has_apex:
             index = bend.index_apex - bend.index_inflex_up
             ax.plot(
                 coords[index, 0],
@@ -587,12 +595,12 @@ def plot_bends(
             )
 
         if plot_normal:
-            for i, cl_pt in enumerate(
+            for k, cl_pt in enumerate(
                 cl_points[0][bend.index_inflex_up : bend.index_inflex_down + 1]
             ):
-                plt.arrow(
-                    coords[i, 0],
-                    coords[i, 1],
+                ax.arrow(
+                    coords[k, 0],
+                    coords[k, 1],
                     cl_pt.get_property("Normal_x") * scale_normal,
                     cl_pt.get_property("Normal_y") * scale_normal,
                     color="k",
@@ -621,7 +629,7 @@ def plot_bends(
                 vmax=vmax,
             )
 
-        if annotate and bend.index_apex > -1:
+        if annotate and has_apex:
             index = bend.index_apex - bend.index_inflex_up
             pt_apex = coords[index]
             if (
@@ -631,17 +639,21 @@ def plot_bends(
                 and pt_apex[1] > domain[1][0]
                 and pt_apex[1] < domain[1][1]
             ):
-                plt.text(
+                ax.text(
                     pt_apex[0],
                     pt_apex[1],
-                    str(bend.bend_evol_id),
-                    size=10,
+                    ""
+                    if bend.bend_evol_id is None
+                    else str(bend.bend_evol_id),
+                    size=annot_text_size,
                 )
             else:
-                plt.text(
+                ax.text(
                     pt_apex[0],
                     pt_apex[1],
-                    str(bend.bend_evol_id),
+                    ""
+                    if bend.bend_evol_id is None
+                    else str(bend.bend_evol_id),
                     size=annot_text_size,
                     horizontalalignment="center",
                 )
@@ -675,11 +687,9 @@ def plot_section(
     cmap: Optional[colors.Colormap] = None
     if not color_same_bend:
         colors_norm = colors.Normalize(vmin=0, vmax=len(section.isolines))
-        cmap = (
-            colors.Colormap(cmap_name)
-            if len(cmap_name) > 0
-            else colors.Colormap("Blues")
-        )
+        cmap = matplotlib.colormaps[
+            cmap_name if len(cmap_name) > 0 else "Blues"
+        ]
 
     for i, isoline in enumerate(section.isolines):
         # coordinates to plot
@@ -761,10 +771,10 @@ def plot_versus_curvilinear(
     assert len(curves2) == len(labels2), (
         "The number of Curves and labels from second set is different"
     )
-    assert len(curves1) > len(colors1), (
+    assert len(curves1) <= len(colors1), (
         "Too many curves to plot from first set."
     )
-    assert len(curves2) > len(colors2), (
+    assert len(curves2) <= len(colors2), (
         "Too many curves to plot from second set."
     )
 
@@ -790,7 +800,6 @@ def plot_versus_curvilinear(
                 for tl in ax2.get_yticklabels():
                     tl.set_color("r")
 
-    plt.ylim(-0.1, 0.1)
     plt.tight_layout()
     if len(work_dir) > 0:
         plt.savefig(work_dir + "props_versus_curv_abscissa.png", dpi=300)
@@ -876,9 +885,10 @@ def _plot_warping(
     Args:
         ax (Axes): Axes where to plot
         cl_collec (CenterlineCollection): CenterlineCollection object
-        indexes (dict[int, tuple[int, int]]): dictionnary containing a list of
-            indexes of centerline points to plot for each ages
-            Defaults to empty dictionnary.
+        indexes (dict[int, tuple[int, int]]): dictionnary containing the
+            first and last (inclusive) indexes of centerline points to plot
+            for each age. If not empty, ages missing from it are skipped.
+            Defaults to empty dictionnary (i.e., all points of all ages).
 
     """
     try:
@@ -894,7 +904,11 @@ def _plot_warping(
 
             index_start, index_stop = 0, ctls1.get_nb_points()
             if len(indexes) > 0:
-                index_start, index_stop = indexes[key1]
+                if key1 not in indexes:
+                    continue
+                # stored stop index is inclusive
+                index_start, index_last = indexes[key1]
+                index_stop = index_last + 1
 
             warp_x, warp_y = [], []
             for index1, index2 in enumerate(

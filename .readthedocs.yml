@@ -8,6 +8,7 @@ build:
   apt_packages:
     - npm
     - plantuml
+    - pandoc
     - texlive
   tools:
     nodejs: "16"

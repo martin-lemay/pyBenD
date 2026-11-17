@@ -103,17 +103,21 @@ class Section:
         self.pt_start: npt.NDArray[np.float64] = pt_start
         #: section end point coordinates
         self.pt_stop: npt.NDArray[np.float64] = pt_stop
-        #: section direction
-        self.dir: npt.NDArray[np.float64] = pt_start - pt_stop
-        self.dir /= np.linalg.norm(self.dir)
+        #: section unit direction vector, from start point to end point
+        self.dir: npt.NDArray[np.float64] = np.asarray(
+            pt_stop, dtype=float
+        ) - np.asarray(pt_start, dtype=float)
+        norm_dir: float = float(np.linalg.norm(self.dir))
+        if norm_dir > 0:
+            self.dir /= norm_dir
 
         #: list of isolines
         self.isolines: list[Isoline] = isolines
+        #: list of isoline origin coordinates (lateral offset, vertical
+        #: offset) relative to the 1st isoline of the list
+        self.isolines_origin: list[tuple[float, float]] = []
         if len(self.isolines) > 0:
-            #: list of isoline origin coordinates from 1st isoline of the list
-            self.isolines_origin: list[tuple[float, float]] = (
-                self._compute_origin(flow_dir)
-            )
+            self.isolines_origin = self._compute_origin(flow_dir)
 
         #: list of boolean, True if isoline at the same index belongs to the
         #: same BendEvolution object as the last one.
@@ -153,7 +157,9 @@ class Section:
             # direction of migration according to the flow direction
             sign: float = 1.0
             # normed apparent mig vector
-            vec: npt.NDArray[np.float64] = cl_pt.pt[:2] - cl_pt_ref.pt[:2]
+            vec: npt.NDArray[np.float64] = np.asarray(
+                cl_pt.pt[:2], dtype=float
+            ) - np.asarray(cl_pt_ref.pt[:2], dtype=float)
             norm_vec = np.linalg.norm(vec)
 
             dot: float = 1.0
@@ -165,9 +171,8 @@ class Section:
             if dot < 0:
                 sign = -1.0
 
-            d: float = sign * geom.distance(
-                cl_pt_ref.pt, cl_pt.pt
-            )  # distance to cl_pt_ref
+            # horizontal distance to cl_pt_ref (vertical offset is dz)
+            d: float = sign * geom.distance(cl_pt_ref.pt[:2], cl_pt.pt[:2])
             dz: float = cl_pt.pt[2] - cl_pt_ref.pt[2]
 
             isolines_origin += [(d, dz)]
@@ -191,8 +196,14 @@ class Section:
                 Defaults to 0.1.
 
         Returns:
-            StackingPatternType: Stacking pattern type
+            StackingPatternType: Stacking pattern type. UNDEFINED if the
+            section contains less than 2 isolines.
         """
+        if len(self.isolines_origin) < 2:
+            # no migration step can be computed
+            self.stacking_pattern_type = StackingPatternType.UNDEFINED
+            return self.stacking_pattern_type
+
         mig_steps: list[int] = []
         pt_origin_prev: tuple[float, float] = (0.0, 0.0)
         for i, pt_origin in enumerate(self.isolines_origin):
@@ -264,7 +275,19 @@ class Section:
                     types += [mig_step]
                 prev_mig_step = mig_step
 
-            groups = list(filter(lambda a: a != 1, groups))
+            # remove isolated steps (groups of length 1), then merge
+            # consecutive groups of the same migration direction
+            merged_groups: list[int] = []
+            merged_types: list[int] = []
+            for group, mig_type in zip(groups, types, strict=True):
+                if group == 1:
+                    continue
+                if (len(merged_types) > 0) and (merged_types[-1] == mig_type):
+                    merged_groups[-1] += group
+                else:
+                    merged_groups += [group]
+                    merged_types += [mig_type]
+            groups = merged_groups
             if len(groups) == 1:
                 self.stacking_pattern_type = (
                     StackingPatternType.ONE_WAY
@@ -281,8 +304,16 @@ class Section:
         norm_hor: float = 1,
         norm_vert: float = 1,
         smooth: bool = False,
+        smoothing: float | None = None,
     ) -> None:
         """Compute channel apparent displacements along the section.
+
+        local_disp array contains, for each pair of successive isolines, the
+        lateral displacement, the vertical displacement, and the local
+        stratigraphic number (normalized ratio of lateral to vertical
+        displacement). The local stratigraphic number is +/-inf when the
+        vertical displacement is null and the lateral displacement is not,
+        and NaN when both displacements are null.
 
         Args:
             norm_hor (float, optional): Normalisation value for horizontal
@@ -294,6 +325,11 @@ class Section:
             smooth (bool, optional): if True, channel apparent trajectory is
                 smoothed.
                 Defaults to False.
+            smoothing (float | None, optional): Smoothing parameter of the
+                B-spline used to smooth the apparent trajectory (see
+                scipy.interpolate.splprep). If None, scipy default value is
+                used.
+                Defaults to None.
 
         """
         l_pt: npt.NDArray[np.float64] = np.array(
@@ -304,12 +340,17 @@ class Section:
             ages: npt.NDArray[np.float64] = np.array(
                 [isoline.age for isoline in self.isolines]
             ).astype(float)
-            l_pt = cpf.resample_path(l_pt, ages, 0).T
+            # smooth lateral (d) and vertical (dz) positions, using isoline
+            # ages as spline parameter
+            l_pt = cpf.resample_path(
+                l_pt[:, 0], l_pt[:, 1], 0, smoothing, ages
+            ).T
 
         self.local_disp = np.full((len(l_pt) - 1, 3), np.nan)
         pt_origin_prev: npt.NDArray[np.float64] = np.array((0.0, 0.0))
         for i, pt_origin in enumerate(l_pt):
             if i == 0:
+                pt_origin_prev = pt_origin
                 continue
             self.local_disp[i - 1, 0] = (
                 pt_origin[0] - pt_origin_prev[0]
@@ -318,10 +359,22 @@ class Section:
                 pt_origin[1] - pt_origin_prev[1]
             )  # vertical displacements
             pt_origin_prev = pt_origin
-        # local stratigraphic number
-        self.local_disp[:, 2] = (
-            self.local_disp[:, 0] / self.local_disp[:, 1]
-        ) * (norm_vert / norm_hor)
+        # local stratigraphic number: lateral over vertical displacement.
+        # When vertical displacement is null, it is deliberately set to
+        # +/-inf (non-null lateral displacement) or NaN (no displacement),
+        # without raising numpy warnings.
+        lateral: npt.NDArray[np.float64] = self.local_disp[:, 0]
+        vertical: npt.NDArray[np.float64] = self.local_disp[:, 1]
+        null_vert: npt.NDArray[np.bool_] = vertical == 0
+        ratio: npt.NDArray[np.float64] = np.divide(
+            lateral,
+            vertical,
+            out=np.full_like(lateral, np.nan),
+            where=~null_vert,
+        )
+        ratio[null_vert & (lateral > 0)] = np.inf
+        ratio[null_vert & (lateral < 0)] = -np.inf
+        self.local_disp[:, 2] = ratio * (norm_vert / norm_hor)
 
     def section_averaged_channel_displacements(
         self: Self,
@@ -355,10 +408,14 @@ class Section:
 
         if write_results:
             with open(filepath, "a") as fout:
-                line_full: str = ";".join(self.averaged_disp["full"][2:])
-                line_bend: str = ";".join(self.averaged_disp["bend"][2:])
-                fout.write(line_full)
-                fout.write(line_bend)
+                line_full: str = ";".join(
+                    str(val) for val in self.averaged_disp["full"][2:]
+                )
+                line_bend: str = ";".join(
+                    str(val) for val in self.averaged_disp["bend"][2:]
+                )
+                fout.write(line_full + "\n")
+                fout.write(line_bend + "\n")
 
     def _compute_average_disp(
         self: Self, width: float, depth: float, whole_trajec: bool
@@ -389,6 +446,9 @@ class Section:
             order: Dx, Dz, Bcb, Hcb, Bcb_norm, Hcb_norm, Bcb_on_Hcb, Msb
 
         """
+        if len(self.isolines_origin) == 0:
+            # no isoline: metrics are undefined
+            return np.full(8, np.nan)
         pt_apex: tuple[float, float] = self.isolines_origin[-1]
         pt_ref: tuple[float, float] = self.isolines_origin[0]
         if (not whole_trajec) and (
@@ -421,15 +481,15 @@ class Section:
         metrics: npt.NDArray[np.float64] = np.full(8, np.nan)
         metrics[0] = round(abs(pt_apex[0] - pt_ref[0]), 4)
         metrics[1] = round(abs(pt_apex[1] - pt_ref[1]), 4)
-        if metrics[1] != 0:
+        metrics[2] = metrics[0] + width  # full channel belt width
+        metrics[3] = metrics[1] + depth  # full channel belt thickness
+        # stratigraphic mobility number is undefined without aggradation
+        if (metrics[1] != 0) and (width != 0):
             metrics[7] = round((metrics[0] / metrics[1]) * (depth / width), 4)
-            metrics[3] = metrics[1] + depth  # full channel belt thickness
-            metrics[2] = metrics[0] + width  # full channel belt width
+        if metrics[3] != 0:
             metrics[6] = round(metrics[2] / metrics[3], 4)
-        else:
-            metrics[3] = np.nan if metrics[1] == 0 else metrics[1] + depth
-            metrics[2] = np.nan if metrics[0] == 0 else metrics[0] + width
-
-        metrics[4] = round(metrics[2] / width, 4)
-        metrics[5] = round(metrics[3] / depth, 4)
+        if width != 0:
+            metrics[4] = round(metrics[2] / width, 4)
+        if depth != 0:
+            metrics[5] = round(metrics[3] / depth, 4)
         return metrics

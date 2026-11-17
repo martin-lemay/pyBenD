@@ -36,55 +36,55 @@ class TestsProcessFunctions(unittest.TestCase):
         bend = kinoshita_bend(nb_pts, 100.0 * np.pi / 180.0, 0.01, 0.03)
         expected = np.array(
             [
-                [0.0058, 0.7272],
-                [0.0036, 0.7839],
-                [0.0016, 0.8406],
-                [0.0003, 0.8974],
-                [0.0, 0.9541],
-                [0.0011, 1.0109],
-                [0.0042, 1.0675],
-                [0.0097, 1.124],
-                [0.0182, 1.1802],
-                [0.0302, 1.2356],
-                [0.0464, 1.29],
-                [0.0671, 1.3429],
-                [0.0928, 1.3935],
-                [0.1237, 1.4411],
-                [0.1598, 1.4849],
-                [0.201, 1.524],
-                [0.2469, 1.5573],
-                [0.2969, 1.5842],
-                [0.3502, 1.6038],
-                [0.4057, 1.6156],
-                [0.4623, 1.6193],
-                [0.5189, 1.615],
-                [0.5744, 1.6027],
-                [0.6276, 1.583],
-                [0.6778, 1.5565],
-                [0.7242, 1.5238],
-                [0.7665, 1.486],
-                [0.8044, 1.4437],
-                [0.8378, 1.3978],
-                [0.8669, 1.3491],
-                [0.892, 1.2982],
-                [0.9132, 1.2455],
-                [0.9311, 1.1917],
-                [0.946, 1.1369],
-                [0.9583, 1.0815],
-                [0.9684, 1.0256],
-                [0.9766, 0.9695],
-                [0.9833, 0.9131],
-                [0.9885, 0.8566],
-                [0.9926, 0.8],
-                [0.9957, 0.7433],
-                [0.9979, 0.6866],
-                [0.9993, 0.6298],
-                [1.0, 0.5731],
-                [1.0, 0.5163],
-                [0.9993, 0.4595],
-                [0.9981, 0.4028],
-                [0.9964, 0.3461],
-                [0.9943, 0.2893],
+                [0.0058, 0.0],
+                [0.0036, 0.0567],
+                [0.0016, 0.1134],
+                [0.0003, 0.1702],
+                [0.0, 0.227],
+                [0.0011, 0.2837],
+                [0.0042, 0.3404],
+                [0.0097, 0.3969],
+                [0.0182, 0.453],
+                [0.0302, 0.5085],
+                [0.0464, 0.5629],
+                [0.0671, 0.6157],
+                [0.0928, 0.6663],
+                [0.1237, 0.714],
+                [0.1598, 0.7578],
+                [0.201, 0.7968],
+                [0.2469, 0.8302],
+                [0.2969, 0.857],
+                [0.3502, 0.8766],
+                [0.4057, 0.8884],
+                [0.4623, 0.8922],
+                [0.5189, 0.8878],
+                [0.5744, 0.8756],
+                [0.6276, 0.8558],
+                [0.6778, 0.8293],
+                [0.7242, 0.7967],
+                [0.7665, 0.7588],
+                [0.8044, 0.7165],
+                [0.8378, 0.6707],
+                [0.8669, 0.6219],
+                [0.892, 0.571],
+                [0.9132, 0.5184],
+                [0.9311, 0.4645],
+                [0.946, 0.4097],
+                [0.9583, 0.3543],
+                [0.9684, 0.2985],
+                [0.9766, 0.2423],
+                [0.9833, 0.1859],
+                [0.9885, 0.1294],
+                [0.9926, 0.0728],
+                [0.9957, 0.0161],
+                [0.9979, -0.0406],
+                [0.9993, -0.0973],
+                [1.0, -0.1541],
+                [1.0, -0.2109],
+                [0.9993, -0.2676],
+                [0.9981, -0.3244],
+                [0.9964, -0.3811],
+                [0.9943, -0.4378],
             ]
         )
         print(np.round(bend, 4).tolist())
@@ -281,6 +281,29 @@ class TestsProcessFunctions(unittest.TestCase):
         plt.axis("equal")
         plt.savefig(fig_path + "test_mirror_bend.png", dpi=150)
         plt.close()
+
+    def test_mirror_zero_points(self: Self) -> None:
+        """mirror() with 0 point returns a copy of input coordinates."""
+        coords = circular_bend(nb_pts, 1.0)
+        new_coords = mirror(coords, 0)
+        self.assertTrue(np.array_equal(coords, new_coords))
+        self.assertIsNot(coords, new_coords)
+        with self.assertRaises(ValueError):
+            mirror(coords, -1)
+
+    def test_kinoshita_bend_normalisation(self: Self) -> None:
+        """Kinoshita x is normalised in [0, 1] and y starts at 0."""
+        bend = kinoshita_bend(nb_pts, 100.0 * np.pi / 180.0, 0.01, 0.03)
+        self.assertAlmostEqual(float(np.min(bend[:, 0])), 0.0, places=12)
+        self.assertAlmostEqual(float(np.max(bend[:, 0])), 1.0, places=12)
+        self.assertAlmostEqual(float(bend[0, 1]), 0.0, places=12)
+        # aspect ratio is preserved: unit spacing between raw points is
+        # scaled by the same factor along x and y
+        steps = np.linalg.norm(np.diff(bend, axis=0), axis=1)
+        self.assertTrue(np.allclose(steps, steps[0], rtol=1e-6))
+        # symmetric bend: inflection points at the same y
+        sym = kinoshita_bend(nb_pts, 100.0 * np.pi / 180.0, 0.0, 0.0)
+        self.assertLess(abs(sym[-1, 1] - sym[0, 1]), 0.05)
 
 
 if __name__ == "__main__":

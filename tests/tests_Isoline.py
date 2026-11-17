@@ -140,5 +140,20 @@ class TestsIsoline(unittest.TestCase):
         )
 
 
+class TestsIsolineFixes(unittest.TestCase):
+    """Tests of Isoline fixes."""
+
+    def test_complete_channel_shape_single_point(self: Self) -> None:
+        """A single-point cross-section is the reference point."""
+        channel_cs = ChannelCrossSection(age1, cl_point)
+        channel_cs.complete_channel_shape(1)
+        self.assertListEqual(channel_cs.points.tolist(), [[0.0, 0.0]])
+        channel_cs.complete_channel_shape(2)
+        self.assertListEqual(
+            np.round(channel_cs.points, 4).tolist(),
+            [[-15.1, 4.0], [0.0, 0.0], [15.1, 4.0]],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

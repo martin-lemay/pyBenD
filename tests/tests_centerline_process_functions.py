@@ -24,11 +24,13 @@ from pybend.algorithms.centerline_process_functions import (
     compute_esperance,
     compute_half_angle_variation,
     compute_kurtosis,
+    compute_loop_area_centroid_asymmetry,
     compute_median_curvature_index,
     compute_point_displacements,
     compute_skewness,
     compute_variance,
     filter_consecutive_indices,
+    find_2_closest_points,
     find_2_closest_points_mono_proc,
     find_2_closest_points_multi_proc,
     find_inflection_points,
@@ -864,6 +866,122 @@ class TestsProcessFunctions(unittest.TestCase):
         for j in range(disp_local.shape[1]):
             self.assertSequenceEqual(disp_local[j].tolist(), disp_local_exp[j])
         self.assertSequenceEqual(disp_tot.tolist(), disp_tot_exp)
+
+    def test_compute_curvature_at_point_circle(self: Self) -> None:
+        """Test 3-point curvature on finely and coarsely sampled circles."""
+        radius: float = 10.0
+        for teta in (1.0, 0.1, 0.01):
+            # counterclockwise path: negative curvature
+            pts = [
+                radius * np.array((np.cos(a), np.sin(a)))
+                for a in (-teta, 0.0, teta)
+            ]
+            self.assertAlmostEqual(
+                compute_curvature_at_point(*pts), -1.0 / radius, 8
+            )
+            # clockwise path: positive curvature
+            self.assertAlmostEqual(
+                compute_curvature_at_point(*pts[::-1]), 1.0 / radius, 8
+            )
+        # superposed and collinear points
+        pt = np.array((1.0, 1.0))
+        self.assertEqual(compute_curvature_at_point(pt, pt, pt * 2), 0.0)
+        self.assertEqual(
+            compute_curvature_at_point_Menger(pt, pt * 2, pt * 3), 0.0
+        )
+
+    def test_find_inflection_points_edge_cases(self: Self) -> None:
+        """Test find_inflection_points without inflection and at the end."""
+        self.assertEqual(find_inflection_points(np.ones(10), 2).size, 0)
+        self.assertEqual(filter_consecutive_indices(np.array([]), 2).size, 0)
+        curv = np.array((1.0, 1.0, 1.0, -1.0, -1.0, 0.0))
+        obs = find_inflection_points(curv, 0)
+        self.assertTrue(np.all(obs < curv.size))
+
+    def test_find_inflection_points_from_peaks_no_sign_change(
+        self: Self,
+    ) -> None:
+        """Test that a curvature decrease without sign change is ignored."""
+        curv = np.array(
+            (1.0, 0.8, 0.5, 0.05, 0.5, 0.8, 1.0, 0.5, 0.0, -0.5, -1.0)
+        )
+        obs: list[int] = find_inflection_points_from_peaks(curv, 0.1).tolist()
+        self.assertSequenceEqual(obs, [8])
+        self.assertEqual(
+            find_inflection_points_from_peaks(np.zeros(5)).size, 0
+        )
+
+    def test_compute_half_angle_variation_large_rotation(self: Self) -> None:
+        """Test half angle variation for rotations greater than pi."""
+        for total, exp in ((0.8 * np.pi, 30), (1.6 * np.pi, 19)):
+            teta = np.linspace(0.0, total, 61 if total < np.pi else 60)
+            ln = np.column_stack((np.cos(teta), np.sin(teta)))
+            # counterclockwise and clockwise rotations
+            self.assertEqual(compute_half_angle_variation(ln), exp)
+            ln[:, 1] *= -1.0
+            self.assertEqual(compute_half_angle_variation(ln), exp)
+
+    def test_compute_median_curvature_index_null(self: Self) -> None:
+        """Test median curvature index for a straight path."""
+        self.assertEqual(compute_median_curvature_index(np.zeros(11), 2), 5)
+
+    def test_compute_loop_area_centroid_asymmetry_signed(self: Self) -> None:
+        """Test centroid asymmetry when centroid projects upstream."""
+        bend = np.array(
+            (
+                (0.0, 0.0),
+                (-3.0, 1.0),
+                (-3.0, 3.0),
+                (0.0, 3.0),
+                (1.0, 1.0),
+                (2.0, 0.0),
+            )
+        )
+        obs = compute_loop_area_centroid_asymmetry(bend)
+        self.assertLess(obs, -1.0)
+        # symmetric bend
+        bend_sym = np.array(((0.0, 0.0), (1.0, 1.0), (2.0, 0.0)))
+        self.assertAlmostEqual(
+            compute_loop_area_centroid_asymmetry(bend_sym), 0.0
+        )
+
+    def test_resample_path_few_points(self: Self) -> None:
+        """Test resample_path output shape is the same in all cases."""
+        x = np.arange(5.0)
+        self.assertEqual(resample_path(x[:2], x[:2]).shape, (2, 2))
+        self.assertEqual(resample_path(x, x**2, 10).shape, (2, 10))
+
+    def test_find_2_closest_points_index_labels(self: Self) -> None:
+        """Test find_2_closest_points with a non default index."""
+        dataset2 = pd.DataFrame(
+            {"X": np.arange(5.0), "Y": np.zeros(5)}, index=np.arange(10, 15)
+        )
+        obs = find_2_closest_points(
+            dataset2, "X", "Y", 0, np.array((2.2, 0.0))
+        )
+        self.assertSequenceEqual(obs[:2], (2, 3))
+        dataset1 = pd.DataFrame({"X": [0.9, 2.2], "Y": [0.0, 0.0]})
+        result = find_2_closest_points_mono_proc(dataset1, dataset2)
+        self.assertSequenceEqual(result["index1"].tolist(), [11, 12])
+        self.assertSequenceEqual(result["index2"].tolist(), [10, 13])
+
+    def test_resample_path_with_parameter(self: Self) -> None:
+        """Test resample_path with user parameter values and smoothing."""
+        ages = np.array((0.0, 1.0, 2.0, 3.0, 4.0, 5.0))
+        x = ages * 10.0
+        y = np.array((0.0, 1.2, 1.8, 3.3, 3.9, 5.1))
+        # interpolation through the points
+        obs = resample_path(x, y, 0, 0, ages)
+        self.assertTrue(np.allclose(obs, np.vstack((x, y))))
+        # smoothing reduces the distance to the straight line y = x/10
+        obs = resample_path(x, y, 0, 1.0, ages)
+        self.assertLess(
+            np.abs(obs[1] - obs[0] / 10.0).sum(), np.abs(y - x / 10.0).sum()
+        )
+        # first point of a repeated location does not break the spline
+        x2 = np.array((0.0, 0.0, 1.0, 2.0, 3.0, 4.0))
+        obs = resample_path(x2, y, 0, 1.0, ages)
+        self.assertEqual(obs.shape, (2, 6))
 
 
 if __name__ == "__main__":

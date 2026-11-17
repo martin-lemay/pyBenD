@@ -9,10 +9,11 @@ centerline_flumy2500.csv and centerline_flumy2500.csv.
 
 import os
 import unittest
-from typing import Self
+from typing import Any, Optional, Self, cast
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd  # type: ignore[import-untyped]
 
 import pybend.algorithms.plot_functions as plot
 from pybend.io import (
@@ -291,8 +292,8 @@ middles_out_flumy: tuple[npt.NDArray[np.float64], ...] = (
     np.array((44390.0050, 99099.9260, 50.0000)),
     np.array((45569.9650, 98882.6740, 50.0000)),
     np.array((46881.4880, 98177.3910, 50.0000)),
-    np.array((47590.9450, 97602.2570, 50.0000)),
-    np.array((49072.0050, 98379.2590, 50.0000)),
+    np.array((47507.1620, 97659.9870, 50.0000)),
+    np.array((48988.2230, 98436.9890, 50.0000)),
     np.array((51368.0810, 98723.6080, 50.0000)),
     np.array((53823.1690, 98315.6170, 50.0000)),
     np.array((55548.4120, 99254.4340, 50.0000)),
@@ -341,8 +342,8 @@ centroids_out_flumy: tuple[npt.NDArray[np.float64], ...] = (
     np.array((44394.9320, 99083.6610)),
     np.array((45595.7460, 99128.8360)),
     np.array((46792.5470, 98107.9020)),
-    np.array((47469.6400, 97706.1410)),
-    np.array((49395.8790, 97910.6780)),
+    np.array((47490.2190, 97689.1970)),
+    np.array((49323.6390, 97926.8090)),
     np.array((51389.7200, 99474.1270)),
     np.array((53842.7470, 97492.9250)),
     np.array((55448.6600, 99368.8670)),
@@ -359,7 +360,7 @@ apex_index_auto_out_flumy: tuple[int, ...] = (
     73,
     92,
     103,
-    128,
+    129,
     148,
     152,
     161,
@@ -395,7 +396,7 @@ apex_index_auto_out_flumy: tuple[int, ...] = (
     549,
     567,
     595,
-    617,
+    618,
 )
 
 eps = 0.001  # tolerance for distance calculation (m)
@@ -1259,7 +1260,8 @@ class TestsCenterline(unittest.TestCase):
         # with open("tests/.out/centroids_obs.txt", "w") as fout:
         #     fout.writelines(centroids_list)
 
-        diff1: npt.NDArray[np.float64] = np.array(centroids) - np.array(
+        # centroids are 3D (mean elevation as Z): compare XY coordinates
+        diff1: npt.NDArray[np.float64] = np.array(centroids)[:, :2] - np.array(
             centroids_out_flumy
         )
         self.assertTrue(
@@ -1513,6 +1515,390 @@ class TestMergeStraightBends(unittest.TestCase):
                     f"Bend {bend.id}: apex {bend.index_apex} "
                     f"> inflex_down {bend.index_inflex_down}",
                 )
+
+
+class TestPropertyInterpolation(unittest.TestCase):
+    def test_compute_property_at_point(self: Self) -> None:
+        """Test inverse distance weighting of property interpolation."""
+        dataset = pd.DataFrame(
+            {"X": [0.0, 1.0], "Y": [0.0, 0.0], "P": [0.0, 10.0]}
+        )
+        dataset_new = pd.DataFrame(
+            {"X": [0.2, 0.5], "Y": [0.0, 0.0], "P": [np.nan, np.nan]}
+        )
+        rows = (
+            pd.Series({"index1": 0, "index2": 1, "d1": 0.2, "d2": 0.8}),
+            pd.Series({"index1": 1, "index2": 1, "d1": 0.0, "d2": 0.0}),
+        )
+        for i, row in enumerate(rows):
+            Centerline._compute_property_at_point(
+                cast(Any, None), dataset, ("X", "Y"), dataset_new, i, row
+            )
+        # closer to the first point: value close to 0
+        self.assertAlmostEqual(dataset_new.loc[0, "P"], 2.0)
+        self.assertAlmostEqual(dataset_new.loc[1, "P"], 10.0)
+
+
+def _make_sine_dataset(
+    nb_pts: int = 201, index: Optional[list[int]] = None
+) -> pd.DataFrame:
+    """Create a synthetic sinuous centerline dataset.
+
+    Args:
+        nb_pts (int, optional): number of points. Defaults to 201.
+        index (Optional[list[int]], optional): DataFrame index.
+            Defaults to None.
+
+    Returns:
+        pd.DataFrame: centerline dataset
+    """
+    x = np.linspace(0.0, 400.0, nb_pts)
+    y = 10.0 * np.sin(2.0 * np.pi * x / 100.0)
+    return pd.DataFrame(
+        {
+            PropertyNames.CARTESIAN_ABSCISSA.value: x,
+            PropertyNames.CARTESIAN_ORDINATE.value: y,
+            PropertyNames.ELEVATION.value: np.linspace(5.0, 1.0, nb_pts),
+            PropertyNames.VELOCITY.value: np.linspace(1.0, 2.0, nb_pts),
+        },
+        index=index,
+    )
+
+
+def _make_sine_centerline(
+    find_bends: bool = True, **kwargs: Any
+) -> Centerline:
+    """Create a Centerline from the synthetic sinuous dataset.
+
+    Args:
+        find_bends (bool, optional): whether to detect bends.
+            Defaults to True.
+        **kwargs (Any): keyword arguments passed to the dataset builder.
+
+    Returns:
+        Centerline: centerline
+    """
+    return Centerline(
+        0,
+        _make_sine_dataset(**kwargs),
+        2.0,
+        10.0,
+        False,
+        5,
+        1.05,
+        2,
+        find_bends=find_bends,
+    )
+
+
+class TestCenterlineBugFixes(unittest.TestCase):
+    """Regression tests for Centerline bug fixes."""
+
+    def setUp(self: Self) -> None:
+        """Use a single process."""
+        set_nb_procs(1)
+
+    def test_find_bends_twice_monoproc(self: Self) -> None:
+        """Calling find_bends twice does not duplicate bends."""
+        centerline = _make_sine_centerline()
+        nb_bends: int = centerline.get_nb_bends()
+        self.assertGreater(nb_bends, 0)
+        centerline.build_spatial_graph()
+        self.assertTrue(centerline.find_bends(1.05, 2))
+        self.assertEqual(centerline.get_nb_bends(), nb_bends)
+        self.assertEqual(
+            [bend.id for bend in centerline.bends], list(range(nb_bends))
+        )
+        self.assertFalse(centerline.spatial_graph_computed)
+        self.assertIsNone(centerline.spatial_graph)
+
+    def test_compute_all_bend_center_monoproc_stores_result(
+        self: Self,
+    ) -> None:
+        """Monoproc compute_all_bend_center stores bend middle points."""
+        centerline = _make_sine_centerline()
+        for bend in centerline.bends:
+            bend.pt_center = None
+        centerline.compute_all_bend_center()
+        for bend in centerline.bends:
+            self.assertIsNotNone(bend.pt_center)
+            assert bend.pt_center is not None
+            np.testing.assert_allclose(
+                bend.pt_center, centerline.compute_bend_middle(bend.id)
+            )
+
+    def test_input_normals_not_duplicated(self: Self) -> None:
+        """Input normal columns are recomputed, not duplicated."""
+        dataset = _make_sine_dataset()
+        dataset[PropertyNames.NORMAL_X.value] = 123.0
+        dataset[PropertyNames.NORMAL_Y.value] = -456.0
+        centerline = Centerline(
+            0, dataset, 2.0, 10.0, False, 5, 1.05, 2, find_bends=True
+        )
+        props = list(centerline.get_property_list())
+        self.assertEqual(props.count(PropertyNames.NORMAL_X.value), 1)
+        self.assertEqual(props.count(PropertyNames.NORMAL_Y.value), 1)
+        normal_x = centerline.get_property(PropertyNames.NORMAL_X.value)
+        normal_y = centerline.get_property(PropertyNames.NORMAL_Y.value)
+        self.assertTrue(np.all(np.isfinite(normal_x)))
+        self.assertTrue(np.all(np.isfinite(normal_y)))
+        np.testing.assert_allclose(np.hypot(normal_x, normal_y), 1.0)
+
+        ref = _make_sine_centerline()
+        np.testing.assert_allclose(
+            normal_x, ref.get_property(PropertyNames.NORMAL_X.value)
+        )
+
+    def test_non_default_dataset_index(self: Self) -> None:
+        """Input DataFrame index labels do not matter."""
+        nb_pts: int = 201
+        ref = _make_sine_centerline()
+        for index in (
+            list(range(100, 100 + nb_pts)),
+            list(range(nb_pts))[::-1],
+        ):
+            for spacing_ in (0.0, 2.0):
+                ref_ = ref
+                if spacing_ == 0.0:
+                    ref_ = Centerline(
+                        0,
+                        _make_sine_dataset(nb_pts),
+                        spacing_,
+                        10.0,
+                        find_bends=True,
+                    )
+                centerline = Centerline(
+                    0,
+                    _make_sine_dataset(nb_pts, index=index),
+                    spacing_,
+                    10.0,
+                    find_bends=True,
+                )
+                for prop in (
+                    PropertyNames.CARTESIAN_ABSCISSA.value,
+                    PropertyNames.CARTESIAN_ORDINATE.value,
+                    PropertyNames.ELEVATION.value,
+                    PropertyNames.VELOCITY.value,
+                ):
+                    values = centerline.get_property(prop)
+                    self.assertTrue(np.all(np.isfinite(values)), prop)
+                    np.testing.assert_allclose(values, ref_.get_property(prop))
+                self.assertEqual(
+                    centerline.get_nb_bends(), ref_.get_nb_bends()
+                )
+
+    def test_find_bend_apex_from_weights_fallback(self: Self) -> None:
+        """Apex falls back to max probability when no peak >= 0.6."""
+        centerline = _make_sine_centerline()
+        bend = centerline.bends[1]
+        nb: int = bend.get_nb_points()
+        proba = np.full(nb, 0.1)
+        proba[0] = 0.0
+        proba[-1] = 0.0
+        proba[3] = 0.4
+        bend.apex_probability = proba
+        self.assertEqual(
+            centerline.find_bend_apex_from_weights(bend.id),
+            bend.index_inflex_up + 3,
+        )
+
+    def test_find_all_bend_apex_user_weights_no_sentinel(
+        self: Self,
+    ) -> None:
+        """All apex computed from weights are defined and in bend."""
+        centerline = _make_sine_centerline()
+        centerline.find_all_bend_apex_user_weights((0.0, 0.0, 1.0))
+        for bend in centerline.bends:
+            self.assertGreaterEqual(bend.index_apex, bend.index_inflex_up)
+            self.assertLessEqual(bend.index_apex, bend.index_inflex_down)
+
+    def test_apex_probability_weights_sum_not_positive(self: Self) -> None:
+        """Null or negative weight sum raises ValueError."""
+        centerline = _make_sine_centerline()
+        for weights in ((0.0, 0.0, 0.0), (-1.0, 0.5, 0.0)):
+            with self.assertRaises(ValueError):
+                centerline._compute_bend_apex_probability_user_weights(
+                    0, *weights
+                )
+
+    def test_no_interpolation_properties_undefined(self: Self) -> None:
+        """Without interpolation, resampled properties are NaN, not 0."""
+        dataset = _make_sine_dataset()
+        centerline = Centerline(
+            0,
+            dataset,
+            2.0,
+            10.0,
+            compute_curvature=True,
+            interpol_props=False,
+            find_bends=False,
+        )
+        self.assertNotEqual(centerline.get_nb_points(), dataset.shape[0])
+        for prop in (
+            PropertyNames.ELEVATION.value,
+            PropertyNames.VELOCITY.value,
+        ):
+            self.assertTrue(np.all(np.isnan(centerline.get_property(prop))))
+        # computed properties are defined
+        for prop in (
+            PropertyNames.CARTESIAN_ABSCISSA.value,
+            PropertyNames.CURVILINEAR_ABSCISSA.value,
+            PropertyNames.NORMAL_X.value,
+            PropertyNames.CURVATURE.value,
+            PropertyNames.CURVATURE_FILTERED.value,
+        ):
+            values = centerline.get_property(prop)
+            self.assertTrue(np.all(np.isfinite(values)), prop)
+
+    def test_no_resampling_properties_copied(self: Self) -> None:
+        """Without resampling, input properties are copied."""
+        dataset = _make_sine_dataset()
+        centerline = Centerline(
+            0,
+            dataset,
+            0.0,
+            10.0,
+            compute_curvature=False,
+            interpol_props=False,
+            find_bends=False,
+        )
+        self.assertEqual(centerline.get_nb_points(), dataset.shape[0])
+        for prop in (
+            PropertyNames.ELEVATION.value,
+            PropertyNames.VELOCITY.value,
+            PropertyNames.CARTESIAN_ORDINATE.value,
+        ):
+            np.testing.assert_allclose(
+                centerline.get_property(prop), dataset[prop].to_numpy()
+            )
+
+    def test_fix_nb_points_smoothing_window(self: Self) -> None:
+        """Fixed number of points uses the actual resampled spacing."""
+        smooth_distance_: float = 30.0
+        ref = Centerline(
+            0,
+            _make_sine_dataset(),
+            2.0,
+            smooth_distance_,
+            False,
+            find_bends=False,
+        )
+        nb_pts: int = ref.get_nb_points()
+        centerline = Centerline(
+            0,
+            _make_sine_dataset(),
+            nb_pts,
+            smooth_distance_,
+            True,
+            find_bends=False,
+        )
+        self.assertEqual(centerline.get_nb_points(), nb_pts)
+        # same number of points and same smoothing window: same path
+        for prop in (
+            PropertyNames.CARTESIAN_ABSCISSA.value,
+            PropertyNames.CARTESIAN_ORDINATE.value,
+        ):
+            np.testing.assert_allclose(
+                centerline.get_property(prop),
+                ref.get_property(prop),
+                atol=1e-6,
+            )
+
+    def test_short_centerlines(self: Self) -> None:
+        """Short centerlines are processed without crash."""
+        for nb_pts in (3, 4, 5, 6):
+            for spacing_ in (0.0, 100.0):
+                dataset = _make_sine_dataset(nb_pts)
+                try:
+                    centerline = Centerline(
+                        0, dataset, spacing_, 500.0, False, 11, 1.05, 2
+                    )
+                except Exception as err:  # pragma: no cover
+                    self.fail(f"Centerline with {nb_pts} points failed: {err}")
+                curv = centerline.get_property(
+                    PropertyNames.CURVATURE_FILTERED.value
+                )
+                self.assertTrue(np.all(np.isfinite(curv)))
+
+    def test_too_short_centerline(self: Self) -> None:
+        """Centerlines with less than 3 points raise ValueError."""
+        for nb_pts in (1, 2):
+            with self.assertRaises(ValueError):
+                Centerline(0, _make_sine_dataset(nb_pts), 0.0, 10.0)
+
+    def test_get_property_unknown_name(self: Self) -> None:
+        """Unknown property name raises KeyError."""
+        centerline = _make_sine_centerline()
+        with self.assertRaises(KeyError):
+            centerline.get_property("Dummy_name")
+        with self.assertRaises(KeyError):
+            centerline.get_bend_property(0, "Dummy_name")
+        values = centerline.get_bend_property(0, PropertyNames.VELOCITY.value)
+        self.assertEqual(values.size, centerline.bends[0].get_nb_points())
+        self.assertTrue(np.all(np.isfinite(values)))
+
+    def test_compute_bend_centroid_3d(self: Self) -> None:
+        """Bend centroid is 3D with mean elevation as Z."""
+        centerline = _make_sine_centerline()
+        centerline.compute_all_bend_centroid()
+        for bend in centerline.bends:
+            assert bend.pt_centroid is not None
+            self.assertEqual(bend.pt_centroid.size, 3)
+            assert bend.pt_center is not None
+            self.assertEqual(bend.pt_center.size, 3)
+            z_mean = np.mean(
+                centerline.get_bend_property(
+                    bend.id, PropertyNames.ELEVATION.value
+                )
+            )
+            self.assertAlmostEqual(bend.pt_centroid[2], z_mean)
+
+    def test_filter_bends_undefined_apex(self: Self) -> None:
+        """Undefined apex (-1) is never used to index channel points."""
+        centerline = _make_sine_centerline()
+        bends = centerline.bends[:5]
+        for bend, side in zip(
+            bends,
+            (
+                BendSide.UP,
+                BendSide.STRAIGHT,
+                BendSide.STRAIGHT,
+                BendSide.DOWN,
+                BendSide.UP,
+            ),
+            strict=True,
+        ):
+            bend.side = side
+        centerline.bends = bends
+        # merged bend has an undefined apex
+        with self.assertRaises(AssertionError):
+            centerline.filter_bends()
+
+    def test_get_bend_index_from_cl_pt_index(self: Self) -> None:
+        """Bend index lookup bounds and shared inflection points."""
+        centerline = _make_sine_centerline()
+        nb_pts: int = centerline.get_nb_points()
+        self.assertIsNone(centerline.get_bend_index_from_cl_pt_index(-1))
+        self.assertIsNone(centerline.get_bend_index_from_cl_pt_index(nb_pts))
+        self.assertEqual(centerline.get_bend_index_from_cl_pt_index(0), 0)
+        self.assertEqual(
+            centerline.get_bend_index_from_cl_pt_index(nb_pts - 1),
+            centerline.get_nb_bends() - 1,
+        )
+        # shared inflection point belongs to the upstream bend
+        for i, bend in enumerate(centerline.bends[:-1]):
+            self.assertEqual(
+                centerline.get_bend_index_from_cl_pt_index(
+                    bend.index_inflex_down
+                ),
+                i,
+            )
+            self.assertEqual(
+                centerline.get_bend_index_from_cl_pt_index(
+                    bend.index_inflex_down + 1
+                ),
+                i + 1,
+            )
 
 
 if __name__ == "__main__":

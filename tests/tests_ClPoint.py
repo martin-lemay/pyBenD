@@ -315,5 +315,41 @@ class TestsClPoint(unittest.TestCase):
         )
 
 
+class TestsClPointFixes(unittest.TestCase):
+    """Tests of ClPoint fixes."""
+
+    def _make_point(self: Self, ide: str = "1") -> ClPoint:
+        cols = (
+            PropertyNames.CURVILINEAR_ABSCISSA.value,
+            PropertyNames.CARTESIAN_ABSCISSA.value,
+            PropertyNames.CARTESIAN_ORDINATE.value,
+            PropertyNames.ELEVATION.value,
+        )
+        return ClPoint(ide, 0, pd.Series([1.0, 2.0, 3.0, 4.0], index=cols))
+
+    def test_set_property_keeps_coordinates_in_sync(self: Self) -> None:
+        """Setting coordinate properties updates pt and _s."""
+        cl_pt = self._make_point()
+        cl_pt.set_property(PropertyNames.CURVILINEAR_ABSCISSA.value, 10.5)
+        cl_pt.set_property(PropertyNames.CARTESIAN_ABSCISSA.value, 20.5)
+        cl_pt.set_property(PropertyNames.CARTESIAN_ORDINATE.value, 30.5)
+        cl_pt.set_property(PropertyNames.ELEVATION.value, 40.5)
+        self.assertEqual(cl_pt._s, 10.5)
+        self.assertListEqual(cl_pt.pt.tolist(), [20.5, 30.5, 40.5])
+        self.assertEqual(
+            cl_pt.get_property(PropertyNames.ELEVATION.value), 40.5
+        )
+
+    def test_hash_consistent_with_eq(self: Self) -> None:
+        """Equal channel points have equal hashes."""
+        cl_pt1 = self._make_point("a")
+        cl_pt2 = self._make_point("a")
+        cl_pt3 = self._make_point("b")
+        self.assertEqual(cl_pt1, cl_pt2)
+        self.assertEqual(hash(cl_pt1), hash(cl_pt2))
+        self.assertNotEqual(cl_pt1, cl_pt3)
+        self.assertEqual(len({cl_pt1, cl_pt2, cl_pt3}), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

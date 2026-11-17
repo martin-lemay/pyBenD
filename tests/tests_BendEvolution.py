@@ -66,6 +66,25 @@ class TestsBendEvolution(unittest.TestCase):
         ret = bend_evol._check_is_valid(10)
         self.assertFalse(ret)
 
+    def test_get_number_of_bends(self: Self) -> None:
+        """Test of BendEvolution.get_number_of_bends() method."""
+        bend_evol: BendEvolution = BendEvolution(
+            bend_indexes, ide, order, False
+        )
+        self.assertEqual(bend_evol.get_number_of_bends(), 5)
+        self.assertEqual(len(bend_evol.get_all_ages()), 3)
+
+    def test_bend_indexes_sorted(self: Self) -> None:
+        """Test that bend indexes are sorted by age and by bend index."""
+        unsorted: dict[int, list[int]] = {30: [5, 4], 10: [6, 5], 20: [7]}
+        bend_evol: BendEvolution = BendEvolution(unsorted, ide, order)
+        self.assertListEqual(list(bend_evol.bend_indexes.keys()), [10, 20, 30])
+        self.assertDictEqual(
+            bend_evol.bend_indexes, {10: [5, 6], 20: [7], 30: [4, 5]}
+        )
+        # input is not modified
+        self.assertListEqual(unsorted[30], [5, 4])
+
 
 if __name__ == "__main__":
     unittest.main()

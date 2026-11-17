@@ -9,7 +9,6 @@ through time for a single channel belt.
 """
 
 import functools
-from collections import Counter
 from concurrent.futures import ProcessPoolExecutor as Pool
 from typing import TYPE_CHECKING, Optional, Self, cast
 
@@ -41,13 +40,10 @@ from pybend.model.enumerations import (
 from pybend.model.Isoline import ChannelCrossSection, Isoline
 from pybend.model.Section import Section
 from pybend.utils.globalParameters import get_nb_procs
-from pybend.utils.logging import ERROR, logger
+from pybend.utils.logging import logger
 
 if TYPE_CHECKING:
     pass
-
-# disable info and warnings
-logger.setLevel(ERROR)
 
 
 class CenterlineCollection:
@@ -274,7 +270,7 @@ class CenterlineCollection:
             bool: True if calculation successfully eneded.
 
         """
-        ages: list[int] = list(map_centerline_data.keys())
+        ages: list[int] = sorted(map_centerline_data.keys())
         for key in ages:
             self.centerlines[key] = self._create_centerline(
                 map_centerline_data,
@@ -383,7 +379,14 @@ class CenterlineCollection:
 
         """
         if age in self.get_all_ages():
-            return self.centerlines[age].get_property(property_name)
+            centerline = self.centerlines[age]
+            if property_name not in centerline.get_property_list():
+                logger.warning(
+                    f"Warning: property {property_name} is not defined on "
+                    + f"centerline {age}."
+                )
+                return np.full(centerline.get_nb_points(), np.nan)
+            return centerline.get_property(property_name)
         else:
             logger.warning(
                 f"Warning: centerline {age} is not in the collection."
@@ -461,13 +464,16 @@ class CenterlineCollection:
     def get_bend_evol_side(self: Self, bend_evol_index: int) -> BendSide:
         """Get BendEvolution side.
 
-        BendEvolution side is the most frequent side of its constitutive bends.
+        BendEvolution side is the most frequent side (UP or DOWN) of its
+        constitutive bends (the first bend at each age is considered).
 
         Args:
             bend_evol_index (int): BendEvolution index.
 
         Returns:
-            BendSide: BendEvolution side.
+            BendSide: BendEvolution side. STRAIGHT if no bend is UP or DOWN
+            (e.g., all bends are STRAIGHT), UNKNOWN if there are as many UP
+            bends as DOWN bends.
 
         """
         nb_up: int = 0
@@ -480,6 +486,10 @@ class CenterlineCollection:
                 nb_up += 1
             elif bend.side == BendSide.DOWN:
                 nb_down += 1
+        if nb_up == 0 and nb_down == 0:
+            return BendSide.STRAIGHT
+        if nb_up == nb_down:
+            return BendSide.UNKNOWN
         return BendSide.UP if nb_up > nb_down else BendSide.DOWN
 
     def match_centerlines(
@@ -490,11 +500,14 @@ class CenterlineCollection:
         curvature_weight: float = 1.0,
         window: int = 5,
         pattern: str = "asymmetric",
-    ) -> None:
+    ) -> bool:
         """Public method to compute centerline matching.
 
         Centerline matching consists in applying Dynamic Time Warping on each
         pair of consecutive Centerline to connect channel points together.
+
+        If the matching fails, the error is logged, the matching is flagged
+        as not computed and previously stored matching results are cleared.
 
         Args:
             dmax (float, optional): Maximal allowed distance (m) between
@@ -512,8 +525,14 @@ class CenterlineCollection:
                 Defaults to 5.
             pattern (str, optional): Pattern input of dtw.dtw function.
                 Defaults to "asymmetric".
+
+        Returns:
+            bool: True if centerline matching was successfully computed,
+            False otherwise.
         """
+        self._centerline_matching_computed = False
         try:
+            self._clear_centerline_matching()
             nb_procs: int = get_nb_procs()
             if nb_procs == 1:
                 self._match_centerlines_monoproc(
@@ -534,10 +553,26 @@ class CenterlineCollection:
                     pattern,
                     nb_procs,
                 )
-            self._centerline_matching_computed = True
         except Exception as e:
-            logger.critical("Centerline matching was not computed due to")
-            logger.critical(e)
+            logger.error(f"Centerline matching was not computed due to: {e}")
+            self._clear_centerline_matching()
+            return False
+        self._centerline_matching_computed = True
+        return True
+
+    def _clear_centerline_matching(self: Self) -> None:
+        """Clear centerline matching results stored in centerlines.
+
+        Reset Centerline.index_cl_pts_prev_centerline,
+        Centerline.index_cl_pts_next_centerline and ClPoint.cl_pt_index_prev
+        and ClPoint.cl_pt_index_next of all centerlines.
+        """
+        for centerline in self.centerlines.values():
+            centerline.index_cl_pts_prev_centerline = []
+            centerline.index_cl_pts_next_centerline = []
+            for cl_pt in centerline.cl_points:
+                cl_pt.cl_pt_index_prev = []
+                cl_pt.cl_pt_index_next = []
 
     def _match_centerlines_monoproc(
         self: Self,
@@ -694,7 +729,10 @@ class CenterlineCollection:
             prev_key
         ].get_all_curvature_filtered()
         lvel_perturb0: npt.NDArray[np.float64] = np.zeros_like(lx0)
-        if vel_perturb_prop_name in self.centerlines[key].get_property_list():
+        if (
+            vel_perturb_prop_name
+            in self.centerlines[prev_key].get_property_list()
+        ):
             lvel_perturb0 = savgol_filter(
                 self.centerlines[prev_key].get_property(vel_perturb_prop_name),
                 window_length=window,
@@ -728,10 +766,13 @@ class CenterlineCollection:
                 )
                 distance_matrix_curv[i, j] = abs(abs(curv1) - abs(curv0))
 
-        if distance_matrix_dist[distance_matrix_dist != 1e9].max() > 0.0:
-            distance_matrix_dist /= distance_matrix_dist[
-                distance_matrix_dist != 1e9
-            ].max()
+        # normalize distances by the maximum distance lower than dmax (if
+        # any pair of points is closer than dmax)
+        valid_dist: npt.NDArray[np.float64] = distance_matrix_dist[
+            distance_matrix_dist != 1e9
+        ]
+        if valid_dist.size > 0 and valid_dist.max() > 0.0:
+            distance_matrix_dist /= valid_dist.max()
         if distance_matrix_curv.max() > 0.0:
             distance_matrix_curv /= distance_matrix_curv.max()
         if distance_matrix_vel_pertub.max() > 0.0:
@@ -772,6 +813,11 @@ class CenterlineCollection:
         self.centerlines[prev_key].index_cl_pts_next_centerline = [
             [] for _ in range(self.centerlines[prev_key].get_nb_points())
         ]
+        # reset channel point connections from a previous matching
+        for cl_pt in self.centerlines[key].cl_points:
+            cl_pt.cl_pt_index_prev = []
+        for cl_pt in self.centerlines[prev_key].cl_points:
+            cl_pt.cl_pt_index_next = []
         for index_key, index_prev_key in enumerate(indexes):
             pt1: npt.NDArray[np.float64] = (
                 self.centerlines[key].cl_points[index_key].pt
@@ -804,7 +850,7 @@ class CenterlineCollection:
         norm_width: float = 0.0,
         weights: dict[str, float] | None = None,
         gap_penalty_metric: str = "sinuosity",
-        gap_penalty_scale: float = 1.0,
+        gap_penalty_scale: float = 2.5,
         spatial_tolerance: float = 2.0,
         step_pattern: str = "asymmetric",
         birth_death_threshold: float = 10.0,
@@ -813,8 +859,9 @@ class CenterlineCollection:
         """Create BendEvolution objects by connecting bends.
 
         Args:
-            bend_evol_validity (int, optional): Minimum number of
-                bends in the BendEvolution to be considered valid.
+            bend_evol_validity (int, optional): A BendEvolution is
+                considered valid if it contains strictly more than
+                bend_evol_validity bends.
                 Defaults to 2.
             method (BendConnectionMethod, optional): Method to use.
                 Defaults to BendConnectionMethod.APEX.
@@ -831,7 +878,7 @@ class CenterlineCollection:
             gap_penalty_metric (str, optional): Gap penalty metric
                 for SEQUENCE_ALIGNMENT. Defaults to "sinuosity".
             gap_penalty_scale (float, optional): Gap penalty
-                multiplier. Defaults to 1.0.
+                multiplier. Defaults to 2.5.
             spatial_tolerance (float, optional): Max distance in
                 norm_width units for split/merge detection.
                 Defaults to 2.0.
@@ -847,9 +894,18 @@ class CenterlineCollection:
         Returns:
             bool: True if the function ends without errors
 
+        Raises:
+            NotImplementedError: if the method is SEQUENCE_ALIGNMENT, DTW or
+                GENERALIZED_ALIGNMENT, which are not implemented yet.
+            TypeError: if the method is unknown.
+
         """
         # reset self.bends_evol that will be updated later on
         self.bends_evol = []
+        self.bends_tracking_computed = False
+        for centerline in self.centerlines.values():
+            for bend in centerline.bends:
+                bend.bend_evol_id = None
         match method:
             case BendConnectionMethod.APEX:
                 return self._connect_bends_apex(dmax, bend_evol_validity)
@@ -860,10 +916,19 @@ class CenterlineCollection:
                     bend_evol_validity,
                     weighting_func_type=weighting_func_type,
                 )
+            case (
+                BendConnectionMethod.SEQUENCE_ALIGNMENT
+                | BendConnectionMethod.DTW
+                | BendConnectionMethod.GENERALIZED_ALIGNMENT
+            ):
+                raise NotImplementedError(
+                    f"Bend connection method '{method}' is not implemented "
+                    + "in CenterlineCollection.connect_bends."
+                )
             case _:
                 methods = [str(meth) for meth in list(BendConnectionMethod)]  # type: ignore[unreachable]
                 raise TypeError(
-                    "Input method is wrong. Methods are: ".join(methods)
+                    "Input method is wrong. Methods are: " + ", ".join(methods)
                 )
 
     # TODO: refactor with same method as _connect_bends_from_matching
@@ -879,8 +944,8 @@ class CenterlineCollection:
         Args:
             dmax (float): Maximum allowed distance (m) between 2
                 successive apex points.
-            bend_evol_validity (int): Minimum number of bends in the
-                BendEvolution to be considered as valid.
+            bend_evol_validity (int): A BendEvolution is considered valid
+                if it contains strictly more than bend_evol_validity bends.
 
         Returns:
             bool: True if the function ends witout errors
@@ -920,7 +985,7 @@ class CenterlineCollection:
                         index_apex_prev: Optional[int] = bend_saved[
                             -1
                         ].index_apex
-                        if index_apex_prev is None:
+                        if index_apex_prev is None or index_apex_prev < 0:
                             continue
                         pt1: npt.NDArray[np.float64] = (
                             self.centerlines[prev_key]
@@ -929,7 +994,7 @@ class CenterlineCollection:
                         )
 
                         index_apex_cur: Optional[int] = bend.index_apex
-                        if index_apex_cur is None:
+                        if index_apex_cur is None or index_apex_cur < 0:
                             continue
                         pt2: npt.NDArray[np.float64] = (
                             self.centerlines[key].cl_points[index_apex_cur].pt
@@ -950,28 +1015,51 @@ class CenterlineCollection:
 
             prev_key = key
 
-        for bend_evol_id, bends in enumerate(bends_evol):
+        self._create_bend_evolutions_from_chains(
+            bends_evol, bend_evol_validity
+        )
+        return True
+
+    def _create_bend_evolutions_from_chains(
+        self: Self, bends_evol: list[list[Bend]], bend_evol_validity: int
+    ) -> None:
+        """Create BendEvolution objects from chains of connected bends.
+
+        Chains made of a single bend are discarded. BendEvolution ids are
+        their index in self.bends_evol, and Bend.bend_evol_id is set on every
+        bend of each kept chain.
+
+        Args:
+            bends_evol (list[list[Bend]]): Chains of connected bends (one bend
+                per age).
+            bend_evol_validity (int): A BendEvolution is considered valid
+                if it contains strictly more than bend_evol_validity bends.
+
+        """
+        for bends in bends_evol:
             bend_indexes: dict[int, list[int]] = {
                 bend.age: [
                     bend.id,
                 ]
                 for bend in bends
             }
-            if len(bend_indexes) > 1:
+            if len(bend_indexes) < 2:
+                continue
+            bend_evol_id: int = len(self.bends_evol)
+            for bend in bends:
                 self.centerlines[bend.age].bends[
                     bend.id
                 ].bend_evol_id = bend_evol_id
-                self.bends_evol += [
-                    BendEvolution(
-                        bend_indexes,
-                        i,
-                        0,
-                        len(bend_indexes) > bend_evol_validity,
-                    )
-                ]
+            self.bends_evol += [
+                BendEvolution(
+                    bend_indexes,
+                    bend_evol_id,
+                    0,
+                    len(bend_indexes) > bend_evol_validity,
+                )
+            ]
 
         self.bends_tracking_computed = len(self.bends_evol) > 0
-        return True
 
     # TODO: refactor with same method as _connect_bends_from_matching
     def _connect_bends_centroid(
@@ -986,8 +1074,8 @@ class CenterlineCollection:
         Args:
             dmax (float): Maximum allowed distance (m) between 2
                 successive apex points.
-            bend_evol_validity (int): Minimum number of bends in the
-                BendEvolution to be considered as valid.
+            bend_evol_validity (int): A BendEvolution is considered valid
+                if it contains strictly more than bend_evol_validity bends.
 
         Returns:
             bool: True if the function ends witout errors
@@ -1030,7 +1118,8 @@ class CenterlineCollection:
                             "Centroid is undefined"
                         )
                         dist[k] = geom.distance(
-                            bend_saved[-1].pt_centroid, bend.pt_centroid
+                            bend_saved[-1].pt_centroid[:2],
+                            bend.pt_centroid[:2],
                         )
 
                 # take the index of the minimum distance if this distance is
@@ -1039,28 +1128,17 @@ class CenterlineCollection:
                     index = int(np.nanargmin(dist))
 
                 # a bend is found
-                if index > 0:
+                if index > -1:
                     bends_evol[index] += [bend]
                 # no bend found, create a new list of bends
                 else:
                     bends_evol += [[bend]]
 
-                prev_key = key
+            prev_key = key
 
-        for bends in bends_evol:
-            bend_indexes: dict[int, list[int]] = {
-                bend.age: [
-                    bend.id,
-                ]
-                for bend in bends
-            }
-            self.bends_evol += [
-                BendEvolution(
-                    bend_indexes, i, 0, len(bend_indexes) > bend_evol_validity
-                )
-            ]
-
-        self.bends_tracking_computed = len(self.bends_evol) > 0
+        self._create_bend_evolutions_from_chains(
+            bends_evol, bend_evol_validity
+        )
         return True
 
     def _connect_bends_from_matching(
@@ -1072,11 +1150,16 @@ class CenterlineCollection:
 
         Connect bends from the successive centerlines of the collection by
         searching for the greatest number of connected channel points between
-        connected bends.
+        connected bends. A bend of age t is connected to a bend of age t+1 if
+        more than 20% of the points of the bend of age t+1 are connected to
+        points of the bend of age t. BendEvolution objects are then the
+        connected components (made of at least 2 bends) of the graph of bend
+        connections, such that bend splits and merges are kept in the same
+        BendEvolution.
 
         Args:
-            bend_evol_validity (int): Minimum number of bends in the
-                BendEvolution to be considered as valid.
+            bend_evol_validity (int): A BendEvolution is considered valid
+                if it contains strictly more than bend_evol_validity bends.
             weighting_func_type (str, optional): Weighting function type to
                 use.
 
@@ -1088,48 +1171,45 @@ class CenterlineCollection:
             "Centerline matching was not "
             + "computed. First use match_centerlines method."
         )
-        bend_uids: list[int] = []
         # TODO: compute weights for each point according to weighting function
+
+        # reset bend connections from a previous call
+        for centerline in self.centerlines.values():
+            for bend in centerline.bends:
+                bend.bend_uid_next = None
+                bend.bend_uid_prev = None
 
         # connect bends forward through time
         all_iter: npt.NDArray[np.int64] = self.get_all_ages()
         for i, key in enumerate(all_iter[:-1]):
             next_key: int = all_iter[i + 1]
             for bend_index, bend in enumerate(self.centerlines[key].bends):
-                # initialize bend_uids with uids with first centerline bends
-                if i == 0:
-                    bend_uids += [bend.uid]
-
-                # looks for the bend index of each point of the bend
-                counts = self._get_bend_index_connection_counts(
-                    bend, key, next_key, True, weighting_func_type
+                # looks for the points of the next centerline connected to
+                # the points of the bend, grouped by bend index
+                connected_pts: dict[int, set[int]] = (
+                    self._get_connected_cl_pts_per_bend(bend, key, next_key)
                 )
-                if len(counts) == 0:
-                    continue
 
-                # keep bend index the most present whatever the side
+                # keep all next bends with more than 20% of their cl_points
+                # connected to the bend
                 # TODO: to take into account weigths
-                # next_bend_index = Counter(counts).most_common(1)[0][0]
-                # if next_bend_index is not None:
-                #   self._add_bend_connection(
-                #       key, next_key, bend_index, next_bend_index)
-
-                # keep all bend index with more than 50% connected cl_points
-                for next_bend_index, cnt in Counter(counts).items():
-                    if next_bend_index is None:
-                        continue
+                for next_bend_index, pt_indexes in connected_pts.items():
                     nb_pts = (
                         self.centerlines[next_key]
                         .bends[next_bend_index]
                         .get_nb_points()
                     )
-                    ratio = float(cnt) / float(nb_pts)
+                    ratio = float(len(pt_indexes)) / float(nb_pts)
                     if ratio > 0.2:
-                        uid: int = self._add_bend_connection(
+                        self._add_bend_connection(
                             key, next_key, bend_index, next_bend_index
                         )
-                        bend_uids += [uid]
 
+        bend_uids: list[int] = [
+            bend.uid
+            for age in all_iter
+            for bend in self.centerlines[age].bends
+        ]
         self._create_bend_evolution(bend_evol_validity, bend_uids)
         return True
 
@@ -1160,135 +1240,146 @@ class CenterlineCollection:
         ].add_bend_connection_prev(bend.uid)
         return next_bend_uid
 
-    def _get_bend_index_connection_counts(
+    def _get_connected_cl_pts_per_bend(
         self: Self,
         bend: Bend,
         key: int,
         next_key: int,
-        next_iter: int,
-        weighting_func_type: str,
-    ) -> list[int | None]:
-        """Get the number of times each connected bends is.
+        next_iter: bool = True,
+    ) -> dict[int, set[int]]:
+        """Get the channel points connected to a bend grouped by bend index.
 
         Args:
             bend (Bend): Bend object.
-            key (int): Age of centerline.
+            key (int): Age of the centerline the bend belongs to.
             next_key (int): Next age to consider. It can be lower or greater
                 depending on next_iter.
-            next_iter (bool): If True, look for next  centerline.
-            weighting_func_type (str): Weighting function type to use.
+            next_iter (bool): If True, look for next centerline, otherwise
+                look for previous centerline.
+                Defaults to True.
 
         Returns:
-            list[int | None]: Bend uid for each connected bends, or None if no
-            bend is connected.
+            dict[int, set[int]]: For each bend index of the centerline of age
+            next_key, the set of distinct indexes of its channel points
+            connected to the bend.
 
         """
-        counts: list[int | None] = []
+        connected_pts: dict[int, set[int]] = {}
         # does not consider inflection points since they are part of both
         # neighboring bends
         for index in range(
             bend.index_inflex_up + 1, bend.index_inflex_down, 1
         ):
-            if next_iter:
-                pts_index_next = (
-                    self.centerlines[key].cl_points[index].cl_pt_index_next
-                )
-            else:
-                pts_index_next = (
-                    self.centerlines[key].cl_points[index].cl_pt_index_prev
-                )
-
+            cl_pt: ClPoint = self.centerlines[key].cl_points[index]
+            pts_index_next: Optional[list[int]] = (
+                cl_pt.cl_pt_index_next if next_iter else cl_pt.cl_pt_index_prev
+            )
             if pts_index_next is None:
-                counts += [None]  # type: ignore[unreachable]
                 continue
 
             for pt_index_next in pts_index_next:
-                bend_uid_next: Optional[int] = self.centerlines[
+                bend_index_next: Optional[int] = self.centerlines[
                     next_key
                 ].get_bend_index_from_cl_pt_index(pt_index_next)
-                if bend_uid_next is None:
+                if bend_index_next is None:
                     continue
-                # TODO: to take into account weigths
-                counts += [bend_uid_next]
-        return counts
+                connected_pts.setdefault(bend_index_next, set()).add(
+                    int(pt_index_next)
+                )
+        return connected_pts
 
     def _create_bend_evolution(
         self: Self, bend_evol_validity: int, bend_uids: list[int]
     ) -> None:
         """Create the list self.bends_evol with BendEvolution objects.
 
+        BendEvolution objects are the connected components of the graph of
+        bend connections (Bend.bend_uid_next and Bend.bend_uid_prev) that
+        contain the input bends. Components made of a single bend are
+        discarded. Bend.bend_evol_id is set on every bend of each
+        BendEvolution.
+
         Args:
-            bend_evol_validity (int): Minimum number of bends in the
-                BendEvolution to be considered as valid.
-            bend_uids (list[int]): list of bend uids.
+            bend_evol_validity (int): A BendEvolution is considered valid
+                if it contains strictly more than bend_evol_validity bends.
+            bend_uids (list[int]): list of bend uids used as seeds of the
+                connected components.
 
         """
-        bend_evol_all: list[list[int]] = []
-        while len(bend_uids) > 0:
-            uid: int = bend_uids[0]
-            # bend_uids.pop(uid)
-            bend_uids.remove(uid)
-            to_treat: set[int] = set()
-            to_treat.add(uid)
-            bend_evol: list[int] = []
-            self._update_bend_evolution(to_treat, bend_uids, bend_evol)
-            bend_evol_all += [bend_evol]
-
         self.bends_evol = []
-        for i, bend_evol_ids in enumerate(bend_evol_all):
+        visited: set[int] = set()
+        for seed_uid in bend_uids:
+            if seed_uid in visited:
+                continue
+            component: list[int] = self._collect_connected_bends(
+                seed_uid, visited
+            )
+            if len(component) < 2:
+                continue
+
             dico_indexes: dict[int, list[int]] = {}
-            for uid in bend_evol_ids:
+            for uid in component:
                 age, bend_id = parse_bend_uid(uid)
-                dico_indexes[age] = [
-                    bend_id,
-                ]
+                dico_indexes.setdefault(age, []).append(bend_id)
+            dico_indexes = {
+                age: sorted(set(ids))
+                for age, ids in sorted(dico_indexes.items())
+            }
+
+            bend_evol_id: int = len(self.bends_evol)
+            for age, ids in dico_indexes.items():
+                for bend_id in ids:
+                    self.centerlines[age].bends[
+                        bend_id
+                    ].bend_evol_id = bend_evol_id
+
             self.bends_evol += [
                 BendEvolution(
-                    dico_indexes, i, 0, len(bend_evol_ids) > bend_evol_validity
+                    dico_indexes,
+                    bend_evol_id,
+                    0,
+                    len(component) > bend_evol_validity,
                 )
             ]
 
         self.bends_tracking_computed = True
 
-    def _update_bend_evolution(
-        self: Self,
-        to_treat: set[int],
-        bend_uids: list[int],
-        bend_evol: list[int],
-    ) -> None:
-        """Collect Bend indexes of connected bends.
+    def _collect_connected_bends(
+        self: Self, seed_uid: int, visited: set[int]
+    ) -> list[int]:
+        """Collect the uids of the bends connected to the seed bend.
 
-        The method works recursively from the lists Bend.bend_uid_next and
-        Bend.bend_uid_prev.
+        Iterative depth-first traversal of the graph of bend connections
+        defined by the lists Bend.bend_uid_next and Bend.bend_uid_prev.
 
         Args:
-            to_treat (set[int]): List of remaining Bend uid to treat.
-            bend_uids (list[int]): List of all remaining Bend uid to treat.
-            bend_evol (list[int]): List of Bend uid that belongs to a same
-                BendEvolution.
+            seed_uid (int): Uid of the starting bend.
+            visited (set[int]): Uids of already visited bends. It is updated
+                with the uids of the collected bends.
+
+        Returns:
+            list[int]: Uids of the bends of the connected component that
+            contains the seed bend, sorted in ascending order.
 
         """
-        if len(to_treat) == 0:
-            return
-
-        uid: int = to_treat.pop()
-        age, bend_id = parse_bend_uid(uid)
-        bend: Bend = self.centerlines[age].bends[bend_id]
-        if (bend.bend_uid_next is not None) and (len(bend.bend_uid_next) > 0):
-            for bend_next_uid in bend.bend_uid_next:
-                if bend_next_uid in bend_uids:
-                    to_treat.add(bend_next_uid)
-                    # bend_uids.discard(bend_next_uid)
-                    bend_uids.remove(bend_next_uid)
-
-        if (bend.bend_uid_prev is not None) and (len(bend.bend_uid_prev) > 0):
-            for bend_prev_uid in bend.bend_uid_prev:
-                if bend_prev_uid in bend_uids:
-                    to_treat.add(bend_prev_uid)
-                    # bend_uids.discard(bend_prev_uid)
-                    bend_uids.remove(bend_prev_uid)
-        bend_evol += [uid]
-        self._update_bend_evolution(to_treat, bend_uids, bend_evol)
+        component: list[int] = []
+        stack: list[int] = [seed_uid]
+        visited.add(seed_uid)
+        while stack:
+            uid: int = stack.pop()
+            component.append(uid)
+            age, bend_id = parse_bend_uid(uid)
+            bend: Bend = self.centerlines[age].bends[bend_id]
+            neighbors: list[int] = []
+            if bend.bend_uid_next is not None:
+                neighbors += bend.bend_uid_next
+            if bend.bend_uid_prev is not None:
+                neighbors += bend.bend_uid_prev
+            for neighbor_uid in neighbors:
+                if neighbor_uid not in visited:
+                    visited.add(neighbor_uid)
+                    stack.append(neighbor_uid)
+        return sorted(component)
 
     def set_section_lines(
         self: Self,
@@ -1336,8 +1427,9 @@ class CenterlineCollection:
             case _:
                 methods = [str(meth) for meth in list(CreateSectionMethod)]  # type: ignore[unreachable]
                 raise TypeError(
-                    "Unkown method for section line creation. Methods are "
-                    + "either: ".join(methods)
+                    "Unknown method for section line creation. Methods are "
+                    + "either: "
+                    + ", ".join(methods)
                 )
 
     def _create_section_lines_from_bend(
@@ -1380,13 +1472,16 @@ class CenterlineCollection:
                     str(CreateSectionMethod.CENTROID),
                 ]
                 raise TypeError(
-                    "Unkown method for section line creation. Methods are "
-                    + "either: ".join(methods)
+                    "Unknown method for section line creation. Methods are "
+                    + "either: "
+                    + ", ".join(methods)
                 )
             assert pt_end is not None, (
                 "Undefined end point for section line creation"
             )
-            assert bend.index_apex > -1, "Bend apex is undefined."
+            assert (bend.index_apex is not None) and (bend.index_apex > -1), (
+                "Bend apex is undefined."
+            )
             pt_apex: npt.NDArray[np.float64] = (
                 self.centerlines[key].cl_points[bend.index_apex].pt
             )
@@ -1406,6 +1501,7 @@ class CenterlineCollection:
         ):
             if (
                 not bend.is_valid
+                or bend.index_apex is None
                 or bend.index_apex < 0
                 or (i == 0)
                 or (
@@ -1419,7 +1515,11 @@ class CenterlineCollection:
             prev_bend = self.centerlines[key].bends[i - 1]
             next_bend = self.centerlines[key].bends[i + 1]
 
-            if prev_bend.is_valid and (prev_bend.index_apex > -1):
+            if (
+                prev_bend.is_valid
+                and (prev_bend.index_apex is not None)
+                and (prev_bend.index_apex > -1)
+            ):
                 pt0 = self.centerlines[key].cl_points[prev_bend.index_apex].pt
             else:
                 k = prev_bend.index_inflex_up + int(
@@ -1427,7 +1527,11 @@ class CenterlineCollection:
                 )
                 pt0 = self.centerlines[key].cl_points[k].pt
 
-            if next_bend.is_valid and (next_bend.index_apex > -1):
+            if (
+                next_bend.is_valid
+                and (next_bend.index_apex is not None)
+                and (next_bend.index_apex > -1)
+            ):
                 pt1 = self.centerlines[key].cl_points[next_bend.index_apex].pt
             else:
                 k = next_bend.index_inflex_up + int(
@@ -1447,6 +1551,22 @@ class CenterlineCollection:
     def _create_all_channel_sections(
         self: Self, section_line: LineString
     ) -> tuple[list[Isoline], list[int]]:
+        """Create channel cross-sections where centerlines cross the section.
+
+        Each segment between two consecutive channel points of each
+        centerline is tested against the section line. When an intersection
+        exists, channel point properties are interpolated at the intersection
+        point to create a ChannelCrossSection.
+
+        Args:
+            section_line (LineString): Section line.
+
+        Returns:
+            tuple[list[Isoline], list[int]]: List of channel cross-sections and
+            list of the index of the first channel point of the intersected
+            segment.
+
+        """
         # list of isoline instances to store channel locations
         isolines: list[Isoline] = []
         cl_pt_indexes: list[int] = []
@@ -1462,34 +1582,54 @@ class CenterlineCollection:
                 np.array(line2.coords)[1],
             )
         )
+        xmin, ymin, xmax, ymax = window.bounds
 
         # for each centerline
         for key in self.get_all_ages():
-            # for each point of the centerline
-            for j, cl_pt in enumerate(self.centerlines[key].cl_points):
-                # if the point is inside the window
-                if (window.contains(Point(cl_pt.pt))) and (
-                    j < len(self.centerlines[key].cl_points) - 2
-                ):
-                    cl_pt2: ClPoint = self.centerlines[key].cl_points[j + 1]
-                    cl_line = LineString([cl_pt.pt, cl_pt2.pt])
-                    intersect = section_line.intersection(cl_line)
-                    # if the intersection exists
-                    if not intersect.is_empty:
-                        # interpolate channel points properties to the
-                        # intersection point
-                        d: float = (
-                            intersect.distance(Point(cl_pt.pt))
-                            / cl_line.length
-                        )
-                        cl_pt = cl_pt * (1 - d) + cl_pt2 * d
+            cl_points: list[ClPoint] = self.centerlines[key].cl_points
+            nb_pts: int = len(cl_points)
+            if nb_pts < 2:
+                continue
+            pts: npt.NDArray[np.float64] = np.array(
+                [cl_pt.pt[:2] for cl_pt in cl_points], dtype=float
+            )
+            # fast pre-selection of segments whose bounding box overlaps the
+            # window bounding box
+            seg_min = np.minimum(pts[:-1], pts[1:])
+            seg_max = np.maximum(pts[:-1], pts[1:])
+            candidates = np.flatnonzero(
+                (seg_max[:, 0] >= xmin)
+                & (seg_min[:, 0] <= xmax)
+                & (seg_max[:, 1] >= ymin)
+                & (seg_min[:, 1] <= ymax)
+            )
+            # for each segment of the centerline
+            for j in candidates:
+                cl_pt: ClPoint = cl_points[j]
+                cl_pt2: ClPoint = cl_points[j + 1]
+                cl_line = LineString([pts[j], pts[j + 1]])
+                # if the segment intersects the window
+                if (cl_line.length == 0.0) or (not window.intersects(cl_line)):
+                    continue
+                intersect = section_line.intersection(cl_line)
+                # if the intersection exists
+                if intersect.is_empty:
+                    continue
+                # interpolate channel points properties to the
+                # intersection point
+                d: float = intersect.distance(Point(pts[j])) / cl_line.length
+                # intersection at the end point of the segment is handled
+                # with the next segment to avoid duplicates
+                if (d >= 1.0) and (j < nb_pts - 2):
+                    continue
+                cl_pt_inter: ClPoint = cl_pt * (1 - d) + cl_pt2 * d
 
-                        channel_section: ChannelCrossSection = (
-                            ChannelCrossSection(key, cl_pt)
-                        )
-                        channel_section.complete_channel_shape(11)
-                        isolines += [cast(Isoline, channel_section)]
-                        cl_pt_indexes += [j]
+                channel_section: ChannelCrossSection = ChannelCrossSection(
+                    key, cl_pt_inter
+                )
+                channel_section.complete_channel_shape(11)
+                isolines += [cast(Isoline, channel_section)]
+                cl_pt_indexes += [int(j)]
         return isolines, cl_pt_indexes
 
     # done here because may collect centerline points outside bend_evol
@@ -1502,11 +1642,14 @@ class CenterlineCollection:
         """Collect channels that are intersected by sections.
 
         This method create the Section objects with intersected channel
-        geometry and store them in the list self.sections.
+        geometry and store them in the list self.sections. The bend id of
+        each Section is the index of the bend intersected by the section in
+        the youngest (i.e., most recent, greatest age) intersected
+        centerline, or -1 if this centerline has no bend.
 
         Args:
-            thres (int, optional): Minimum number of intersected lines to
-                create the Section object.
+            thres (int, optional): A Section object is created only if the
+                section line intersects strictly more than thres channels.
                 Defaults to 1.
             flow_dir (NDArray[float], optional): Direction vector of the flow
                 used to orientate the Sections.
@@ -1536,18 +1679,30 @@ class CenterlineCollection:
 
             # create the section
             if len(isolines) > thres:
+                # bend index in the youngest intersected centerline
+                ref_bend_index: Optional[int] = None
+                ref_age: Optional[int] = None
                 for isoline, cl_pt_index in zip(
                     isolines, cl_pt_indexes, strict=False
                 ):
                     # notify bend that is intersected by the section line
-                    bend_index = self._get_bend_index_from_cl_point_index(
-                        cl_pt_index, isoline.age
+                    bend_index: Optional[int] = (
+                        self._get_bend_index_from_cl_point_index(
+                            cl_pt_index, isoline.age
+                        )
                     )
-                    self.centerlines[isoline.age].bends[
-                        bend_index
-                    ].add_intersected_section_index(i)
+                    if bend_index is not None:
+                        self.centerlines[isoline.age].bends[
+                            bend_index
+                        ].add_intersected_section_index(i)
+                    if (ref_age is None) or (isoline.age > ref_age):
+                        ref_age = isoline.age
+                        ref_bend_index = bend_index
 
-                bend_id: str = f"{cl_collec_id}-{bend_index}"
+                bend_id: str = (
+                    f"{cl_collec_id}-"
+                    + f"{-1 if ref_bend_index is None else ref_bend_index}"
+                )
                 ide: str = f"{cl_collec_id}-{i}"
 
                 bounds: MultiPoint = section_line.boundary
@@ -1574,7 +1729,7 @@ class CenterlineCollection:
 
     def _get_bend_index_from_cl_point_index(
         self: Self, cl_pt_index: int, age: int
-    ) -> int:
+    ) -> Optional[int]:
         """Get bend index from the index of a channel point of age.
 
         Args:
@@ -1583,23 +1738,29 @@ class CenterlineCollection:
                 belongs to.
 
         Returns:
-            int: Index of the Bend the channel point belongs to.
+            int | None: Index of the Bend the channel point belongs to, or
+            None if the centerline has no bend.
 
         """
-        if cl_pt_index < self.centerlines[age].bends[0].index_inflex_up:
+        bends: list[Bend] = self.centerlines[age].bends
+        if len(bends) == 0:
+            return None
+        if cl_pt_index < bends[0].index_inflex_up:
             return 0
-        elif cl_pt_index > self.centerlines[age].bends[-1].index_inflex_down:
-            return len(self.centerlines[age].bends) - 1
+        elif cl_pt_index > bends[-1].index_inflex_down:
+            return len(bends) - 1
 
-        for bend_index, bend in enumerate(self.centerlines[age].bends):
+        for bend_index, bend in enumerate(bends):
             if (cl_pt_index >= bend.index_inflex_up) and (
                 cl_pt_index < bend.index_inflex_down
             ):
                 return bend_index
-        return bend_index
+        return len(bends) - 1
 
     def find_all_bend_middle(
-        self: Self, smooth_trajectory: bool = False
+        self: Self,
+        smooth_trajectory: bool = False,
+        smoothing_factor: float = 0.5,
     ) -> None:
         """Compute the middle points of all bends of the CenterlineCollection.
 
@@ -1608,6 +1769,11 @@ class CenterlineCollection:
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.middle_trajec_smooth.
                 Defaults to False.
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline used to smooth the trajectory, i.e., the upper bound of
+                the sum of squared residuals between input and smoothed
+                points. 0 means interpolation through all points.
+                Defaults to 0.5.
 
         """
         for age in self.get_all_ages():
@@ -1623,12 +1789,18 @@ class CenterlineCollection:
                     self.bends_evol[
                         bend_evol_index
                     ].middle_trajec_smooth = self._smooth_bend_middle_trajec(
-                        bend_evol_index
+                        bend_evol_index, smoothing_factor
                     )
             else:
                 with Pool(max_workers=get_nb_procs()) as pool:
                     inputs = range(self.get_nb_bends_evol())
-                    outputs = pool.map(self._smooth_bend_middle_trajec, inputs)
+                    outputs = pool.map(
+                        functools.partial(
+                            self._smooth_bend_middle_trajec,
+                            smoothing_factor=smoothing_factor,
+                        ),
+                        inputs,
+                    )
 
                     for bend_evol_index, trajec in zip(
                         inputs, outputs, strict=False
@@ -1637,14 +1809,71 @@ class CenterlineCollection:
                             bend_evol_index
                         ].middle_trajec_smooth = trajec
 
+    @staticmethod
+    def _smooth_trajectory(
+        ages: npt.NDArray[np.int64],
+        lx: npt.NDArray[np.float64],
+        ly: npt.NDArray[np.float64],
+        smoothing_factor: float,
+    ) -> list[npt.NDArray[np.float64]]:
+        """Smooth a point trajectory through time with a smoothing spline.
+
+        The spline is parametrized by the ages, and evaluated at the input
+        ages such as the output point i corresponds to the age i. Points
+        with undefined (nan) coordinates are ignored for the smoothing and
+        remain undefined in the output. If less than 3 points are defined,
+        no smoothing is applied.
+
+        Args:
+            ages (npt.NDArray[np.int64]): Strictly increasing ages.
+            lx (npt.NDArray[np.float64]): x coordinates at each age.
+            ly (npt.NDArray[np.float64]): y coordinates at each age.
+            smoothing_factor (float): Smoothing factor s (m²) of the spline,
+                i.e., the upper bound of the sum of squared residuals.
+
+        Returns:
+            list[npt.NDArray[np.float64]]: Smoothed point coordinates at each
+            age.
+
+        """
+        u: npt.NDArray[np.float64] = np.asarray(ages, dtype=float)
+        x: npt.NDArray[np.float64] = np.asarray(lx, dtype=float)
+        y: npt.NDArray[np.float64] = np.asarray(ly, dtype=float)
+        coords: npt.NDArray[np.float64] = np.full((u.size, 2), np.nan)
+        mask = np.isfinite(x) & np.isfinite(y)
+        if np.count_nonzero(mask) < 3:
+            coords[mask, 0] = x[mask]
+            coords[mask, 1] = y[mask]
+        else:
+            xy_new: npt.NDArray[np.float64] = cpf.resample_path(
+                x[mask], y[mask], 0, smoothing_factor, u=u[mask]
+            )
+            coords[mask] = xy_new.T
+        return [np.array(coord) for coord in coords]
+
     def _smooth_bend_middle_trajec(
         self: Self,
         bend_evol_index: int,
+        smoothing_factor: float = 0.5,
     ) -> list[npt.NDArray[np.float64]]:
+        """Smooth middle point trajectory of one bend evolution.
+
+        Args:
+            bend_evol_index (int): bend evolution index
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline, i.e., the upper bound of the sum of squared residuals.
+                Defaults to 0.5.
+
+        Returns:
+            list[npt.NDArray[np.float64]]: Smoothed middle point coordinates
+            at each age of the bend evolution.
+
+        """
         bend_evol: BendEvolution = self.bends_evol[bend_evol_index]
+        ages: npt.NDArray[np.int64] = bend_evol.get_all_ages()
         lx: list[float] = []
         ly: list[float] = []
-        for age in bend_evol.get_all_ages():
+        for age in ages:
             bend_id: int = bend_evol.bend_indexes[age][0]
             pt_center: Optional[npt.NDArray[np.float64]] = (
                 self.centerlines[age].bends[bend_id].pt_center
@@ -1653,15 +1882,14 @@ class CenterlineCollection:
             lx += [pt_center[0]]
             ly += [pt_center[1]]
 
-        print(np.round(lx, 4).tolist())
-        print(np.round(ly, 4).tolist())
-        lx_new, ly_new = cpf.resample_path(
-            np.array(lx), np.array(ly), len(bend_evol.get_all_ages()), 0.5
+        return self._smooth_trajectory(
+            ages, np.array(lx), np.array(ly), smoothing_factor
         )
-        return [np.array([x, y]) for x, y in zip(lx_new, ly_new, strict=False)]
 
     def find_all_bend_centroid(
-        self: Self, smooth_trajectory: bool = False
+        self: Self,
+        smooth_trajectory: bool = False,
+        smoothing_factor: float = 0.5,
     ) -> None:
         """Compute the centroid point of each bend of the CenterlineCollection.
 
@@ -1670,6 +1898,11 @@ class CenterlineCollection:
                 through BendEvolution is smoothed and stored in the list
                 BendEvolution.centroid_trajec_smooth.
                 Defaults to False.
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline used to smooth the trajectory, i.e., the upper bound of
+                the sum of squared residuals between input and smoothed
+                points. 0 means interpolation through all points.
+                Defaults to 0.5.
 
         """
         for age in self.get_all_ages():
@@ -1686,13 +1919,19 @@ class CenterlineCollection:
                     self.bends_evol[
                         bend_evol_index
                     ].centroid_trajec_smooth = (
-                        self._smooth_bend_centroid_trajec(bend_evol_index)
+                        self._smooth_bend_centroid_trajec(
+                            bend_evol_index, smoothing_factor
+                        )
                     )
             else:
                 with Pool(max_workers=get_nb_procs()) as pool:
                     inputs = range(self.get_nb_bends_evol())
                     outputs = pool.map(
-                        self._smooth_bend_centroid_trajec, inputs
+                        functools.partial(
+                            self._smooth_bend_centroid_trajec,
+                            smoothing_factor=smoothing_factor,
+                        ),
+                        inputs,
                     )
 
                     for bend_evol_index, trajec in zip(
@@ -1705,12 +1944,27 @@ class CenterlineCollection:
     def _smooth_bend_centroid_trajec(
         self: Self,
         bend_evol_index: int,
+        smoothing_factor: float = 0.5,
     ) -> list[npt.NDArray[np.float64]]:
+        """Smooth centroid trajectory of one bend evolution.
+
+        Args:
+            bend_evol_index (int): bend evolution index
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline, i.e., the upper bound of the sum of squared residuals.
+                Defaults to 0.5.
+
+        Returns:
+            list[npt.NDArray[np.float64]]: Smoothed centroid coordinates at
+            each age of the bend evolution.
+
+        """
         bend_evol: BendEvolution = self.bends_evol[bend_evol_index]
+        ages: npt.NDArray[np.int64] = bend_evol.get_all_ages()
         lx: list[float] = []
         ly: list[float] = []
 
-        for age in bend_evol.get_all_ages():
+        for age in ages:
             bend_id: int = bend_evol.bend_indexes[age][0]
             pt_centroid: Optional[npt.NDArray[np.float64]] = (
                 self.centerlines[age].bends[bend_id].pt_centroid
@@ -1719,15 +1973,15 @@ class CenterlineCollection:
             lx += [pt_centroid[0]]
             ly += [pt_centroid[1]]
 
-        lx_new, ly_new = cpf.resample_path(
-            np.array(lx), np.array(ly), len(bend_evol.get_all_ages()), 0.5
+        return self._smooth_trajectory(
+            ages, np.array(lx), np.array(ly), smoothing_factor
         )
-        return [np.array([x, y]) for x, y in zip(lx_new, ly_new, strict=False)]
 
     def find_all_bend_apex_user_weights(
         self: Self,
         apex_proba_weights: tuple[float, float, float],
         smooth_trajectory: bool = False,
+        smoothing_factor: float = 0.5,
     ) -> None:
         """Find the apex of all bends of the CenterlineCollection.
 
@@ -1736,11 +1990,16 @@ class CenterlineCollection:
                 probability calculation. Apex probability depends on channel
                 point curvature, bend amplitude (m), and the distance from
                 inflection points.
-
-            smooth_trajectory (bool, optional): If True, middle trajectory
+            smooth_trajectory (bool, optional): If True, apex trajectory
                 through BendEvolution is smoothed and stored in the list
-                BendEvolution.middle_trajec_smooth.
+                BendEvolution.apex_trajec_smooth. Otherwise, raw apex
+                locations are stored in this list.
                 Defaults to False.
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline used to smooth the trajectory, i.e., the upper bound of
+                the sum of squared residuals between input and smoothed
+                points. 0 means interpolation through all points.
+                Defaults to 0.5.
 
         """
         for age in self.get_all_ages():
@@ -1749,7 +2008,7 @@ class CenterlineCollection:
             )
 
         if smooth_trajectory:
-            self._smooth_bend_apex_trajec()
+            self._smooth_bend_apex_trajec(smoothing_factor)
         else:
             for bend_evol_index in range(self.get_nb_bends_evol()):
                 self.bends_evol[
@@ -1759,24 +2018,32 @@ class CenterlineCollection:
                 )
 
     def find_all_bend_apex(
-        self: Self, n: float, smooth_trajectory: bool = False
+        self: Self,
+        n: float,
+        smooth_trajectory: bool = False,
+        smoothing_factor: float = 0.5,
     ) -> None:
         """Find the apex of all bends of the CenterlineCollection.
 
         Args:
             n (float): exponent of the curvature distribution function.
-
-            smooth_trajectory (bool, optional): If True, middle trajectory
+            smooth_trajectory (bool, optional): If True, apex trajectory
                 through BendEvolution is smoothed and stored in the list
-                BendEvolution.middle_trajec_smooth.
+                BendEvolution.apex_trajec_smooth. Otherwise, raw apex
+                locations are stored in this list.
                 Defaults to False.
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline used to smooth the trajectory, i.e., the upper bound of
+                the sum of squared residuals between input and smoothed
+                points. 0 means interpolation through all points.
+                Defaults to 0.5.
 
         """
         for age in self.get_all_ages():
             self.centerlines[age].find_all_bend_apex(n)
 
         if smooth_trajectory:
-            self._smooth_bend_apex_trajec()
+            self._smooth_bend_apex_trajec(smoothing_factor)
         else:
             for bend_evol_index in range(self.get_nb_bends_evol()):
                 self.bends_evol[
@@ -1785,8 +2052,17 @@ class CenterlineCollection:
                     bend_evol_index
                 )
 
-    def _smooth_bend_apex_trajec(self: Self) -> None:
-        """Smooth apex trajectory of all bend evolutions."""
+    def _smooth_bend_apex_trajec(
+        self: Self, smoothing_factor: float = 0.5
+    ) -> None:
+        """Smooth apex trajectory of all bend evolutions.
+
+        Args:
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline, i.e., the upper bound of the sum of squared residuals.
+                Defaults to 0.5.
+
+        """
         assert self.bends_tracking_computed, (
             "Bends were not tracked over " + "time. First apply connect_bends."
         )
@@ -1796,12 +2072,18 @@ class CenterlineCollection:
                 self.bends_evol[
                     bend_evol_index
                 ].apex_trajec_smooth = self._do_smooth_bend_apex_trajec(
-                    bend_evol_index
+                    bend_evol_index, smoothing_factor
                 )
         else:
             with Pool(max_workers=get_nb_procs()) as pool:
                 inputs = range(self.get_nb_bends_evol())
-                outputs = pool.map(self._do_smooth_bend_apex_trajec, inputs)
+                outputs = pool.map(
+                    functools.partial(
+                        self._do_smooth_bend_apex_trajec,
+                        smoothing_factor=smoothing_factor,
+                    ),
+                    inputs,
+                )
 
                 for bend_evol_index, trajec in zip(
                     inputs, outputs, strict=False
@@ -1813,33 +2095,37 @@ class CenterlineCollection:
     def _do_smooth_bend_apex_trajec(
         self: Self,
         bend_evol_index: int,
+        smoothing_factor: float = 0.5,
     ) -> list[npt.NDArray[np.float64]]:
         """Smooth apex trajectory of one bend evolution.
 
+        Ages where the bend has no apex are ignored for the smoothing and the
+        corresponding output coordinates are nan.
+
         Args:
             bend_evol_index (int): bend evolution index
+            smoothing_factor (float, optional): Smoothing factor s (m²) of the
+                spline, i.e., the upper bound of the sum of squared residuals.
+                Defaults to 0.5.
 
         Returns:
-            list[npt.NDArray[np.float64]]: Smooth apex trajectory coordinates.
+            list[npt.NDArray[np.float64]]: Smooth apex trajectory coordinates
+            at each age of the bend evolution.
 
         """
         bend_evol: BendEvolution = self.bends_evol[bend_evol_index]
-        lx: list[float] = []
-        ly: list[float] = []
-        for age in bend_evol.get_all_ages():
-            bend_ids: list[int] = bend_evol.bend_indexes[age]
-            index_apex: Optional[int] = (
-                self.centerlines[age].bends[bend_ids[0]].index_apex
-            )
-            if index_apex is None:
-                continue
-            lx += [self.centerlines[age].cl_points[index_apex].pt[0]]
-            ly += [self.centerlines[age].cl_points[index_apex].pt[1]]
-
-        lx_new, ly_new = cpf.resample_path(
-            np.array(lx), np.array(ly), len(bend_evol.get_all_ages()), 0.5
+        apex_coords: list[npt.NDArray[np.float64]] = (
+            self._get_bend_evol_apex_points(bend_evol_index)
         )
-        return [np.array([x, y]) for x, y in zip(lx_new, ly_new, strict=False)]
+        lx: npt.NDArray[np.float64] = np.array(
+            [coord[0] for coord in apex_coords], dtype=float
+        )
+        ly: npt.NDArray[np.float64] = np.array(
+            [coord[1] for coord in apex_coords], dtype=float
+        )
+        return self._smooth_trajectory(
+            bend_evol.get_all_ages(), lx, ly, smoothing_factor
+        )
 
     def _get_bend_evol_apex_points(
         self: Self, bend_evol_index: int
@@ -1850,21 +2136,21 @@ class CenterlineCollection:
             bend_evol_index (int): bend evolution index
 
         Returns:
-            npt.NDArray[np.float64]: apex coordinates
+            list[npt.NDArray[np.float64]]: apex coordinates at each age of the
+            bend evolution (nan if the bend has no apex).
 
         """
         bend_evol: BendEvolution = self.bends_evol[bend_evol_index]
-        apex_coords: npt.NDArray[np.float64] = np.full(
-            (bend_evol.get_all_ages(), 2), np.nan
-        )
-        for i, age in enumerate(bend_evol.get_all_ages()):
+        ages: npt.NDArray[np.int64] = bend_evol.get_all_ages()
+        apex_coords: npt.NDArray[np.float64] = np.full((len(ages), 2), np.nan)
+        for i, age in enumerate(ages):
             bend_ids: list[int] = bend_evol.bend_indexes[age]
             index_apex: Optional[int] = (
                 self.centerlines[age].bends[bend_ids[0]].index_apex
             )
-            if index_apex is None:
+            if index_apex is None or index_apex < 0:
                 continue
-            apex_coords[i] = self.centerlines[age].cl_points[index_apex].pt
+            apex_coords[i] = self.centerlines[age].cl_points[index_apex].pt[:2]
         return [
             np.array([x, y])
             for x, y in zip(apex_coords[:, 0], apex_coords[:, 1], strict=False)

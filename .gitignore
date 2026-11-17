@@ -71,6 +71,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+# notebooks copied by docs/conf.py at build time
+docs/notebooks/
 
 # PyBuilder
 .pybuilder/

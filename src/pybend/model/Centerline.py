@@ -71,6 +71,36 @@ if TYPE_CHECKING:
     import networkx as nx
 
 
+def _get_savgol_window(
+    window: int, nb_points: int, polyorder: int, min_window: int = 5
+) -> Optional[int]:
+    """Get a valid Savitzky-Golay filter window length.
+
+    The window is made odd, at least equal to min_window, and clamped to the
+    largest odd value lower than or equal to the number of points.
+
+    Args:
+        window (int): Requested window length (number of points).
+        nb_points (int): Number of points of the signal to filter.
+        polyorder (int): Order of the polynomial used by the filter.
+        min_window (int, optional): Minimal window length.
+            Defaults to 5.
+
+    Returns:
+        Optional[int]: Window length, or None if the signal contains too few
+        points to be filtered (i.e., the window would be lower than
+        polyorder + 2).
+    """
+    window = max(int(window), min_window)
+    if window % 2 == 0:
+        window += 1  # to be odd
+    max_window: int = nb_points if nb_points % 2 == 1 else nb_points - 1
+    window = min(window, max_window)
+    if window < polyorder + 2:
+        return None
+    return window
+
+
 class Centerline:
     """A channel centerline represented as an ordered collection of points."""
 
@@ -103,6 +133,8 @@ class Centerline:
             use_fix_nb_points (bool, optional): If True, the resampled
                 centerline will contains exactly spacing points, otherwise,
                 spacing is the targeted distance between 2 consecutive points.
+                In both cases, the smoothing window is computed from the
+                actual distance between resampled points.
                 Defaults to False.
             curvature_filtering_window (int, optional): Number of points used
                 for filtering curvature.
@@ -116,7 +148,9 @@ class Centerline:
                 curvature along channel points.
                 Defaults to True.
             interpol_props (bool, optional): If True, interpolate channel point
-                properties along channel points.
+                properties along channel points. If False and the centerline
+                is resampled, input properties are undefined (NaN) on new
+                channel points.
                 Defaults to True.
             find_bends (bool, optional): If True, automatically compute
                 curvature and interpolate properties and detect meander bends
@@ -126,6 +160,9 @@ class Centerline:
                 consecutive STRAIGHT bends into a single bend after
                 bend detection.
                 Defaults to False.
+
+        Raises:
+            ValueError: if the dataset contains less than 3 points.
         """
         #: age of the enterline
         self.age: int = age
@@ -200,8 +237,9 @@ class Centerline:
 
             - resampling the centerline with a parametric spline function
             - if spacing > 0, smoothing centerline path
-            - if interpol_props is True, interpolating centerline properties to
-              new points
+            - if spacing > 0 and interpol_props is True, interpolating
+              centerline properties to new points (if spacing <= 0, input
+              properties are copied)
             - if compute_curvature is True, computing and filtering curvatures
             - fill the list of channel point self.cl_points
 
@@ -222,14 +260,31 @@ class Centerline:
             compute_curvature (bool): If True, compute and smooth
                 curvatures.
             interpol_props (bool): if True, interpolate centerline
-                properties.
+                properties. Otherwise, properties of resampled points are
+                undefined (NaN).
+
+        Raises:
+            ValueError: if the dataset contains less than 3 points.
 
         """
         logger.info(f"Initialize Centerline object {age}")
+
+        # use positional indexes (0..N-1) whatever the input index
+        dataset = dataset.reset_index(drop=True)
+        if dataset.shape[0] < 3:
+            raise ValueError(
+                "Centerline must contain at least 3 points, got "
+                + f"{dataset.shape[0]}."
+            )
+
         logger.info(f"Resample points of centerline {age}")
 
         cart_abscissa_prop_name: str = PropertyNames.CARTESIAN_ABSCISSA.value
         cart_ordinate_prop_name: str = PropertyNames.CARTESIAN_ORDINATE.value
+        normal_props: tuple[str, str] = (
+            PropertyNames.NORMAL_X.value,
+            PropertyNames.NORMAL_Y.value,
+        )
         # 1. resample the centerline with a parametric spline function
         ls = cpf.compute_cuvilinear_abscissa(
             dataset.loc[
@@ -247,38 +302,56 @@ class Centerline:
             dataset[cart_ordinate_prop_name].to_numpy(),
             nb_pts,
         )
+        nb_new_pts: int = len(new_points[0])
 
-        # add normal vector columns
+        # add normal vector columns if missing; property values are
+        # undefined (NaN) until computed or interpolated
         columns = dataset.columns.tolist() + [
-            PropertyNames.NORMAL_X.value,
-            PropertyNames.NORMAL_Y.value,
+            prop for prop in normal_props if prop not in dataset.columns
         ]
         dataset_new = pd.DataFrame(
-            np.zeros((len(new_points[0]), len(columns))), columns=columns
+            np.full((nb_new_pts, len(columns)), np.nan), columns=columns
         )
+        resampled: bool = spacing > 0
+        if not resampled:
+            # no resampling: copy original properties positionally
+            for prop in dataset.columns:
+                dataset_new[prop] = dataset[prop].to_numpy()
 
         # 2. smooth centerline path if spacing > 0
-        if spacing:
+        if resampled:
             logger.info(f"Smooth centerline {age} path")
-            window = int(float(smooth_distance / spacing))  # number of points
-
-            if window % 2 == 0:
-                window += 1  # to be odd
-            if window < 5:
-                window = 5
-            dataset_new[cart_abscissa_prop_name] = savgol_filter(
-                new_points[0], window, polyorder=3, mode="nearest"
+            # actual distance between resampled points
+            actual_spacing: float = spacing
+            if use_fix_nb_points:
+                actual_spacing = float(ls[-1]) / max(nb_new_pts - 1, 1)
+            window: Optional[int] = None
+            if actual_spacing > 0.0:
+                window = int(float(smooth_distance / actual_spacing))
+            window = _get_savgol_window(
+                5 if window is None else window, nb_new_pts, 3
             )
-            dataset_new[cart_ordinate_prop_name] = savgol_filter(
-                new_points[1], window, polyorder=3, mode="nearest"
-            )
+            if window is None:
+                logger.warning(
+                    "Too few points to smooth centerline path: smoothing "
+                    + "is skipped."
+                )
+                dataset_new[cart_abscissa_prop_name] = new_points[0]
+                dataset_new[cart_ordinate_prop_name] = new_points[1]
+            else:
+                dataset_new[cart_abscissa_prop_name] = savgol_filter(
+                    new_points[0], window, polyorder=3, mode="nearest"
+                )
+                dataset_new[cart_ordinate_prop_name] = savgol_filter(
+                    new_points[1], window, polyorder=3, mode="nearest"
+                )
         else:
             dataset_new[cart_abscissa_prop_name] = dataset[
                 cart_abscissa_prop_name
-            ]
+            ].to_numpy()
             dataset_new[cart_ordinate_prop_name] = dataset[
                 cart_ordinate_prop_name
-            ]
+            ].to_numpy()
 
         # compute curvilinear abscissa and normals
         self._compute_curvilinear_abscissa(dataset_new)
@@ -287,12 +360,22 @@ class Centerline:
         # 2 bis interpolate centerline properties to new points
         # find the 2 closest points in the old centerline, their distances, and
         # interpolate
-        if interpol_props:
+        if interpol_props and resampled:
             logger.info(
                 f"Interpolate properties to new points (centerline {age})"
             )
-            self._interpolate_properties(dataset_new, dataset)
-        else:
+            # filtered curvature is fully recomputed afterwards if
+            # compute_curvature is True. Curvature is not excluded since end
+            # points keep interpolated values.
+            props_recomputed: tuple[str, ...] = (
+                (PropertyNames.CURVATURE_FILTERED.value,)
+                if compute_curvature
+                else ()
+            )
+            self._interpolate_properties(
+                dataset_new, dataset, props_recomputed
+            )
+        elif resampled:
             logger.warning("Some channel points do not have property values")
 
         # 3. compute and filtered curvatures
@@ -359,26 +442,61 @@ class Centerline:
         """
         return tuple(self.cl_points[0].get_data().index)
 
+    def _check_property_exists(self: Self, prop_name: str) -> None:
+        """Check that a property is stored on channel points.
+
+        Args:
+            prop_name (str): Property name
+
+        Raises:
+            KeyError: if no channel point stores the property.
+        """
+        if not any(
+            prop_name in cl_pt.get_data().index for cl_pt in self.cl_points
+        ):
+            raise KeyError(
+                f"Property '{prop_name}' is not stored on channel points of "
+                + f"centerline {self.age}. Available properties are: "
+                + f"{', '.join(map(str, self.get_property_list()))}."
+            )
+
+    @staticmethod
+    def _get_point_property(cl_pt: ClPoint, prop_name: str) -> float:
+        """Get a property value of a channel point, NaN if undefined.
+
+        Args:
+            cl_pt (ClPoint): Channel point.
+            prop_name (str): Property name
+
+        Returns:
+            float: property value or NaN if the property is undefined.
+        """
+        data: pd.Series = cl_pt.get_data()
+        if prop_name in data.index:
+            return data[prop_name]
+        return np.nan
+
     def get_property(self: Self, prop_name: str) -> npt.NDArray[np.float64]:
         """Get the property of channel points along the centerline.
 
         Args:
             prop_name (str): Property name
 
+        Raises:
+            KeyError: if the property is not stored on channel points.
+
         Returns:
-            NDArray[float]: Array with property values
+            NDArray[float]: Array with property values. Channel points where
+            the property is not defined get NaN.
 
         """
-        try:
-            data: npt.NDArray[np.float64] = np.full(
-                self.get_nb_points(), np.nan
-            )
-            for i, cl_pt in enumerate(self.cl_points):
-                data[i] = cl_pt.get_property(prop_name)
+        data: npt.NDArray[np.float64] = np.full(self.get_nb_points(), np.nan)
+        if self.get_nb_points() == 0:
             return data
-        except Exception as err:
-            logger.error(str(err))
-            return np.full(self.get_nb_points(), np.nan)
+        self._check_property_exists(prop_name)
+        for i, cl_pt in enumerate(self.cl_points):
+            data[i] = self._get_point_property(cl_pt, prop_name)
+        return data
 
     def get_bend_property(
         self: Self, bend_id: int, prop_name: str
@@ -389,21 +507,21 @@ class Centerline:
             bend_id (int): Bend id.
             prop_name ( str): Property name.
 
+        Raises:
+            KeyError: if the property is not stored on channel points.
+
         Returns:
-            NDArray[float]: Array with property values
+            NDArray[float]: Array with property values. Channel points where
+            the property is not defined get NaN.
 
         """
         bend: Bend = self.bends[bend_id]
         data: npt.NDArray[np.float64] = np.full(bend.get_nb_points(), np.nan)
-        try:
-            for i, cl_pt in enumerate(
-                self.cl_points[
-                    bend.index_inflex_up : bend.index_inflex_down + 1
-                ]
-            ):
-                data[i] = cl_pt.get_property(prop_name)
-        except Exception as err:
-            logger.error(str(err))
+        self._check_property_exists(prop_name)
+        for i, cl_pt in enumerate(
+            self.cl_points[bend.index_inflex_up : bend.index_inflex_down + 1]
+        ):
+            data[i] = self._get_point_property(cl_pt, prop_name)
         return data
 
     def get_all_curvature_filtered(self: Self) -> npt.NDArray[np.float64]:
@@ -568,6 +686,11 @@ class Centerline:
         """
         if PropertyNames.CURVATURE.value not in dataset:
             dataset[PropertyNames.CURVATURE.value] = 0.0
+        else:
+            # end points are not recomputed, undefined values are set to 0
+            dataset[PropertyNames.CURVATURE.value] = dataset[
+                PropertyNames.CURVATURE.value
+            ].fillna(0.0)
 
         nb_procs: int = get_nb_procs()
 
@@ -605,21 +728,30 @@ class Centerline:
                 )
             # filtered curvature using the Savitzky-Golay filter
             case FilterName.SAVITSKY:
-                # window must be odd
-                if window % 2 == 0:
-                    window += 1  # to be odd
                 if window <= 3:
                     logger.warning(
                         "Curvature smoothing window cannot be lower than 5."
                     )
-                    window = 5
-                dataset[PropertyNames.CURVATURE_FILTERED.value] = (
-                    savgol_filter(
-                        dataset[PropertyNames.CURVATURE.value],
-                        window,
-                        polyorder=2,
-                    )
+                # window must be odd, >= 5 and <= number of points
+                savgol_window: Optional[int] = _get_savgol_window(
+                    window, dataset.shape[0], 2
                 )
+                if savgol_window is None:
+                    logger.warning(
+                        "Too few points to filter curvature: filtered "
+                        + "curvature equals curvature."
+                    )
+                    dataset[PropertyNames.CURVATURE_FILTERED.value] = dataset[
+                        PropertyNames.CURVATURE.value
+                    ].to_numpy()
+                else:
+                    dataset[PropertyNames.CURVATURE_FILTERED.value] = (
+                        savgol_filter(
+                            dataset[PropertyNames.CURVATURE.value],
+                            savgol_window,
+                            polyorder=2,
+                        )
+                    )
             case _:
                 filternames = " or ".join(list(FilterName))  # type: ignore[unreachable]
                 raise TypeError(
@@ -710,33 +842,47 @@ class Centerline:
     ) -> Optional[int]:
         """Get bend index that contains the ClPoint at index cl_pt_index.
 
+        Inflection points are shared by two consecutive bends. By convention,
+        a shared inflection point belongs to the upstream bend (i.e., the bend
+        for which it is the downstream inflection point), except the first
+        channel point that belongs to the first bend.
+
         Args:
-            cl_pt_index (Optional[int]): Index of the channel point in the list
-                    self.cl_points.
+            cl_pt_index (int): Index of the channel point in the list
+                self.cl_points.
 
         Returns:
-            int: Index of the bend in the list self.bends, or np.nan if no
-            bend was found.
+            Optional[int]: Index of the bend in the list self.bends, or None
+            if the index is out of range or if no bend was found.
 
         """
-        if cl_pt_index > self.get_nb_points():
+        if (cl_pt_index < 0) or (cl_pt_index >= self.get_nb_points()):
             return None
         for i, bend in enumerate(self.bends):
-            if (cl_pt_index >= bend.index_inflex_up) & (
-                cl_pt_index <= bend.index_inflex_down
-            ):
+            if bend.index_inflex_up <= cl_pt_index <= bend.index_inflex_down:
                 return i
         return None
 
     def _interpolate_properties(
-        self: Self, dataset_new: pd.DataFrame, dataset: pd.DataFrame
+        self: Self,
+        dataset_new: pd.DataFrame,
+        dataset: pd.DataFrame,
+        props_excluded_extra: tuple[str, ...] = (),
     ) -> bool:
         """Interpolate properties from dataset to dataset_new.
+
+        Coordinates, curvilinear abscissa and normals are computed on the
+        new points and therefore never interpolated.
 
         Args:
             dataset_new (DataFrame): DataFrame with resampled centerline data
                 where to interpolate properties.
             dataset (DataFrame): Original DataFrame from which come properties.
+                It must be indexed by row positions (0..N-1).
+            props_excluded_extra (tuple[str, ...], optional): Additional
+                properties excluded from interpolation (e.g., properties
+                recomputed afterwards).
+                Defaults to ().
 
         Returns:
             bool: True if interpolation successfully ended.
@@ -776,11 +922,13 @@ class Centerline:
 
         # 2. interpolate the properties - compute them into the new point
         # exluded properties - not interpolated
-        props_excluded = (
+        props_excluded: tuple[str, ...] = (
             PropertyNames.CURVILINEAR_ABSCISSA.value,
             PropertyNames.CARTESIAN_ABSCISSA.value,
             PropertyNames.CARTESIAN_ORDINATE.value,
-        )
+            PropertyNames.NORMAL_X.value,
+            PropertyNames.NORMAL_Y.value,
+        ) + tuple(props_excluded_extra)
         for i, row in result.iterrows():
             i = cast(int, i)
             self._compute_property_at_point(
@@ -810,26 +958,33 @@ class Centerline:
             row (pd.Series): Row containing the two source indices and
                 distances used for interpolation.
         """
-        j1 = row["index1"]
-        j2 = row["index2"]
+        j1 = int(row["index1"])
+        j2 = int(row["index2"])
         d1 = row["d1"]
         d2 = row["d2"]
         props = dataset.columns
+        # inverse distance weighting: the closest point has the highest
+        # weight (weight of j1 is d2, weight of j2 is d1)
+        w1: float = d2
+        w2: float = d1
         denom = d1 + d2
-        if j1 == j2:
-            d1 = 0.5
-            d2 = 0.5
+        if j1 == j2 or denom == 0.0:
+            w1 = 0.5
+            w2 = 0.5
             denom = 1.0
 
+        # positional indexing (j1 and j2 are row positions in dataset)
+        nb_rows: int = dataset.shape[0]
         for prop in props:
             if prop in props_excluded:
                 continue
-            if (j1 < dataset.shape[0]) and (j2 < dataset.shape[0]):
+            values = dataset[prop].to_numpy()
+            if (j1 < nb_rows) and (j2 < nb_rows):
                 dataset_new.loc[i, prop] = (
-                    d1 * dataset[prop][j1] + d2 * dataset[prop][j2]
+                    w1 * values[j1] + w2 * values[j2]
                 ) / denom
             else:
-                dataset_new.loc[i, prop] = dataset[prop][j1]
+                dataset_new.loc[i, prop] = values[j1]
 
     def find_inflection_points(self: Self) -> npt.NDArray[np.int64]:
         """Find inflection points along the centerline.
@@ -863,7 +1018,8 @@ class Centerline:
         """Find bends along the centerline.
 
         Bends are defined as the points between two consecutive
-        inflection points.
+        inflection points. Previously computed bends (and the cached spatial
+        graph) are discarded.
 
         Args:
             sinuo_thres (float): Sinuosity threshold used to
@@ -886,6 +1042,10 @@ class Centerline:
             "computed. Set compute_curvature option to True when "
             "importing centerline."
         )
+        # reset previous results
+        self.bends = []
+        self.spatial_graph = None
+        self.spatial_graph_computed = False
         try:
             inflex_pts_index: npt.NDArray[np.int64] = (
                 self.find_inflection_points()
@@ -1235,10 +1395,15 @@ class Centerline:
                     index_apex_filtered: Optional[int] = self.bends_filtered[
                         -1
                     ].index_apex
-                    assert index_apex_filtered is not None, "Apex is undefined"
+                    assert (
+                        index_apex_filtered is not None
+                        and index_apex_filtered >= 0
+                    ), "Apex is undefined"
                     cl_pt_apex0: ClPoint = self.cl_points[index_apex_filtered]
                     index_apex: Optional[int] = self.bends[i + k].index_apex
-                    assert index_apex is not None, "Apex is undefined"
+                    assert index_apex is not None and index_apex >= 0, (
+                        "Apex is undefined"
+                    )
                     cl_pt_apex1: ClPoint = self.cl_points[index_apex]
                     best_s = (cl_pt_apex0._s + cl_pt_apex1._s) / 2.0
                     # get the inflection point the closest from the middle
@@ -1316,6 +1481,9 @@ class Centerline:
             length_weight (float): Weight [0, 1] used for the distance to
                 inflection points.
 
+        Raises:
+            ValueError: if the sum of the weights is not strictly positive.
+
         Returns:
             npt.NDArray[np.float64]: Apex probability of each channel point.
 
@@ -1323,6 +1491,11 @@ class Centerline:
         bend: Bend = self.bends[bend_index]
         # renormalization of weights such the sum equals 1
         tot: float = curvature_weight + amplitude_weight + length_weight
+        if not tot > 0.0:
+            raise ValueError(
+                "The sum of apex probability weights must be strictly "
+                + f"positive, got {tot}."
+            )
         if tot != 1.0:
             curvature_weight /= tot
             amplitude_weight /= tot
@@ -1499,7 +1672,11 @@ class Centerline:
 
     # apex from apex probability using automatic calculation
     def find_bend_apex_from_weights(self: Self, bend_index: int) -> int:
-        """Find bend apex.
+        """Find bend apex from apex probability.
+
+        Apex is the peak of apex probability greater than 0.6 (or the mean
+        index of the peaks if several). If no peak is found, the apex is the
+        point of maximal apex probability.
 
         Args:
             bend_index (int): Index of the bend to treat.
@@ -1518,7 +1695,13 @@ class Centerline:
         peak_indexes, _ = find_peaks(apex_probability, height=(0.6, 1.0))
 
         if len(peak_indexes) == 0:
-            return -1
+            # fallback: use the maximal apex probability
+            index_max: int = int(np.nanargmax(apex_probability))
+            logger.debug(
+                f"No apex probability peak >= 0.6 found in bend {bend.id}: "
+                + "apex is set to the point of maximal apex probability."
+            )
+            return bend.index_inflex_up + index_max
 
         # if apex_probability get a single global maximum, this is the apex
         apex_index: int = peak_indexes[0]
@@ -1622,7 +1805,7 @@ class Centerline:
             bend.id, PropertyNames.NORMAL_Y.value
         )
         apex_index: int = cpf.compute_half_angle_variation(
-            np.vstack((normal_x, normal_y))
+            np.column_stack((normal_x, normal_y))
         )
         return bend.index_inflex_up + apex_index
 
@@ -1631,7 +1814,7 @@ class Centerline:
         nb_procs: int = get_nb_procs()
         if nb_procs == 1:
             for bend in self.bends:
-                self.compute_bend_middle(bend.id)
+                bend.pt_center = self.compute_bend_middle(bend.id)
         else:
             with Pool(processes=nb_procs) as pool:
                 outputs = pool.map(
@@ -1700,11 +1883,27 @@ class Centerline:
             bend_index (int): Index of the bend to treat.
 
         Returns:
-            npt.NDArray[np.float64]: bend centroid point coordinates
+            npt.NDArray[np.float64]: bend centroid point coordinates. Z
+            coordinate is the mean elevation of bend points.
 
         """
         polygon: Polygon | LineString = self.compute_bend_polygon(bend_index)
-        return np.array(polygon.centroid.coords[0])
+        centroid: npt.NDArray[np.float64] = np.array(
+            polygon.centroid.coords[0][:2], dtype=float
+        )
+        # add z coordinate as the mean elevation of bend points, for
+        # consistency with bend middle point
+        bend: Bend = self.bends[bend_index]
+        pts_z: list[float] = [
+            float(cl_pt.pt[2])
+            for cl_pt in self.cl_points[
+                bend.index_inflex_up : bend.index_inflex_down + 1
+            ]
+            if cl_pt.pt.size > 2
+        ]
+        if len(pts_z) == 0:
+            return centroid
+        return np.array((centroid[0], centroid[1], np.mean(pts_z)))
 
     def compute_bend_polygon(
         self: Self, bend_index: int

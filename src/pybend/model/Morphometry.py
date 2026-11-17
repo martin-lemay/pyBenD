@@ -95,11 +95,37 @@ class Morphometry:
 
     @staticmethod
     def _has_valid_apex(bend: Bend) -> bool:
-        """Check whether a bend has a valid apex index."""
+        """Check whether a bend has a valid apex index.
+
+        An apex index equal to None or negative (-1) means "no apex".
+
+        Args:
+            bend (Bend): bend to check
+
+        Returns:
+            bool: True if the bend apex index is defined and lies between
+            bend inflection points.
+        """
+        if bend.index_apex is None or bend.index_apex < 0:
+            return False
         return (
             bend.index_apex >= bend.index_inflex_up
             and bend.index_apex <= bend.index_inflex_down
         )
+
+    def _get_pt_2d(self: Self, index: int) -> npt.NDArray[np.float64]:
+        """Get the horizontal coordinates of the channel point at index.
+
+        Planform metrics are computed in the horizontal plane only,
+        consistently with the curvilinear abscissa.
+
+        Args:
+            index (int): channel point index along the centerline
+
+        Returns:
+            npt.NDArray[np.float64]: (x, y) coordinates
+        """
+        return np.asarray(self.centerline.cl_points[index].pt[:2], dtype=float)
 
     def compute_bends_morphometry(
         self: Self, valid_bends: bool = True
@@ -112,21 +138,30 @@ class Morphometry:
                 Defaults to True.
 
         Returns:
-            pd.DataFrame: dataframe with morphometric measurements.
+            pd.DataFrame: dataframe with morphometric measurements. The
+            DataFrame index (named "Bend_id") contains the id of the bend
+            associated to each row.
         """
         n_rows: int = (
             self.centerline.get_nb_valid_bends()
             if valid_bends
             else self.centerline.get_nb_bends()
         )
+        bend_ids: list[int] = [
+            bend.id
+            for bend in self.centerline.bends
+            if not (valid_bends and not bend.is_valid)
+        ]
+        assert len(bend_ids) == n_rows, "Inconsistent number of bends."
         data: pd.DataFrame = pd.DataFrame(
             np.full((n_rows, len(self._bend_metrics)), np.nan),
             columns=self._bend_metrics,
+            index=pd.Index(bend_ids, name="Bend_id"),
         )
-        i = 0
         for bend in self.centerline.bends:
             if valid_bends and not bend.is_valid:
                 continue
+            i = bend.id
             data.loc[i, MorphometricNames.ARC_LENGTH.value] = (
                 self.compute_bend_arc_length(bend.id)
             )
@@ -179,7 +214,6 @@ class Morphometry:
                 data.loc[i, MorphometricNames.AMPLITUDE_LEOPOLD.value] = (
                     self.compute_bend_amplitude_leopold(bend.id)
                 )
-            i += 1
         return data
 
     def compute_bend_sinuosity(self: Self, bend_id: int) -> float:
@@ -215,12 +249,12 @@ class Morphometry:
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
-        pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
+        pt_inflex_up: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_up
-        ].pt
-        pt_inflex_down: npt.NDArray[np.float64] = self.centerline.cl_points[
+        )
+        pt_inflex_down: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_down
-        ].pt
+        )
         return geom.distance(pt_inflex_up, pt_inflex_down)
 
     def compute_bend_amplitude(self: Self, bend_id: int) -> float:
@@ -238,15 +272,13 @@ class Morphometry:
         bend: Bend = self.centerline.bends[bend_id]
         if not self._has_valid_apex(bend):
             return np.nan
-        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
-            bend.index_apex
-        ].pt
-        pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
+        pt_apex: npt.NDArray[np.float64] = self._get_pt_2d(bend.index_apex)
+        pt_inflex_up: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_up
-        ].pt
-        pt_inflex_down: npt.NDArray[np.float64] = self.centerline.cl_points[
+        )
+        pt_inflex_down: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_down
-        ].pt
+        )
         return geom.orthogonal_distance(pt_apex, pt_inflex_up, pt_inflex_down)
 
     def compute_bend_extension(self: Self, bend_id: int) -> float:
@@ -264,12 +296,10 @@ class Morphometry:
         bend: Bend = self.centerline.bends[bend_id]
         if not self._has_valid_apex(bend):
             return np.nan
-        pt_apex: npt.NDArray[np.float64] = self.centerline.cl_points[
-            bend.index_apex
-        ].pt
+        pt_apex: npt.NDArray[np.float64] = self._get_pt_2d(bend.index_apex)
         pt_center: Optional[npt.NDArray[np.float64]] = bend.pt_center
         if pt_center is not None:
-            return geom.distance(pt_apex, pt_center)
+            return geom.distance(pt_apex, np.asarray(pt_center)[:2])
         return np.nan
 
     def compute_bend_max_amplitude(self: Self, bend_id: int) -> float:
@@ -288,18 +318,18 @@ class Morphometry:
             "Bend index is undefined."
         )
         bend: Bend = self.centerline.bends[bend_id]
-        pt_inflex_up: npt.NDArray[np.float64] = self.centerline.cl_points[
+        pt_inflex_up: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_up
-        ].pt
-        pt_inflex_down: npt.NDArray[np.float64] = self.centerline.cl_points[
+        )
+        pt_inflex_down: npt.NDArray[np.float64] = self._get_pt_2d(
             bend.index_inflex_down
-        ].pt
+        )
         max_dist: float = 0.0
         for cl_pt in self.centerline.cl_points[
             bend.index_inflex_up : bend.index_inflex_down + 1
         ]:
             d = geom.orthogonal_distance(
-                cl_pt.pt, pt_inflex_up, pt_inflex_down
+                cl_pt.pt[:2], pt_inflex_up, pt_inflex_down
             )
             if d > max_dist:
                 max_dist = d
@@ -327,7 +357,7 @@ class Morphometry:
         for cl_pt in self.centerline.cl_points[
             bend.index_inflex_up : bend.index_inflex_down + 1
         ]:
-            d = geom.distance(cl_pt.pt, pt_center)
+            d = geom.distance(cl_pt.pt[:2], np.asarray(pt_center)[:2])
             if d > max_dist:
                 max_dist = d
         return round(max_dist, 4)
@@ -398,7 +428,8 @@ class Morphometry:
             bend_id (int): bend index
 
         Returns:
-            float: bend roundness
+            float: bend roundness, or NaN if the mean curvature is null
+            (straight bend) or undefined.
         """
         assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
@@ -406,7 +437,13 @@ class Morphometry:
         curvature: npt.NDArray[np.float64] = np.abs(
             self.centerline.get_bend_curvature_filtered(bend_id)
         )
-        return float(round(np.max(curvature) / np.mean(curvature), 4))
+        if curvature.size == 0 or not np.all(np.isfinite(curvature)):
+            return np.nan
+        mean_curv: float = float(np.mean(curvature))
+        # straight bend: roundness is undefined
+        if mean_curv == 0.0:
+            return np.nan
+        return float(round(np.max(curvature) / mean_curv, 4))
 
     def compute_bend_asymmetry_apex(self: Self, bend_id: int) -> float:
         """Compute bend asymmetry coefficient.
@@ -483,7 +520,9 @@ class Morphometry:
             bend_id (int): bend index
 
         Returns:
-            float: bend skewness coefficient
+            float: bend skewness coefficient, or NaN if it is undefined
+            (bend with less than 3 points, null curvature, or null standard
+            deviation).
         """
         assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
             "Bend index is undefined."
@@ -493,17 +532,27 @@ class Morphometry:
         curv_abs: npt.NDArray[np.float64] = self.centerline.get_bend_property(
             bend_id, PropertyNames.CURVILINEAR_ABSCISSA.value
         )
-        curv_abs_norm = (curv_abs - curv_abs.min()) / (
-            curv_abs.max() - curv_abs.min()
-        )
         curvature = np.abs(
             self.centerline.get_bend_property(
                 bend.id, PropertyNames.CURVATURE_FILTERED.value
             )
         )
+        if (
+            curv_abs.size < 3
+            or not np.all(np.isfinite(curv_abs))
+            or not np.all(np.isfinite(curvature))
+        ):
+            return np.nan
+        abs_range: float = float(curv_abs.max() - curv_abs.min())
+        if abs_range == 0.0 or float(np.sum(curvature)) == 0.0:
+            return np.nan
+        curv_abs_norm = (curv_abs - curv_abs.min()) / abs_range
 
         mean_abs = cpf.compute_esperance(curvature, curv_abs_norm, 1)
         std_dev = cpf.compute_variance(curvature, curv_abs_norm, 1)[1]
+        # normalized abscissa lies in [0, 1]: use an absolute tolerance
+        if not np.isfinite(std_dev) or std_dev < 1e-12:
+            return np.nan
         apex_index = cpf.compute_median_curvature_index(curvature, 1)
         skew_pearson = 3 * (mean_abs - curv_abs_norm[apex_index]) / std_dev
         return float(round(skew_pearson, 4))
@@ -513,39 +562,54 @@ class Morphometry:
 
         Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2)>`_
 
+        The first and last bends lack a neighbouring bend, so the Leopold
+        wavelength is undefined for them and NaN is returned.
+
         Args:
             bend_id (int): bend index.
 
         Returns:
-            float: Leopold wavelength.
+            float: Leopold wavelength, or NaN for first and last bends or
+            when neighbouring bends have no apex.
         """
-        assert (bend_id > 0) and bend_id < self.centerline.get_nb_bends(), (
+        nb_bends: int = self.centerline.get_nb_bends()
+        assert (bend_id > -1) and (bend_id < nb_bends), (
             "Bend index is undefined."
         )
+        if (bend_id == 0) or (bend_id == nb_bends - 1):
+            return np.nan
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         next_bend: Bend = self.centerline.bends[bend_id + 1]
         if not self._has_valid_apex(prev_bend) or not self._has_valid_apex(
             next_bend
         ):
             return np.nan
-        clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
-        clpt_apex_next = self.centerline.cl_points[next_bend.index_apex]
-        return geom.distance(clpt_apex_prev.pt, clpt_apex_next.pt)
+        return geom.distance(
+            self._get_pt_2d(prev_bend.index_apex),
+            self._get_pt_2d(next_bend.index_apex),
+        )
 
     def compute_bend_amplitude_leopold(self: Self, bend_id: int) -> float:
         """Compute bend ampltiude according to Leopold method.
 
         Leopold method is described in `Leopold and Wolman (1957) <https://doi.org/10.1130/0016-7606(1960)71[769:RM]2.0.CO;2>`_
 
+        The first and last bends lack a neighbouring bend, so the Leopold
+        amplitude is undefined for them and NaN is returned.
+
         Args:
             bend_id (int): bend index.
 
         Returns:
-            float: Leopold amplitude.
+            float: Leopold amplitude, or NaN for first and last bends or
+            when the bend or its neighbours have no apex.
         """
-        assert (bend_id > -1) and (bend_id < self.centerline.get_nb_bends()), (
+        nb_bends: int = self.centerline.get_nb_bends()
+        assert (bend_id > -1) and (bend_id < nb_bends), (
             "Bend index is undefined."
         )
+        if (bend_id == 0) or (bend_id == nb_bends - 1):
+            return np.nan
 
         prev_bend: Bend = self.centerline.bends[bend_id - 1]
         bend: Bend = self.centerline.bends[bend_id]
@@ -557,11 +621,10 @@ class Morphometry:
         ):
             return np.nan
 
-        clpt_apex_prev = self.centerline.cl_points[prev_bend.index_apex]
-        clpt_apex = self.centerline.cl_points[bend.index_apex]
-        clpt_apex_next = self.centerline.cl_points[next_bend.index_apex]
         return geom.orthogonal_distance(
-            clpt_apex.pt, clpt_apex_prev.pt, clpt_apex_next.pt
+            self._get_pt_2d(bend.index_apex),
+            self._get_pt_2d(prev_bend.index_apex),
+            self._get_pt_2d(next_bend.index_apex),
         )
 
     def compute_bend_sinuosity_moving_window(
@@ -571,9 +634,18 @@ class Morphometry:
     ) -> float:
         """Compute bend sinuosity inside a moving window.
 
+        The window is centred on the bend: it covers the curvilinear range
+        [s_mid - window_size / 2, s_mid + window_size / 2] where s_mid is the
+        curvilinear abscissa of the middle of the bend (halfway between its
+        inflection points). All the bends overlapping this range are
+        included, so the sinuosity is computed between the upstream
+        inflection point of the first bend and the downstream inflection
+        point of the last bend of the window.
+
         Args:
             bend_id (int): bend index
-            window_size (float): curvulinear length of the window [m].
+            window_size (float): total curvilinear length of the window
+                centred on the bend [m].
 
         Returns:
             float: sinuosity over the window.
@@ -590,9 +662,9 @@ class Morphometry:
             self.centerline.bends[bend_index_max].index_inflex_down
         ]
 
-        # compute sinuosity
+        # compute sinuosity (in the horizontal plane)
         arc_length: float = float(round(cl_ptmax._s - cl_ptmin._s, 4))
-        cart_length: float = geom.distance(cl_ptmin.pt, cl_ptmax.pt, 4)
+        cart_length: float = geom.distance(cl_ptmin.pt[:2], cl_ptmax.pt[:2], 4)
         sinuo: float = (
             round(abs(arc_length / cart_length), 4)
             if abs(cart_length) > 0
@@ -605,9 +677,16 @@ class Morphometry:
     ) -> pd.Series:
         """Compute average morphometrics inside a moving window.
 
+        The window is centred on the bend (see
+        compute_bend_sinuosity_moving_window). For each metric, the average
+        is computed over the bends of the window ignoring NaN values (i.e.,
+        only non-NaN values are counted). A metric that is NaN for all the
+        bends of the window is NaN.
+
         Args:
             bend_id (int): bend index
-            window_size (float): curvulinear length of the window [m].
+            window_size (float): total curvilinear length of the window
+                centred on the bend [m].
 
         Returns:
             pd.Series: Series containing average values of all metrics.
@@ -622,42 +701,71 @@ class Morphometry:
 
         # compute average metric
         metrics_all: pd.DataFrame = self.compute_bends_morphometry(False)
-        mean: pd.Series = pd.Series(
-            np.zeros(metrics_all.shape[1]), index=metrics_all.columns
+        window: pd.DataFrame = metrics_all.iloc[
+            bend_index_min : bend_index_max + 1
+        ].astype(float)
+        mean: pd.Series = window.mean(axis=0, skipna=True)
+        return mean.round(4)
+
+    def _get_bend_curv_abscissa_range(
+        self: Self, bend_index: int
+    ) -> tuple[float, float]:
+        """Get the curvilinear abscissa of bend inflection points.
+
+        Args:
+            bend_index (int): bend index
+
+        Returns:
+            tuple[float, float]: curvilinear abscissa of upstream and
+            downstream inflection points.
+        """
+        bend: Bend = self.centerline.bends[bend_index]
+        s_up: float = float(self.centerline.cl_points[bend.index_inflex_up]._s)
+        s_down: float = float(
+            self.centerline.cl_points[bend.index_inflex_down]._s
         )
-        for i in range(bend_index_min, bend_index_max + 1, 1):
-            mean += metrics_all.loc[i]  # type: ignore
-        return np.round(mean / count, 4)  # type: ignore
+        return s_up, s_down
 
     def _get_window_end_indexes(
         self: Self, bend_index: int, window_size: float
     ) -> tuple[int, int]:
         """Compute the indexes of first and last bends included in the window.
 
+        The window is the curvilinear range
+        [s_mid - window_size / 2, s_mid + window_size / 2] centred on the
+        middle abscissa s_mid of the bend (halfway between its inflection
+        points). Returned indexes are those of the first and last bends
+        overlapping this range. The current bend is always included.
+
         Args:
             bend_index (int): current bend index
-            window_size (float): curvilinear length of the window [m].
+            window_size (float): total curvilinear length of the window [m].
 
         Returns:
             tuple[int, int]: indexes of first and last bends of the window.
 
         """
-        bend = self.centerline.bends[bend_index]
-        cl_ptmin = self.centerline.cl_points[bend.index_inflex_up]
-        smin = cl_ptmin._s - window_size
-        jmin = bend_index
-        while cl_ptmin._s > smin and jmin > 0:
-            jmin -= 1
-            cl_ptmin = self.centerline.cl_points[
-                self.centerline.bends[jmin].index_inflex_up
-            ]
+        nb_bends: int = len(self.centerline.bends)
+        assert (bend_index > -1) and (bend_index < nb_bends), (
+            "Bend index is undefined."
+        )
+        s_up, s_down = self._get_bend_curv_abscissa_range(bend_index)
+        s_mid: float = 0.5 * (s_up + s_down)
+        half_window: float = 0.5 * max(float(window_size), 0.0)
+        smin: float = s_mid - half_window
+        smax: float = s_mid + half_window
 
-        smax = cl_ptmin._s + window_size
-        jmax = bend_index
-        cl_ptmax = self.centerline.cl_points[bend.index_inflex_down]
-        while cl_ptmax._s < smax and jmax < len(self.centerline.bends) - 1:
+        # upstream bends: overlap if their downstream end is beyond smin
+        jmin: int = bend_index
+        while jmin > 0 and self._get_bend_curv_abscissa_range(jmin - 1)[1] > (
+            smin
+        ):
+            jmin -= 1
+
+        # downstream bends: overlap if their upstream end is before smax
+        jmax: int = bend_index
+        while (jmax < nb_bends - 1) and (
+            self._get_bend_curv_abscissa_range(jmax + 1)[0] < smax
+        ):
             jmax += 1
-            cl_ptmax = self.centerline.cl_points[
-                self.centerline.bends[jmax].index_inflex_down
-            ]
         return jmin, jmax

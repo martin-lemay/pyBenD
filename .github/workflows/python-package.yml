@@ -43,6 +43,11 @@ jobs:
       - name: Lint (Ruff)
         run: ruff check --output-format=github .
 
+      - name: Notebooks committed without outputs (nbstripout)
+        run: |
+          python -m pip install pre-commit
+          pre-commit run nbstripout --all-files --show-diff-on-failure
+
       - name: Type check (mypy)
         run: python -m mypy .
 

@@ -50,6 +50,7 @@ build = [
 ]
 dev = [
     "pylint",
+    "pre-commit",
     "mypy",
     "black",
     "ruff",

@@ -163,6 +163,14 @@ class ClPoint:
             return NotImplemented
         return self._id == other._id
 
+    def __hash__(self: Self) -> int:
+        """Hash consistent with __eq__ (based on channel point id only).
+
+        Returns:
+            int: hash of the channel point id.
+        """
+        return hash(self._id)
+
     def set_curvature(self: Self, curv: float) -> None:
         """Set channel point curvature property.
 
@@ -252,8 +260,24 @@ class ClPoint:
     def set_property(self: Self, name: str, value: float) -> None:
         """Set property value.
 
+        If the property is the curvilinear abscissa or one of the cartesian
+        coordinates, the corresponding attribute (_s or pt) is updated
+        accordingly to stay consistent with the stored data.
+
         Args:
             name (str): name of the property to set
             value (float): value of the property to set
         """
         self._data[name] = value
+        if name == PropertyNames.CURVILINEAR_ABSCISSA.value:
+            self._s = value
+            return
+        coord_index: dict[str, int] = {
+            PropertyNames.CARTESIAN_ABSCISSA.value: 0,
+            PropertyNames.CARTESIAN_ORDINATE.value: 1,
+            PropertyNames.ELEVATION.value: 2,
+        }
+        if name in coord_index:
+            if not np.issubdtype(self.pt.dtype, np.floating):
+                self.pt = self.pt.astype(float)
+            self.pt[coord_index[name]] = value

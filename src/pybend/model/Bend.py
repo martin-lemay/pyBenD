@@ -51,30 +51,73 @@ from pybend.model.enumerations import BendSide
 uid_module: int = int(1e4)
 
 
-def get_bend_uid(bend_id: int, age: int) -> int:
+def _as_integer(value: float, name: str) -> int:
+    """Convert an integer-valued number to int.
+
+    Args:
+        value (float): value to convert.
+        name (str): name of the value, used in the error message.
+
+    Raises:
+        ValueError: if value is not finite or not integer-valued.
+
+    Returns:
+        int: integer value.
+    """
+    try:
+        value_f = float(value)
+    except (TypeError, ValueError) as err:
+        raise ValueError(f"{name} must be a number, got {value!r}.") from err
+    if not np.isfinite(value_f) or not value_f.is_integer():
+        raise ValueError(
+            f"{name} must be an integer-valued number, got {value!r}."
+        )
+    return int(value_f)
+
+
+def get_bend_uid(bend_id: int, age: int | float) -> int:
     """Get bend unique id from bend id and age.
+
+    Unique id is computed as ``uid_module * age + bend_id``, it is then
+    required that ``0 <= bend_id < uid_module``.
 
     Args:
         bend_id (int): bend index
-        age (int): age
+        age (int | float): age. Must be integer-valued (e.g., 2500 or
+            2500.0).
+
+    Raises:
+        ValueError: if bend_id is not in [0, uid_module[ or if bend_id or
+            age is not integer-valued.
 
     Returns:
         int: unique id
     """
-    return int(uid_module * age + bend_id)
+    bend_id_i: int = _as_integer(bend_id, "Bend id")
+    age_i: int = _as_integer(age, "Age")
+    if bend_id_i < 0 or bend_id_i >= uid_module:
+        raise ValueError(
+            f"Bend id {bend_id_i} is out of range [0, {uid_module}[: bend "
+            + "unique ids would collide. Too many bends along the centerline."
+        )
+    return uid_module * age_i + bend_id_i
 
 
-def parse_bend_uid(uid: int) -> tuple[int, int]:
+def parse_bend_uid(uid: int | float) -> tuple[int, int]:
     """Parse bend unique id to get back bend index and age.
 
     Args:
-        uid (int): bend unique id
+        uid (int | float): bend unique id. Must be integer-valued.
+
+    Raises:
+        ValueError: if uid is not integer-valued.
 
     Returns:
-        tuple[float, int]: tuple containing bend age and index.
+        tuple[int, int]: tuple containing bend age and index.
     """
-    ide: int = uid % uid_module
-    age: int = uid // uid_module
+    uid_i: int = _as_integer(uid, "Bend unique id")
+    ide: int = uid_i % uid_module
+    age: int = uid_i // uid_module
     return (age, ide)
 
 
@@ -102,6 +145,10 @@ class Bend:
             side (BendSide, optional): Bend side (UP, DOWN, or UNKNOWN).
                 Defaults to BendSide.UNKNOWN.
 
+        Raises:
+            ValueError: if bend unique id cannot be computed from bend_id
+                and age (see :func:`get_bend_uid`).
+
         """
         #: bend id
         self.id: int = bend_id
@@ -116,10 +163,12 @@ class Bend:
         self.index_inflex_up: int = index_inflex_up
         #: index of downstream inflection point
         self.index_inflex_down: int = index_inflex_down
-        #: index of apex point
+        #: index of apex point along the centerline. -1 (or None) means that
+        #: the apex is undefined.
         self.index_apex: int = -1
-        #: index of maximal curvature point
-        self.index_max_curv: Optional[int] = False
+        #: index of maximal curvature point from upstream inflection point,
+        #: None if not computed
+        self.index_max_curv: Optional[int] = None
 
         #: apex probability values for each point of the bend
         self.apex_probability: Optional[npt.NDArray[np.float64]] = None
@@ -141,8 +190,9 @@ class Bend:
         self.bend_uid_prev: Optional[list[int]] = None
         #: indexes of connected bend in next centerline
         self.bend_uid_next: Optional[list[int]] = None
-        #: id of the BendEvolution object the bend belongs to
-        self.bend_evol_id: Optional[int] = False
+        #: id of the BendEvolution object the bend belongs to, None if the
+        #: bend does not belong to any BendEvolution
+        self.bend_evol_id: Optional[int] = None
 
         self.intersected_section_indexes: Optional[list[int]] = None
 
@@ -257,7 +307,11 @@ class Bend:
 
 
 class BendClPointIndexIter:
-    """Iterator over channel-point indices belonging to a `Bend`."""
+    """Iterator over channel-point indices belonging to a `Bend`.
+
+    Iterates over absolute channel-point indices from
+    ``bend.index_inflex_up`` to ``bend.index_inflex_down`` (both included).
+    """
 
     def __init__(self: Self, bend: Bend) -> None:
         """Create an iterator over bend channel-point indices.
@@ -268,7 +322,7 @@ class BendClPointIndexIter:
         #: bend
         self.bend = bend
         #: index
-        self.index: int = 0
+        self.index: int = bend.index_inflex_up
 
     def __iter__(self: Self) -> BendClPointIndexIter:
         """Return the iterator.
@@ -288,7 +342,7 @@ class BendClPointIndexIter:
         Returns:
             int: Channel-point index.
         """
-        if self.index <= self.bend.get_nb_points():
+        if self.index <= self.bend.index_inflex_down:
             x: int = self.index
             self.index += 1
             return x

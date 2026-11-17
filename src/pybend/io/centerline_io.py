@@ -6,6 +6,7 @@
 This module contains helpers to load and dump centerline-related datasets.
 """
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ import pybend.algorithms.centerline_process_functions as cpf
 from pybend.io.common import CenterlineIOFormat, resolve_path
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import PropertyNames
+from pybend.utils.logging import logger
 
 
 def load_centerline_from_file(
@@ -46,8 +48,10 @@ def load_centerline_from_file(
                 - ``sep`` (str): separator (default ``";"``)
 
             For ``CenterlineIOFormat.KML``:
-                - ``keyword`` (str): keyword for coordinate line (default
-                  ``"coordinates"``)
+                - ``keyword`` (str): tag name of coordinate elements
+                  (default ``"coordinates"``)
+                - ``to_metric`` (bool): convert lon/lat degrees to local
+                  metric coordinates (default ``False``)
 
     Returns:
         tuple[int, pd.DataFrame]: Tuple containing the centerline age (if
@@ -86,8 +90,9 @@ def load_centerline_from_file(
                 "File extension does not match specified format."
             )
             keyword = kwargs.get("keyword", "coordinates")
+            to_metric = kwargs.get("to_metric", False)
             dataset = load_centerline_dataset_from_kml(
-                filepath, keyword=keyword
+                filepath, keyword=keyword, to_metric=to_metric
             )
         case _:
             raise ValueError(f"File format {kind} not supported.")
@@ -228,57 +233,126 @@ def load_centerline_dataset_from_Flumy_csv(
     return age, data.drop(columns="Iteration")
 
 
+#: Mean Earth radius (m) used for the equirectangular projection of KML
+#: coordinates.
+EARTH_RADIUS: float = 6371008.8
+
+
+def _parse_kml_coordinates(text: str) -> list[list[float]]:
+    """Parse the text of a KML ``coordinates`` element.
+
+    The text is a whitespace-separated list of ``lon,lat[,alt]`` tuples.
+
+    Args:
+        text (str): content of the ``coordinates`` element.
+
+    Returns:
+        list[list[float]]: list of parsed tuples.
+
+    Raises:
+        ValueError: If a tuple cannot be parsed.
+    """
+    coords: list[list[float]] = []
+    for token in text.split():
+        values = [val for val in token.split(",") if len(val) > 0]
+        if len(values) < 2 or len(values) > 3:
+            raise ValueError(f"Invalid KML coordinate tuple: '{token}'.")
+        coords.append([float(val) for val in values])
+    return coords
+
+
+def _lonlat_to_local_metric(
+    lon: npt.NDArray[np.float64], lat: npt.NDArray[np.float64]
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Project lon/lat (degrees) to local metric coordinates.
+
+    Uses an equirectangular projection centred on the first point:
+    ``X = R * (lon - lon0) * cos(lat0)`` and ``Y = R * (lat - lat0)``,
+    with angles in radians and ``R`` the mean Earth radius.
+
+    Args:
+        lon (npt.NDArray[np.float64]): longitudes in degrees.
+        lat (npt.NDArray[np.float64]): latitudes in degrees.
+
+    Returns:
+        tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: X and Y
+        coordinates in meters relative to the first point.
+    """
+    lon_rad = np.radians(lon)
+    lat_rad = np.radians(lat)
+    x = EARTH_RADIUS * (lon_rad - lon_rad[0]) * np.cos(lat_rad[0])
+    y = EARTH_RADIUS * (lat_rad - lat_rad[0])
+    return x, y
+
+
 def load_centerline_dataset_from_kml(
-    filepath: str, keyword: str = "coordinates"
+    filepath: str, keyword: str = "coordinates", to_metric: bool = False
 ) -> pd.DataFrame:
     """Load a dataset from a kml file containing centerline point coordinates.
 
+    The file is parsed as XML. Every element whose tag (without namespace)
+    is *keyword* is read, in document order, and its text is split into
+    ``lon,lat[,alt]`` tuples.
+
+    KML coordinates are geographic coordinates in degrees. If *to_metric*
+    is True, they are converted to local metric coordinates (meters) with
+    an equirectangular projection centred on the first point (mean Earth
+    radius R = 6371008.8 m), which is accurate for centerlines spanning a
+    few tens of kilometers. Otherwise, coordinates are kept in degrees and
+    a warning is logged since all distances computed afterwards will then
+    be expressed in degrees.
+
     Args:
         filepath (str): path to the kml file
-        keyword (str, optional): keyword to search for coordinate line.
+        keyword (str, optional): tag name of the coordinate elements.
             Defaults to "coordinates".
+        to_metric (bool, optional): if True, convert lon/lat to local
+            metric X/Y coordinates.
+            Defaults to False.
 
     Returns:
         pd.DataFrame: DataFrame containing centerline point coordinates.
 
+    Raises:
+        ValueError: If no coordinates are found or if coordinate tuples
+            are malformed or have inconsistent dimensions.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline"
     )
-    coords_all = []
-    with open(str(path), "r") as fin:
-        for line in fin:
-            if keyword not in line:
-                continue
-            line_split = line.split(" ")
-            for elt in line_split:
-                if len(elt) == 0:
-                    continue
-                if (">" in elt) or ("<" in elt):
-                    if "</" in elt:
-                        # last pts
-                        elt = elt.split("<")[0]
-                    else:
-                        # 1st point
-                        elt = elt.split(">")[-1]
+    root = ET.parse(str(path)).getroot()
+    coords_all: list[list[float]] = []
+    for elt in root.iter():
+        # remove namespace if any: "{namespace}tag" -> "tag" (comments and
+        # processing instructions have non-string tags and never match)
+        tag = str(elt.tag).rsplit("}", 1)[-1]
+        if tag != keyword or elt.text is None:
+            continue
+        coords_all += _parse_kml_coordinates(elt.text)
 
-                if "," in elt:
-                    coords = elt.split(",")
-                    coords_all += [coords]
+    nb_pts = len(coords_all)
+    if nb_pts == 0:
+        raise ValueError("Point coordinates were not found.")
+    nb_col = len(coords_all[0])
+    if any(len(coords) != nb_col for coords in coords_all):
+        raise ValueError("KML coordinate tuples have inconsistent dimensions.")
 
     columns = (
         PropertyNames.CARTESIAN_ABSCISSA.value,
         PropertyNames.CARTESIAN_ORDINATE.value,
         PropertyNames.ELEVATION.value,
     )
-    nb_pts = len(coords_all)
-    assert nb_pts > 0, "Point coordinates were not found."
-
-    nb_col = len(coords_all[0])
-    data = np.zeros((nb_pts, nb_col))
-    for i, coords in enumerate(coords_all):
-        coords2 = [eval(val) for val in coords]
-        data[i] = coords2
+    data = np.array(coords_all, dtype=np.float64)
+    if to_metric:
+        data[:, 0], data[:, 1] = _lonlat_to_local_metric(
+            data[:, 0], data[:, 1]
+        )
+    else:
+        logger.warning(
+            "KML coordinates are loaded in degrees (longitude, latitude): "
+            "distances will be expressed in degrees. Use to_metric=True to "
+            "convert them to local metric coordinates."
+        )
 
     dataset = pd.DataFrame(data, columns=columns[:nb_col])
     if nb_col == 2:

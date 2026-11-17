@@ -17,12 +17,20 @@ def mirror(
 
     Args:
         coords (npt.NDArray[np.float64]): input coordinates
-        nb_pts (int): number of points to add
+        nb_pts (int): number of points to add at each end. If 0, a copy of
+            input coordinates is returned.
 
     Returns:
         npt.NDArray[np.float64]: new coordinates with added points
 
+    Raises:
+        ValueError: If *nb_pts* is negative.
+
     """
+    if nb_pts < 0:
+        raise ValueError(f"nb_pts must be non-negative, got {nb_pts}.")
+    if nb_pts == 0:
+        return np.array(coords, dtype=np.float64, copy=True)
     coords_new: npt.NDArray[np.float64] = np.zeros(
         (coords.shape[0] + 2 * nb_pts, coords.shape[1])
     )
@@ -85,6 +93,13 @@ def kinoshita_bend(
     :math:`\lambda` the wavelength, :math:`J_s` the skewness coefficient,
     and :math:`J_f` the flattening coefficient.
 
+    Note on the sign convention: with :math:`t = 2\pi s / \lambda`, the
+    code uses :math:`\Theta_0 \cos t + \Theta_0^3 (J_s \sin 3t - J_f
+    \cos 3t)`. The sign of the :math:`J_f` term is the opposite of the
+    cos-shifted form of Parker et al. (1983) and Abad & Garcia (2009)
+    (:math:`+ J_f \cos 3t`). Hence, a given :math:`J_f` value here
+    corresponds to :math:`-J_f` in those references.
+
     Inflection point may be downstream the first point at
     :math:`\Theta = \Theta_0`, then the bend between inflection points is
     determined from:
@@ -92,6 +107,12 @@ def kinoshita_bend(
         1. compute point coordinates over a bit more than a wavelength,
         2. find inflection points
         3. return coords in-between inflection points
+
+    The returned coordinates are normalised by the x extent of the bend
+    :math:`L = x_{max} - x_{min}`: :math:`x' = (x - x_{min}) / L` (so
+    that x lies in [0, 1]) and :math:`y' = (y - y_0) / L` where
+    :math:`y_0` is the y coordinate of the first returned point (so that
+    the bend starts at y = 0). The aspect ratio of the bend is preserved.
 
     Args:
         nb_pts (int): number of points along bend centerline
@@ -102,7 +123,8 @@ def kinoshita_bend(
             elongated, if negative bends are more flat.
 
     Returns:
-        npt.NDArray[np.float64]: point coordinates
+        npt.NDArray[np.float64]: normalised point coordinates of the bend
+        between inflection points.
 
     """
     coords_x: list[float] = [0.0]
@@ -127,10 +149,12 @@ def kinoshita_bend(
     curvature: npt.NDArray[np.float64] = cpf.compute_curvature(coords)
     coords1 = coords[np.nonzero(curvature >= 0)]
 
-    # normalize bend x coordinates between 0 and 1
+    # normalize bend x coordinates between 0 and 1, shift y such as the
+    # first point is at y=0, and scale both by the x extent
     xmin = np.min(coords1[:, 0])
     xmax = np.max(coords1[:, 0])
-    coords1 = (coords1 - xmin) / (xmax - xmin)
+    origin = np.array([xmin, coords1[0, 1]])
+    coords1 = (coords1 - origin) / (xmax - xmin)
 
     # return coordinates between inflection points
     return coords1

@@ -12,10 +12,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import json
 import os
-import shutil
 import sys
 from pathlib import Path
+from urllib.parse import quote
+from urllib.request import urlopen
 
 # Add python modules to be documented
 config_file_dir = os.path.dirname(__file__)
@@ -106,10 +108,55 @@ html_css_files = [
 htmlhelp_basename = 'pyBenDDoc'
 
 # -- Jupyter notebooks (nbsphinx) --------------------------------------------
-# Notebooks live in `<root>/notebooks`. Sphinx can only render files located
-# inside the source directory, so they are copied into `docs/notebooks/`
-# (git-ignored) at each build. Rendered pages are then available as
-# `notebooks/<name>` and nbsphinx also publishes the .ipynb for download.
+# Notebooks live in `<root>/notebooks` and are committed without outputs.
+# Sphinx can only render files located inside the source directory, so they
+# are copied into `docs/notebooks/` (git-ignored) at each build. Rendered
+# pages are then available as `notebooks/<name>` and nbsphinx also publishes
+# the .ipynb for download.
+#
+# Notebooks are too long to run within the Read the Docs build time limit.
+# Instead, the `notebooks` job of `.github/workflows/release.yml` executes
+# them on each GitHub release and pushes the executed copies to the
+# `notebook-outputs` branch (`<tag>/` and `latest/` folders). Each executed
+# copy is used in place of the committed notebook only if their code cells
+# are identical; otherwise the committed notebook is rendered without
+# outputs.
+NOTEBOOK_OUTPUTS_URL = (
+    "https://raw.githubusercontent.com/martin-lemay/pyBenD/"
+    "notebook-outputs/{ref}/{name}"
+)
+
+
+def _code_cells(notebook: dict) -> list[str]:
+    """Return the source of the code cells of a notebook."""
+    sources = []
+    for cell in notebook.get("cells", []):
+        if cell.get("cell_type") == "code":
+            source = cell.get("source", "")
+            sources.append(
+                "".join(source) if isinstance(source, list) else source
+            )
+    return sources
+
+
+def _fetch_executed_notebook(name: str, src_notebook: dict) -> bytes | None:
+    """Download the executed copy of a notebook matching its code cells."""
+    refs = [os.environ.get("READTHEDOCS_GIT_IDENTIFIER"), "latest"]
+    for ref in dict.fromkeys(ref for ref in refs if ref):
+        url = NOTEBOOK_OUTPUTS_URL.format(ref=quote(ref), name=quote(name))
+        try:
+            with urlopen(url, timeout=30) as response:
+                data = response.read()
+            executed = json.loads(data)
+        except (OSError, ValueError):
+            continue
+        if _code_cells(executed) == _code_cells(src_notebook):
+            print(f"nbsphinx: using executed notebook {url}")
+            return data
+    print(f"nbsphinx: no executed copy of {name}, rendered without outputs")
+    return None
+
+
 notebooks_src_dir = Path(project_root) / "notebooks"
 notebooks_doc_dir = Path(config_file_dir) / "notebooks"
 notebooks_doc_dir.mkdir(exist_ok=True)
@@ -119,12 +166,11 @@ for _stale in notebooks_doc_dir.glob("*.ipynb"):
         _stale.unlink()
 for _name, _nb in _src_notebooks.items():
     _dst = notebooks_doc_dir / _name
-    if not _dst.exists() or _dst.stat().st_mtime < _nb.stat().st_mtime:
-        shutil.copy2(_nb, _dst)
+    _src_data = _nb.read_bytes()
+    _executed = _fetch_executed_notebook(_name, json.loads(_src_data))
+    _dst.write_bytes(_executed if _executed is not None else _src_data)
 
-# Notebooks are published with their stored outputs and are never executed
-# during the docs build (they need data downloads and multiprocessing).
-# Run them locally and save them with their outputs before publishing.
+# Notebooks are never executed during the docs build (see above).
 nbsphinx_execute = 'never'
 nbsphinx_allow_errors = True
 

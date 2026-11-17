@@ -74,6 +74,105 @@ jobs:
         if: env.PYPI_API_TOKEN == ''
         uses: pypa/gh-action-pypi-publish@release/v1
 
+  # Executes the notebooks for the documentation. They are too long to run
+  # within the Read the Docs build time limit and are committed without
+  # outputs, so the executed copies are pushed to the `notebook-outputs`
+  # branch (`<tag>/` and `latest/` folders) where docs/conf.py fetches them.
+  notebooks:
+    name: Execute notebooks for the docs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    timeout-minutes: 300
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      PRERELEASE: ${{ github.event.release.prerelease }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RTD_API_TOKEN: ${{ secrets.RTD_API_TOKEN }}
+      RTD_PROJECT: mlemay-pybend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install . nbconvert ipykernel
+
+      # Notebooks run from notebooks/ (relative data paths); only the
+      # executed copies written to $RUNNER_TEMP are kept.
+      - name: Execute notebooks
+        run: |
+          mkdir -p "$RUNNER_TEMP/executed"
+          for nb in notebooks/*.ipynb; do
+            echo "::group::$nb"
+            start=$(date +%s)
+            jupyter nbconvert --to notebook --execute \
+              --ExecutePreprocessor.timeout=3600 \
+              --output-dir "$RUNNER_TEMP/executed" "$nb"
+            echo "$nb executed in $(( $(date +%s) - start ))s"
+            echo "::endgroup::"
+          done
+
+      - name: Push executed notebooks to the notebook-outputs branch
+        run: |
+          dir="$RUNNER_TEMP/notebook-outputs"
+          git init -q "$dir"
+          cd "$dir"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth=1 origin notebook-outputs; then
+            git checkout -q -b notebook-outputs FETCH_HEAD
+          else
+            git checkout -q --orphan notebook-outputs
+          fi
+          folders="$TAG"
+          # pre-releases do not replace the notebooks of the latest release
+          if [ "$PRERELEASE" != "true" ]; then folders="$folders latest"; fi
+          for folder in $folders; do
+            rm -rf "$folder"
+            mkdir -p "$folder"
+            cp "$RUNNER_TEMP"/executed/*.ipynb "$folder"/
+          done
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Executed notebooks unchanged"
+          else
+            git commit -q -m "Executed notebooks for $TAG (${GITHUB_SHA::7})"
+            git push -q origin notebook-outputs
+          fi
+
+      - name: Rebuild the docs on Read the Docs
+        if: env.RTD_API_TOKEN != ''
+        run: |
+          versions="$(echo "$TAG" | tr '[:upper:]' '[:lower:]')"
+          if [ "$PRERELEASE" != "true" ]; then
+            versions="$versions stable latest"
+          fi
+          for version in $versions; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+              -H "Authorization: Token $RTD_API_TOKEN" \
+              "https://app.readthedocs.org/api/v3/projects/$RTD_PROJECT/versions/$version/builds/")
+            if [ "$code" = "202" ]; then
+              echo "Read the Docs build of '$version' triggered"
+            else
+              echo "::warning::Read the Docs build of '$version' not triggered (HTTP $code)"
+            fi
+          done
+
   upload-release-assets:
     name: Upload assets to GitHub Release
     needs: build

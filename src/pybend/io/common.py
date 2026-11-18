@@ -5,8 +5,34 @@
 
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+import pandas as pd  # type: ignore[import-untyped]
+
+# pandas >= 3.1 parses floats with correct rounding by default and deprecates
+# the `float_precision` argument; older versions need "round_trip" for that.
+_PANDAS_CORRECT_FLOAT_PARSING: bool = tuple(
+    int(part) for part in pd.__version__.split(".")[:2]
+) >= (3, 1)
+
+
+def read_csv(path: str | Path, **kwargs: Any) -> pd.DataFrame:
+    """Read a csv file with correctly rounded float parsing.
+
+    Floats are parsed identically whatever the pandas version, so that
+    results do not depend on it.
+
+    Args:
+        path (str | Path): Path to the csv file.
+        **kwargs (Any): Keyword arguments passed to pandas.read_csv.
+
+    Returns:
+        pd.DataFrame: Loaded data.
+    """
+    if not _PANDAS_CORRECT_FLOAT_PARSING:
+        kwargs.setdefault("float_precision", "round_trip")
+    return pd.read_csv(str(path), **kwargs)
 
 
 class CenterlineIOFormat(StrEnum):

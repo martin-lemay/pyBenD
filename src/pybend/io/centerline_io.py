@@ -16,7 +16,7 @@ import pandas as pd  # type: ignore[import-untyped]
 from typing_extensions import deprecated
 
 import pybend.algorithms.centerline_process_functions as cpf
-from pybend.io.common import CenterlineIOFormat, resolve_path
+from pybend.io.common import CenterlineIOFormat, read_csv, resolve_path
 from pybend.model.Centerline import Centerline
 from pybend.model.enumerations import PropertyNames
 from pybend.utils.logging import logger
@@ -134,9 +134,7 @@ def load_centerline_dataset_from_csv(
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline"
     )
-    dataset: pd.DataFrame = pd.read_csv(
-        str(path), sep=sep, float_precision="round_trip"
-    )
+    dataset: pd.DataFrame = read_csv(path, sep=sep)
 
     assert x_prop in dataset.columns, (
         "X coordinate column indexes was not found."
@@ -200,7 +198,7 @@ def load_centerline_dataset_from_Flumy_csv(
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline"
     )
-    data: pd.DataFrame = pd.read_csv(str(path), sep=sep)
+    data: pd.DataFrame = read_csv(path, sep=sep)
 
     mess: str = (
         " property is missing. Try to use load_dataset_from_csv loader "

@@ -21,6 +21,7 @@ from pybend.io.centerline_io import (
 from pybend.io.common import (
     CenterlineIOFormat,
     normalize_age,
+    read_csv,
     resolve_path,
 )
 from pybend.model.enumerations import PropertyNames
@@ -176,7 +177,7 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
     )
-    data: pd.DataFrame = pd.read_csv(str(path), sep=sep)
+    data: pd.DataFrame = read_csv(path, sep=sep)
 
     mess: str = (
         " property is missing. Try to use load_centerline_evolution_"
@@ -255,7 +256,7 @@ def load_centerline_evolution_from_single_xy_csv(
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
     )
-    data: pd.DataFrame = pd.read_csv(str(path), sep=sep)
+    data: pd.DataFrame = read_csv(path, sep=sep)
 
     mess: str = " property is missing. Cannot load the data."
     assert x_prop in data.columns, f"{x_prop}" + mess

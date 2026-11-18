@@ -1603,8 +1603,8 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [256],
         [],
         [257],
-        [258, 259],
         [],
+        [258, 259],
         [260],
         [261],
         [262],
@@ -3323,7 +3323,7 @@ class TestsCenterlineCollection(unittest.TestCase):
                     l_indexes_expected,
                     (
                         "Centerline matching: index_cl_pts_next_centerline at "
-                        + "weight index {i}"
+                        + f"weight index {i}"
                     ),
                 )
 

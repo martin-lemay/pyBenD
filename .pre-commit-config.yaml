@@ -1,0 +1,11 @@
+# Git hooks run on `git commit` once installed in the clone:
+#   pip install pre-commit
+#   pre-commit install
+# Run on every file manually with: pre-commit run --all-files
+repos:
+  # Notebooks are committed without outputs: the executed copies shown in the
+  # docs are generated on each release (see .github/workflows/release.yml).
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout

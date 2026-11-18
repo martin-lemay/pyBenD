@@ -9,6 +9,7 @@ centerline_Collection_test_data*.csv.
 
 import os
 import unittest
+import warnings
 from typing import Self
 
 import numpy as np
@@ -19,7 +20,14 @@ from pybend.io import (
     CenterlineIOFormat,
     load_centerline_from_file,
 )
+from pybend.model.Bend import Bend
 from pybend.model.Centerline import Centerline
+from pybend.model.ClPoint import ClPoint
+from pybend.model.enumerations import (
+    BendSide,
+    MorphometricNames,
+    PropertyNames,
+)
 from pybend.model.Morphometry import Morphometry
 from pybend.utils.globalParameters import set_nb_procs
 
@@ -292,6 +300,205 @@ class TestsMorphometry(unittest.TestCase):
         # skip 1st column since it is sinuosity
         self.assertTrue(
             np.array_equal(obs, average_metrics_exp.to_numpy()[:, 1:], True)
+        )
+
+
+def _make_sine_centerline(
+    nb_bends: int = 7,
+    half_wavelength: float = 10.0,
+    amplitude: float = 3.0,
+    slope: float = -5.0,
+    straight_bend_ids: tuple[int, ...] = (),
+) -> Centerline:
+    """Build a synthetic sine centerline with strongly varying elevation.
+
+    Each bend is a half sine wave between 2 inflection points. Elevation
+    varies strongly so that 3D distances differ from horizontal ones.
+    """
+    nb_pts_bend: int = 10
+    nb_pts: int = nb_bends * nb_pts_bend + 1
+    x = np.linspace(0.0, nb_bends * half_wavelength, nb_pts)
+    k: float = np.pi / half_wavelength
+    y = amplitude * np.sin(k * x)
+    z = slope * x
+    dy = amplitude * k * np.cos(k * x)
+    ddy = -amplitude * k * k * np.sin(k * x)
+    curv = ddy / (1.0 + dy * dy) ** 1.5
+    ds = np.sqrt(np.diff(x) ** 2 + np.diff(y) ** 2)
+    s = np.concatenate(([0.0], np.cumsum(ds)))
+    cols = (
+        PropertyNames.CURVILINEAR_ABSCISSA.value,
+        PropertyNames.CARTESIAN_ABSCISSA.value,
+        PropertyNames.CARTESIAN_ORDINATE.value,
+        PropertyNames.ELEVATION.value,
+        PropertyNames.CURVATURE.value,
+        PropertyNames.CURVATURE_FILTERED.value,
+    )
+    cl = Centerline.__new__(Centerline)
+    cl.age = 0
+    cl.cl_points = [
+        ClPoint(
+            str(i),
+            0,
+            pd.Series([s[i], x[i], y[i], z[i], curv[i], curv[i]], index=cols),
+        )
+        for i in range(nb_pts)
+    ]
+    cl.bends = []
+    for j in range(nb_bends):
+        up = j * nb_pts_bend
+        down = up + nb_pts_bend
+        side = BendSide.UP if j % 2 == 0 else BendSide.DOWN
+        if j in straight_bend_ids:
+            side = BendSide.STRAIGHT
+        bend = Bend(j, up, down, 0, side)
+        bend.index_apex = up + nb_pts_bend // 2
+        bend.pt_center = np.array(
+            [0.5 * (x[up] + x[down]), 0.0, 1000.0 * (j + 1)]
+        )
+        cl.bends.append(bend)
+    return cl
+
+
+class TestsMorphometryFixes(unittest.TestCase):
+    """Tests on synthetic centerlines for morphometry fixes."""
+
+    def test_planform_metrics_are_horizontal(self: Self) -> None:
+        """Planform metrics must ignore elevation."""
+        cl = _make_sine_centerline()
+        morph = Morphometry(cl)
+        self.assertAlmostEqual(morph.compute_bend_wavelength(2), 10.0, 4)
+        self.assertAlmostEqual(morph.compute_bend_amplitude(2), 3.0, 4)
+        self.assertAlmostEqual(morph.compute_bend_extension(2), 3.0, 4)
+        self.assertAlmostEqual(morph.compute_bend_max_amplitude(2), 3.0, 4)
+        self.assertAlmostEqual(morph.compute_bend_max_extension(2), 5.0, 4)
+        self.assertAlmostEqual(morph.compute_bend_maturity_index(2), 0.3, 4)
+        self.assertAlmostEqual(
+            morph.compute_bend_wavelength_leopold(2), 20.0, 4
+        )
+        self.assertAlmostEqual(morph.compute_bend_amplitude_leopold(2), 6.0, 4)
+        sinuo_exp = round(
+            morph.compute_bend_arc_length(2) / 10.0,
+            4,
+        )
+        self.assertAlmostEqual(morph.compute_bend_sinuosity(2), sinuo_exp, 3)
+
+    def test_leopold_first_last_bends_are_nan(self: Self) -> None:
+        """Leopold metrics are NaN for first and last bends."""
+        cl = _make_sine_centerline()
+        morph = Morphometry(cl)
+        last: int = cl.get_nb_bends() - 1
+        for bend_id in (0, last):
+            self.assertTrue(
+                np.isnan(morph.compute_bend_wavelength_leopold(bend_id))
+            )
+            self.assertTrue(
+                np.isnan(morph.compute_bend_amplitude_leopold(bend_id))
+            )
+
+    def test_no_apex_returns_nan(self: Self) -> None:
+        """Apex-based metrics are NaN when index_apex is -1 or None."""
+        for no_apex in (-1, None):
+            cl = _make_sine_centerline()
+            cl.bends[2].index_apex = no_apex  # type: ignore[assignment]
+            morph = Morphometry(cl)
+            self.assertTrue(np.isnan(morph.compute_bend_amplitude(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_extension(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_radius(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_asymmetry_apex(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_amplitude_leopold(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_wavelength_leopold(1)))
+            self.assertTrue(np.isnan(morph.compute_bend_wavelength_leopold(3)))
+
+    def test_straight_bend_roundness_skewness_nan(self: Self) -> None:
+        """Roundness and skewness are NaN for null curvature or 2-pt bends."""
+        cl = _make_sine_centerline()
+        for cl_pt in cl.cl_points[
+            cl.bends[2].index_inflex_up : cl.bends[2].index_inflex_down + 1
+        ]:
+            cl_pt.set_property(PropertyNames.CURVATURE_FILTERED.value, 0.0)
+        # 2-point bend
+        cl.bends[4].index_inflex_down = cl.bends[4].index_inflex_up + 1
+        morph = Morphometry(cl)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            self.assertTrue(np.isnan(morph.compute_bend_roundness(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_skewness(2)))
+            self.assertTrue(np.isnan(morph.compute_bend_skewness(4)))
+        # regular bend still defined
+        self.assertFalse(np.isnan(morph.compute_bend_roundness(3)))
+        self.assertFalse(np.isnan(morph.compute_bend_skewness(3)))
+
+    def test_compute_bends_morphometry_index(self: Self) -> None:
+        """Rows of compute_bends_morphometry are indexed by bend ids."""
+        cl = _make_sine_centerline(straight_bend_ids=(1, 4))
+        morph = Morphometry(cl)
+        valid = morph.compute_bends_morphometry(valid_bends=True)
+        self.assertEqual(valid.index.name, "Bend_id")
+        self.assertListEqual(valid.index.tolist(), [0, 2, 3, 5, 6])
+        full = morph.compute_bends_morphometry(valid_bends=False)
+        self.assertListEqual(full.index.tolist(), list(range(7)))
+        self.assertTrue(
+            np.array_equal(
+                valid.to_numpy(), full.loc[[0, 2, 3, 5, 6]].to_numpy(), True
+            )
+        )
+
+    def test_window_centred_on_bend(self: Self) -> None:
+        """Moving window is centred on the bend middle abscissa."""
+        cl = _make_sine_centerline()
+        morph = Morphometry(cl)
+        bend_length: float = morph.compute_bend_arc_length(3)
+        self.assertEqual(
+            morph._get_window_end_indexes(3, 0.5 * bend_length), (3, 3)
+        )
+        self.assertEqual(
+            morph._get_window_end_indexes(3, 2.5 * bend_length), (2, 4)
+        )
+        self.assertEqual(
+            morph._get_window_end_indexes(3, 3.5 * bend_length), (1, 5)
+        )
+        self.assertEqual(
+            morph._get_window_end_indexes(0, 2.5 * bend_length), (0, 1)
+        )
+        self.assertEqual(
+            morph._get_window_end_indexes(6, 2.5 * bend_length), (5, 6)
+        )
+        self.assertEqual(morph._get_window_end_indexes(3, 0.0), (3, 3))
+        # sinuosity over the window [2, 4]
+        cl_pt_min = cl.cl_points[cl.bends[2].index_inflex_up]
+        cl_pt_max = cl.cl_points[cl.bends[4].index_inflex_down]
+        sinuo_exp = round(
+            (cl_pt_max._s - cl_pt_min._s)
+            / np.linalg.norm(cl_pt_max.pt[:2] - cl_pt_min.pt[:2]),
+            4,
+        )
+        self.assertAlmostEqual(
+            morph.compute_bend_sinuosity_moving_window(3, 2.5 * bend_length),
+            sinuo_exp,
+            3,
+        )
+
+    def test_average_metric_window_skips_nan(self: Self) -> None:
+        """Window average ignores NaN values per metric."""
+        cl = _make_sine_centerline()
+        morph = Morphometry(cl)
+        bend_length: float = morph.compute_bend_arc_length(0)
+        # window covers bends 0 and 1; Leopold metrics are NaN for bend 0
+        mean = morph.compute_average_metric_window(0, 2.5 * bend_length)
+        self.assertAlmostEqual(
+            mean[MorphometricNames.WAVELENGTH_LEOPOLD.value], 20.0, 3
+        )
+        self.assertAlmostEqual(
+            mean[MorphometricNames.AMPLITUDE_LEOPOLD.value], 6.0, 3
+        )
+        self.assertAlmostEqual(
+            mean[MorphometricNames.WAVELENGTH.value], 10.0, 3
+        )
+        # single bend window: Leopold metrics are all NaN
+        mean = morph.compute_average_metric_window(0, 0.5 * bend_length)
+        self.assertTrue(
+            np.isnan(mean[MorphometricNames.WAVELENGTH_LEOPOLD.value])
         )
 
 

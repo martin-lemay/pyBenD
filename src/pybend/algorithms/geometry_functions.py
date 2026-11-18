@@ -88,7 +88,10 @@ def orthogonal_distance(
     seg_pt2: npt.NDArray[np.float64],
     prec: int = 4,
 ) -> float:
-    """Orthogonal distance between pt and its projection on segment.
+    """Orthogonal distance between pt and its projection on a line.
+
+    The projection is made on the infinite line passing through seg_pt1 and
+    seg_pt2, not on the segment itself.
 
     Args:
         pt (npt.NDArray[np.float64] | Sequence[float]): Coordinates of
@@ -132,7 +135,7 @@ def normal(vec: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         NDArray[float]: Coordinates of the normalized orthogonal vector.
 
     """
-    normal_vec = perp(vec)
+    normal_vec = perp(np.asarray(vec, dtype=float))
     normal_vec /= np.linalg.norm(normal_vec)
     return normal_vec
 
@@ -143,7 +146,9 @@ def seg_intersect(
     pt21: npt.NDArray[np.float64],
     pt22: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
-    """Compute the intersection point to the segments (pt11,pt12), (pt21,pt22).
+    """Compute the intersection point of lines (pt11,pt12) and (pt21,pt22).
+
+    Lines are infinite: the intersection point may lie outside the segments.
 
     Args:
         pt11 (NDArray[float]): Coordinates of the 1st point of the first line
@@ -161,7 +166,8 @@ def seg_intersect(
     dap: npt.NDArray[np.float64] = perp(da)
     denom: float = np.dot(dap, db).astype(float)
     num: float = np.dot(dap, dp).astype(float)
-    assert denom != 0, "No intersection between the two lines."
+    tol: float = 1e-12 * float(np.linalg.norm(da) * np.linalg.norm(db))
+    assert abs(denom) > tol, "No intersection between the two lines."
     return (num / denom) * db + pt21
 
 
@@ -199,17 +205,17 @@ def get_angle_between_vectors(
         vec2 (npt.NDArray[np.float64]): second vector
 
     Returns:
-        float: angle between the two vectors.
+        float: counterclockwise angle from vec1 to vec2 in [0, 2*pi).
 
     """
-    vec1_norm: npt.NDArray[np.float64] = vec1 / np.linalg.norm(vec1)
-    vec2_norm: npt.NDArray[np.float64] = vec2 / np.linalg.norm(vec2)
-    dot: float = np.dot(vec1_norm, vec2_norm)
-    det: float = np.linalg.det((vec1_norm, vec2_norm))
-    # round to prevent from numerical approximations
-    teta: float = np.arccos(round(dot, 6))
-    if det < 0:
-        teta = 2.0 * np.pi - teta
+    dot: float = float(vec1[0] * vec2[0] + vec1[1] * vec2[1])
+    det: float = float(vec1[0] * vec2[1] - vec1[1] * vec2[0])
+    # arctan2 is accurate for all angles, unlike arccos near 0 and pi
+    teta: float = float(np.arctan2(det, dot))
+    if teta < 0.0:
+        teta += 2.0 * np.pi
+    if teta >= 2.0 * np.pi:  # -0. or tiny negative values rounded to 2*pi
+        teta = 0.0
     return teta
 
 
@@ -241,6 +247,10 @@ def get_MP(
 ) -> npt.NDArray[np.float64]:
     """Get the rotation 2D matrix between ref and dir_trans.
 
+    The returned matrix rotates dir_trans onto ref. dir_trans is treated as
+    an axis: if it points away from ref (negative dot product), its opposite
+    is used.
+
     Args:
         dir_trans (NDArray[float], optional): Direction.
             Defaults to np.array((1., 0.)).
@@ -251,17 +261,19 @@ def get_MP(
         NDArray[float]: Array corresponding to rotation 2D matrix.
 
     """
-    dir_trans_norm: npt.NDArray[np.float64] = dir_trans / np.linalg.norm(
-        dir_trans
+    dir_trans_arr: npt.NDArray[np.float64] = np.asarray(dir_trans, float)
+    ref_arr: npt.NDArray[np.float64] = np.asarray(ref, float)
+    dir_trans_norm: npt.NDArray[np.float64] = dir_trans_arr / np.linalg.norm(
+        dir_trans_arr
     )
-    ref_norm: npt.NDArray[np.float64] = ref / np.linalg.norm(ref)
-    if np.dot(dir_trans_norm, ref) < 0.0:
-        dir_trans_norm *= -1.0
+    ref_norm: npt.NDArray[np.float64] = ref_arr / np.linalg.norm(ref_arr)
 
     cos: float = float(np.dot(dir_trans_norm, ref_norm))
-    teta: float = float(np.arccos(cos))
-    det: float = float(np.linalg.norm((dir_trans_norm, ref_norm)))
-    if det < 0:
-        teta = np.pi - teta
-    sin: float = np.sin(teta)
+    if cos < 0.0:
+        dir_trans_norm = -dir_trans_norm
+        cos = -cos
+    # signed sine of the angle from ref to dir_trans (2D cross product)
+    sin: float = float(
+        ref_norm[0] * dir_trans_norm[1] - ref_norm[1] * dir_trans_norm[0]
+    )
     return np.array([[cos, sin], [-sin, cos]])

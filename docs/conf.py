@@ -12,9 +12,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import json
 import os
 import sys
 from pathlib import Path
+from urllib.parse import quote
+from urllib.request import urlopen
 
 # Add python modules to be documented
 config_file_dir = os.path.dirname(__file__)
@@ -33,7 +36,7 @@ author = u'Martin Lemay'
 # The short X.Y version
 version = u'1.0'
 # The full version, including alpha/beta/rc tags
-release = u'0'
+release = u'1.0.3'
 
 # -- General configuration ---------------------------------------------------
 
@@ -47,7 +50,7 @@ release = u'0'
 extensions = [
     'sphinx_design', 'sphinx.ext.todo', 'sphinx.ext.autodoc', 'sphinx.ext.doctest', 
     'sphinx.ext.mathjax', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary', 
-    'sphinxcontrib.programoutput'
+    'sphinxcontrib.programoutput', 'nbsphinx'
 ]
 
 #autodoc_mock_imports = [ "pybend", ]
@@ -77,7 +80,7 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = [ u'_build', 'Thumbs.db', '.DS_Store', 'cmake/*' ]
+exclude_patterns = [ u'_build', 'Thumbs.db', '.DS_Store', 'cmake/*', '**.ipynb_checkpoints' ]
 
 todo_include_todos = True
 
@@ -95,11 +98,6 @@ html_theme_options = { 'navigation_depth': -1, 'collapse_navigation': False }
 
 html_static_path = [ './_static' ]
 
-# Copy extra non-source files directly into the built HTML output.
-# This lets us link to downloadable notebooks without copying them into `docs/`.
-html_extra_path = [
-    str(Path(project_root) / "notebooks"),
-]
 
 html_css_files = [
     'theme_overrides.css',
@@ -108,3 +106,87 @@ html_css_files = [
 # -- Options for HTMLHelp output ---------------------------------------------
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyBenDDoc'
+
+# -- Jupyter notebooks (nbsphinx) --------------------------------------------
+# Notebooks live in `<root>/notebooks` and are committed without outputs.
+# Sphinx can only render files located inside the source directory, so they
+# are copied into `docs/notebooks/` (git-ignored) at each build. Rendered
+# pages are then available as `notebooks/<name>` and nbsphinx also publishes
+# the .ipynb for download.
+#
+# Notebooks are too long to run within the Read the Docs build time limit.
+# Instead, the `notebooks` job of `.github/workflows/release.yml` executes
+# them on each GitHub release and pushes the executed copies to the
+# `notebook-outputs` branch (`<tag>/` and `latest/` folders). Each executed
+# copy is used in place of the committed notebook only if their code cells
+# are identical; otherwise the committed notebook is rendered without
+# outputs.
+NOTEBOOK_OUTPUTS_URL = (
+    "https://raw.githubusercontent.com/martin-lemay/pyBenD/"
+    "notebook-outputs/{ref}/{name}"
+)
+
+
+def _code_cells(notebook: dict) -> list[str]:
+    """Return the source of the code cells of a notebook."""
+    sources = []
+    for cell in notebook.get("cells", []):
+        if cell.get("cell_type") == "code":
+            source = cell.get("source", "")
+            sources.append(
+                "".join(source) if isinstance(source, list) else source
+            )
+    return sources
+
+
+def _fetch_executed_notebook(name: str, src_notebook: dict) -> bytes | None:
+    """Download the executed copy of a notebook matching its code cells."""
+    refs = [os.environ.get("READTHEDOCS_GIT_IDENTIFIER"), "latest"]
+    for ref in dict.fromkeys(ref for ref in refs if ref):
+        url = NOTEBOOK_OUTPUTS_URL.format(ref=quote(ref), name=quote(name))
+        try:
+            with urlopen(url, timeout=30) as response:
+                data = response.read()
+            executed = json.loads(data)
+        except (OSError, ValueError):
+            continue
+        if _code_cells(executed) == _code_cells(src_notebook):
+            print(f"nbsphinx: using executed notebook {url}")
+            return data
+    print(f"nbsphinx: no executed copy of {name}, rendered without outputs")
+    return None
+
+
+notebooks_src_dir = Path(project_root) / "notebooks"
+notebooks_doc_dir = Path(config_file_dir) / "notebooks"
+notebooks_doc_dir.mkdir(exist_ok=True)
+_src_notebooks = {nb.name: nb for nb in notebooks_src_dir.glob("*.ipynb")}
+for _stale in notebooks_doc_dir.glob("*.ipynb"):
+    if _stale.name not in _src_notebooks:
+        _stale.unlink()
+for _name, _nb in _src_notebooks.items():
+    _dst = notebooks_doc_dir / _name
+    _src_data = _nb.read_bytes()
+    _executed = _fetch_executed_notebook(_name, json.loads(_src_data))
+    _dst.write_bytes(_executed if _executed is not None else _src_data)
+
+# Notebooks are never executed during the docs build (see above).
+nbsphinx_execute = 'never'
+nbsphinx_allow_errors = True
+
+# Banner displayed at the top of every rendered notebook
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) | string | replace('\\', '/') %}
+
+.. raw:: html
+
+    <div class="admonition note">
+      <p>This page was generated from
+        <a href="https://github.com/martin-lemay/pyBenD/blob/main/{{ docname }}">{{ docname }}</a>.
+        Run it online with
+        <a href="https://mybinder.org/v2/gh/martin-lemay/pyBenD/main?urlpath=lab/tree/{{ docname }}">Binder</a>
+        or
+        <a href="https://colab.research.google.com/github/martin-lemay/pyBenD/blob/main/{{ docname }}">Google Colab</a>.
+      </p>
+    </div>
+"""

@@ -40,8 +40,13 @@ def set_nb_procs(nb: int) -> None:
     """Set the number of desired processors.
 
     Args:
-        nb (int): Number of desired processors.
+        nb (int): Number of desired processors. Must be at least 1.
+
+    Raises:
+        ValueError: If *nb* is lower than 1.
 
     """
+    if nb < 1:
+        raise ValueError(f"Number of processors must be at least 1, got {nb}.")
     global NB_PROCS
-    NB_PROCS = nb
+    NB_PROCS = int(nb)

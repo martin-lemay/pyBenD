@@ -7,23 +7,37 @@ Tests functions for CenterlineCollection class - Run with input data
 centerline_Collection_test_data*.csv.
 """
 
+import io
+import logging
 import os
+import subprocess
+import sys
 import unittest
-from typing import Self
+from contextlib import redirect_stdout
+from types import SimpleNamespace
+from typing import Self, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
+from shapely.geometry import LineString
 
 import pybend.algorithms.plot_functions as plot
 from pybend.io import (
     CenterlineIOFormat,
     load_centerline_collection_from_a_file,
 )
+from pybend.model.Bend import get_bend_uid
+from pybend.model.Centerline import Centerline
 from pybend.model.CenterlineCollection import (
     CenterlineCollection,
 )
-from pybend.model.enumerations import BendConnectionMethod, CreateSectionMethod
+from pybend.model.enumerations import (
+    BendConnectionMethod,
+    BendSide,
+    CreateSectionMethod,
+)
 from pybend.utils.globalParameters import set_nb_procs
 
 set_nb_procs(1)
@@ -159,8 +173,8 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [17],
         [],
         [18],
-        [19, 20, 21, 22, 23, 24, 25],
-        [26, 27, 28, 29, 30, 31, 32, 33],
+        [19, 20, 21, 22, 23, 24],
+        [25, 26, 27, 28, 29, 30, 31, 32, 33],
         [34],
         [],
         [35],
@@ -257,8 +271,8 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [121],
         [],
-        [122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134],
-        [135, 136, 137],
+        [122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135],
+        [136, 137],
         [],
         [138],
         [],
@@ -435,8 +449,24 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [],
         [276],
         [],
-        [277, 278, 279, 280, 281, 282, 283, 284, 285, 286],
-        [287, 288, 289, 290, 291, 292],
+        [277],
+        [
+            278,
+            279,
+            280,
+            281,
+            282,
+            283,
+            284,
+            285,
+            286,
+            287,
+            288,
+            289,
+            290,
+            291,
+            292,
+        ],
         [],
         [293],
         [],
@@ -470,11 +500,11 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [317],
         [318],
         [],
-        [319],
+        [319, 320],
+        [321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334],
+        [335],
         [],
-        [320],
-        [321, 322, 323],
-        [324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336],
+        [336],
     ],
     [
         [0],
@@ -1648,11 +1678,11 @@ index_cl_pts_next_centerline_expected: list[list[list[int]]] = [
         [317],
         [318],
         [],
-        [319],
+        [319, 320],
+        [321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334],
+        [335],
         [],
-        [320],
-        [321, 322, 323],
-        [324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336],
+        [336],
     ],
 ]
 
@@ -2898,173 +2928,173 @@ nb_bend_evols_exp = 7
 nb_bend_evols_valid_exp = 6
 middle_trajec_expected = [
     [
-        [44.8275, 0.1189],
-        [43.5321, 0.287],
-        [42.2291, 0.3636],
-        [40.9209, 0.3781],
-        [39.6094, 0.3595],
-        [38.297, 0.3371],
-        [36.9858, 0.3401],
+        [44.7995, 0.1257],
+        [43.9193, 0.2578],
+        [42.8728, 0.3328],
+        [41.6586, 0.3645],
+        [40.2753, 0.3665],
+        [38.7215, 0.3524],
+        [36.996, 0.3361],
     ],
     [
-        [133.9801, 0.1961],
-        [130.1285, 0.3088],
-        [126.2652, 0.399],
-        [122.3944, 0.4791],
-        [118.5208, 0.5611],
-        [114.6488, 0.6575],
-        [110.7828, 0.7804],
+        [134.0709, 0.1428],
+        [131.6998, 0.298],
+        [128.5312, 0.3833],
+        [124.7163, 0.4373],
+        [120.4058, 0.4986],
+        [115.7508, 0.6057],
+        [110.9021, 0.7974],
     ],
     [
-        [223.2938, 0.1804],
-        [216.7819, 0.1192],
-        [210.2784, 0.1984],
-        [203.7808, 0.3812],
-        [197.2863, 0.6311],
-        [190.7923, 0.9113],
-        [184.2961, 1.1853],
+        [223.4067, 0.1135],
+        [219.8594, 0.1902],
+        [214.3671, 0.1839],
+        [207.699, 0.2423],
+        [200.4779, 0.4728],
+        [192.7413, 0.8213],
+        [184.3801, 1.1935],
     ],
     [
-        [312.6054, 0.0797],
-        [303.473, 0.1999],
-        [294.3402, 0.3324],
-        [285.2069, 0.4662],
-        [276.0733, 0.5902],
-        [266.9392, 0.6931],
-        [257.8047, 0.7639],
+        [312.5837, 0.0789],
+        [307.5344, 0.1326],
+        [299.8886, 0.2772],
+        [290.5626, 0.3728],
+        [280.6238, 0.5203],
+        [269.8763, 0.6801],
+        [257.7771, 0.7591],
     ],
     [
-        [401.9237, 0.0596],
-        [390.2027, 0.4284],
-        [378.4928, 0.6064],
-        [366.7887, 0.6298],
-        [355.0854, 0.5345],
-        [343.3776, 0.3568],
-        [331.6604, 0.1324],
+        [401.8949, 0.0806],
+        [394.8348, 0.2843],
+        [384.8719, 0.5117],
+        [373.1778, 0.6483],
+        [360.6377, 0.6078],
+        [346.9902, 0.4161],
+        [331.6875, 0.1276],
     ],
     [
-        [473.263, -2.4229],
-        [462.2816, -2.3737],
-        [451.2469, 0.765],
-        [439.7617, 0.786],
-        [428.164, -0.2075],
-        [416.7825, 0.117],
-        [405.1743, -0.1659],
+        [473.2495, -2.2416],
+        [469.2954, -3.8462],
+        [464.033, -2.8908],
+        [455.4889, 0.0898],
+        [440.5753, 0.6663],
+        [423.7825, -0.219],
+        [405.1963, -0.181],
     ],
 ]
 
 
 centroid_trajec_expected = [
     [
-        [44.8721, 2.0589],
-        [43.8152, 4.4567],
-        [42.5763, 6.7555],
-        [41.215, 8.9881],
-        [39.7905, 11.1874],
-        [38.3625, 13.3864],
-        [36.9902, 15.6179],
+        [44.8631, 2.0643],
+        [43.9776, 4.1422],
+        [42.9151, 6.1665],
+        [41.6809, 8.231],
+        [40.2797, 10.4293],
+        [38.7166, 12.8552],
+        [36.9965, 15.6023],
     ],
     [
-        [134.0948, -1.9246],
-        [130.4491, -4.4107],
-        [126.6093, -6.5796],
-        [122.6517, -8.5576],
-        [118.6526, -10.471],
-        [114.6883, -12.4461],
-        [110.8351, -14.6092],
+        [134.1514, -1.8324],
+        [131.7332, -3.6688],
+        [128.5414, -5.5341],
+        [124.7207, -7.4915],
+        [120.4158, -9.6044],
+        [115.7716, -11.936],
+        [110.9329, -14.5496],
     ],
     [
-        [223.463, 2.2401],
-        [217.1411, 4.9657],
-        [210.6399, 7.3134],
-        [204.0336, 9.4437],
-        [197.3962, 11.5172],
-        [190.8018, 13.6946],
-        [184.3246, 16.1362],
+        [223.513, 2.0631],
+        [219.7505, 4.0855],
+        [214.3278, 6.0775],
+        [207.7607, 8.1724],
+        [200.493, 10.4925],
+        [192.68, 13.1142],
+        [184.405, 16.1027],
     ],
     [
-        [312.722, -1.9719],
-        [303.7138, -4.624],
-        [294.5773, -6.8009],
-        [285.3639, -8.6952],
-        [276.1252, -10.4994],
-        [266.9126, -12.406],
-        [257.7775, -14.6075],
+        [312.7226, -1.8763],
+        [307.4169, -3.755],
+        [299.8142, -5.6144],
+        [290.6834, -7.5298],
+        [280.6447, -9.5844],
+        [269.7243, -11.8919],
+        [257.7998, -14.5736],
     ],
     [
-        [402.0245, 2.1096],
-        [390.4546, 5.0665],
-        [378.7703, 7.4875],
-        [367.0111, 9.558],
-        [355.2167, 11.4639],
-        [343.4268, 13.3907],
-        [331.681, 15.524],
+        [402.0948, 2.0307],
+        [394.6366, 4.1719],
+        [384.9089, 6.2745],
+        [373.4319, 8.3894],
+        [360.6556, 10.5731],
+        [346.75, 12.9065],
+        [331.8147, 15.4761],
     ],
     [
-        [474.5751, -3.288],
-        [463.7621, -7.2412],
-        [452.008, -8.2898],
-        [440.2448, -9.6888],
-        [428.5286, -11.4659],
-        [416.841, -13.374],
-        [405.1637, -15.1661],
+        [474.4901, -3.0095],
+        [470.3388, -5.9189],
+        [464.6506, -7.394],
+        [455.483, -7.7412],
+        [440.6292, -9.4906],
+        [423.7621, -12.4113],
+        [405.1813, -15.1178],
     ],
 ]
 
 apex_trajec_expected = [
     [
-        [45.6588, 5.0714],
-        [44.3394, 10.4667],
-        [43.1103, 15.8633],
-        [41.8172, 21.2312],
-        [40.3425, 26.5498],
-        [38.6461, 31.8194],
-        [36.6975, 37.043],
+        [45.6913, 5.0645],
+        [44.3657, 10.0974],
+        [43.2794, 15.0571],
+        [42.1484, 20.0837],
+        [40.7273, 25.3214],
+        [38.9256, 30.9289],
+        [36.6913, 37.0689],
     ],
     [
-        [134.9386, -4.8728],
-        [131.4886, -10.518],
-        [127.7121, -15.926],
-        [123.4149, -20.8728],
-        [119.0916, -25.7495],
-        [115.1852, -30.9778],
-        [111.0905, -36.1638],
+        [134.9661, -4.8954],
+        [131.8327, -9.7441],
+        [128.8702, -14.5629],
+        [124.7955, -19.4471],
+        [119.8886, -24.5478],
+        [115.986, -30.0535],
+        [111.1005, -36.1304],
     ],
     [
-        [224.1955, 4.9642],
-        [218.2927, 11.4179],
-        [211.7453, 17.0809],
-        [204.7624, 22.2142],
-        [197.5529, 27.0788],
-        [190.3259, 31.9359],
-        [183.2902, 37.0466],
+        [224.1348, 5.065],
+        [219.564, 10.0942],
+        [214.2335, 15.0572],
+        [207.8312, 20.0857],
+        [200.2004, 25.3178],
+        [191.8079, 30.9168],
+        [183.276, 37.0521],
     ],
     [
-        [313.7201, -5.0462],
-        [305.215, -11.5367],
-        [296.0383, -17.0036],
-        [286.4393, -21.8252],
-        [276.6668, -26.3797],
-        [266.9701, -31.0453],
-        [257.598, -36.2003],
+        [313.7019, -4.8888],
+        [308.1459, -9.7548],
+        [300.4334, -14.5529],
+        [291.0472, -19.436],
+        [280.4704, -24.557],
+        [269.1858, -30.0688],
+        [257.6765, -36.1244],
     ],
     [
-        [403.0195, 5.2484],
-        [391.7331, 11.6627],
-        [380.0361, 17.3162],
-        [368.0627, 22.4487],
-        [355.9471, 27.2998],
-        [343.8235, 32.1089],
-        [331.8261, 37.1157],
+        [402.9573, 5.0693],
+        [395.4588, 10.084],
+        [384.564, 15.0562],
+        [373.4633, 20.0907],
+        [360.9206, 25.324],
+        [347.0953, 30.9233],
+        [331.8155, 37.0718],
     ],
     [
-        [486.4181, -5.07],
-        [474.3674, -12.7211],
-        [461.0233, -18.1165],
-        [447.2642, -22.6835],
-        [433.4678, -27.0815],
-        [419.7147, -31.5136],
-        [406.0821, -36.177],
+        [484.174, -4.7211],
+        [479.1824, -9.6683],
+        [469.6601, -14.5384],
+        [456.7506, -19.4557],
+        [441.4909, -24.559],
+        [424.4903, -30.0441],
+        [406.144, -36.1215],
     ],
 ]
 
@@ -3293,7 +3323,7 @@ class TestsCenterlineCollection(unittest.TestCase):
                     l_indexes_expected,
                     (
                         "Centerline matching: index_cl_pts_next_centerline at "
-                        + "weight index {i}"
+                        + f"weight index {i}"
                     ),
                 )
 
@@ -3915,6 +3945,513 @@ class TestsCenterlineCollection(unittest.TestCase):
             print(err)
             self.fail("Unable to find points on section.")
         self.assertTrue(True)
+
+
+def _make_synthetic_data(i: int, nb_bends: int = 4) -> pd.DataFrame:
+    """Create a small synthetic sinuous centerline dataset.
+
+    Args:
+        i (int): index of the centerline, used to grow amplitude and shift
+            the bends.
+        nb_bends (int, optional): number of half wavelengths.
+            Defaults to 4.
+
+    Returns:
+        pd.DataFrame: centerline data.
+
+    """
+    x = np.linspace(0, nb_bends * 100 * np.pi, 300)
+    y = (100.0 + 10.0 * i) * np.sin((x + 5.0 * i) / 100.0)
+    return pd.DataFrame(
+        {
+            "Cart_abscissa": x,
+            "Cart_ordinate": y,
+            "Elevation": np.zeros_like(x),
+        }
+    )
+
+
+def _make_synthetic_collection() -> CenterlineCollection:
+    """Create a small synthetic CenterlineCollection with 3 centerlines.
+
+    Input ages are given in unsorted order on purpose.
+
+    Returns:
+        CenterlineCollection: centerline collection.
+
+    """
+    ages = [30, 10, 20]
+    map_data = {age: _make_synthetic_data(i) for i, age in enumerate(ages)}
+    return CenterlineCollection(map_data, 10.0, 30.0, False, 5, 1.0, 2)
+
+
+def _make_fake_collection(
+    nb_bends_per_age: dict[int, int],
+) -> CenterlineCollection:
+    """Create a lightweight CenterlineCollection with fake bends.
+
+    Args:
+        nb_bends_per_age (dict[int, int]): number of bends at each age.
+
+    Returns:
+        CenterlineCollection: collection whose centerlines only contain
+        bends with connection attributes.
+
+    """
+    collec = CenterlineCollection.__new__(CenterlineCollection)
+    collec.centerlines = {}
+    collec.bends_evol = []
+    collec.bends_tracking_computed = False
+    for age, nb in nb_bends_per_age.items():
+        bends = [
+            SimpleNamespace(
+                uid=get_bend_uid(i, age),
+                age=age,
+                id=i,
+                bend_uid_next=None,
+                bend_uid_prev=None,
+                bend_evol_id=None,
+            )
+            for i in range(nb)
+        ]
+        collec.centerlines[age] = cast(
+            Centerline, SimpleNamespace(bends=bends)
+        )
+    return collec
+
+
+def _connect(
+    collec: CenterlineCollection, age0: int, i0: int, age1: int, i1: int
+) -> None:
+    """Connect 2 fake bends."""
+    bend0 = collec.centerlines[age0].bends[i0]
+    bend1 = collec.centerlines[age1].bends[i1]
+    if bend0.bend_uid_next is None:
+        bend0.bend_uid_next = []
+    if bend1.bend_uid_prev is None:
+        bend1.bend_uid_prev = []
+    bend0.bend_uid_next.append(bend1.uid)
+    bend1.bend_uid_prev.append(bend0.uid)
+
+
+def _all_uids(collec: CenterlineCollection) -> list[int]:
+    """Get all bend uids of a fake collection sorted by age."""
+    return [
+        bend.uid
+        for age in sorted(collec.centerlines)
+        for bend in collec.centerlines[age].bends
+    ]
+
+
+class TestsCenterlineCollectionFixes(unittest.TestCase):
+    """Focused tests on small synthetic data."""
+
+    collec: CenterlineCollection
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Create the synthetic collection once."""
+        set_nb_procs(1)
+        cls.collec = _make_synthetic_collection()
+
+    def setUp(self: Self) -> None:
+        """Reset nb procs."""
+        set_nb_procs(1)
+
+    def _check_chain_bend_evols(self: Self) -> None:
+        """Check BendEvolution ids and Bend.bend_evol_id consistency."""
+        collec = self.collec
+        ids = [bend_evol.id for bend_evol in collec.bends_evol]
+        self.assertListEqual(ids, list(range(len(collec.bends_evol))))
+        for bend_evol in collec.bends_evol:
+            self.assertGreater(len(bend_evol.get_all_ages()), 1)
+            for age, indexes in bend_evol.bend_indexes.items():
+                for index in indexes:
+                    self.assertEqual(
+                        collec.centerlines[age].bends[index].bend_evol_id,
+                        bend_evol.id,
+                    )
+
+    def test_monoproc_centerlines_sorted(self: Self) -> None:
+        """Centerlines are sorted by age with monoprocessing."""
+        self.assertListEqual(list(self.collec.centerlines), [10, 20, 30])
+
+    def test_import_does_not_change_logger_level(self: Self) -> None:
+        """Importing CenterlineCollection does not change logger level."""
+        code = (
+            "import logging\n"
+            "from pybend.utils.logging import logger\n"
+            "logger.setLevel(logging.DEBUG)\n"
+            "import pybend.model.CenterlineCollection\n"
+            "print(logger.level)\n"
+        )
+        env = dict(os.environ)
+        src = os.path.join(os.getcwd(), "src")
+        env["PYTHONPATH"] = src + os.pathsep + env.get("PYTHONPATH", "")
+        res = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=True,
+        )
+        self.assertEqual(int(res.stdout.strip()), logging.DEBUG)
+
+    def test_connect_bends_apex_ids(self: Self) -> None:
+        """APEX connection sets consistent ids on all chain bends."""
+        self.collec.connect_bends(1, BendConnectionMethod.APEX)
+        self.assertEqual(self.collec.get_nb_bends_evol(), 4)
+        self._check_chain_bend_evols()
+
+    def test_connect_bends_apex_missing_apex(self: Self) -> None:
+        """APEX connection skips bends without apex (index_apex == -1)."""
+        collec = _make_synthetic_collection()
+        collec.centerlines[20].bends[1].index_apex = -1
+        collec.connect_bends(1, BendConnectionMethod.APEX)
+        for bend_evol in collec.bends_evol:
+            if 20 in bend_evol.bend_indexes:
+                self.assertNotIn(1, bend_evol.bend_indexes[20])
+
+    def test_connect_bends_centroid(self: Self) -> None:
+        """CENTROID connection extends all chains including the first one."""
+        self.collec.find_all_bend_centroid()
+        self.collec.connect_bends(1, BendConnectionMethod.CENTROID)
+        self._check_chain_bend_evols()
+        self.assertEqual(self.collec.get_nb_bends_evol(), 4)
+        for i, bend_evol in enumerate(self.collec.bends_evol):
+            self.assertDictEqual(
+                bend_evol.bend_indexes, {10: [i], 20: [i], 30: [i]}
+            )
+        # the first bend of the last centerline belongs to a chain
+        self.assertIsNotNone(self.collec.centerlines[30].bends[0].bend_evol_id)
+
+    def test_connect_bends_validity_strict(self: Self) -> None:
+        """BendEvolution is valid only with strictly more bends."""
+        self.collec.connect_bends(3, BendConnectionMethod.APEX)
+        self.assertEqual(self.collec.get_nb_valid_bends_evol(), 0)
+        self.collec.connect_bends(2, BendConnectionMethod.APEX)
+        self.assertEqual(self.collec.get_nb_valid_bends_evol(), 4)
+
+    def test_connect_bends_not_implemented(self: Self) -> None:
+        """Known but unimplemented methods raise NotImplementedError."""
+        for method in (
+            BendConnectionMethod.SEQUENCE_ALIGNMENT,
+            BendConnectionMethod.DTW,
+            BendConnectionMethod.GENERALIZED_ALIGNMENT,
+        ):
+            with self.assertRaises(NotImplementedError) as ctx:
+                self.collec.connect_bends(method=method)
+            self.assertIn(str(method), str(ctx.exception))
+
+    def test_connect_bends_wrong_method(self: Self) -> None:
+        """Unknown method raises TypeError listing all the methods."""
+        with self.assertRaises(TypeError) as ctx:
+            self.collec.connect_bends(
+                method=cast(BendConnectionMethod, "dummy")
+            )
+        msg = str(ctx.exception)
+        self.assertIn(
+            ", ".join(str(meth) for meth in BendConnectionMethod), msg
+        )
+        self.assertTrue(msg.startswith("Input method is wrong."))
+
+        with self.assertRaises(TypeError) as ctx:
+            self.collec.create_section_lines(
+                cast(CreateSectionMethod, "dummy")
+            )
+        self.assertIn(
+            ", ".join(str(meth) for meth in CreateSectionMethod),
+            str(ctx.exception),
+        )
+
+    def test_match_centerlines_rerun(self: Self) -> None:
+        """Re-running matching does not accumulate ClPoint connections."""
+        collec = _make_synthetic_collection()
+        self.assertTrue(collec.match_centerlines())
+        first = [
+            list(cl_pt.cl_pt_index_prev)
+            for cl_pt in collec.centerlines[20].cl_points
+        ]
+        first_next = [
+            list(cl_pt.cl_pt_index_next)
+            for cl_pt in collec.centerlines[20].cl_points
+        ]
+        self.assertTrue(collec.match_centerlines())
+        second = [
+            list(cl_pt.cl_pt_index_prev)
+            for cl_pt in collec.centerlines[20].cl_points
+        ]
+        second_next = [
+            list(cl_pt.cl_pt_index_next)
+            for cl_pt in collec.centerlines[20].cl_points
+        ]
+        self.assertListEqual(first, second)
+        self.assertListEqual(first_next, second_next)
+        for cl_pt in collec.centerlines[20].cl_points:
+            self.assertLessEqual(len(cl_pt.cl_pt_index_prev), 1)
+
+    def test_match_centerlines_small_dmax(self: Self) -> None:
+        """Matching does not fail when all pairs are farther than dmax."""
+        collec = _make_synthetic_collection()
+        self.assertTrue(collec.match_centerlines(dmax=1e-6))
+        self.assertTrue(collec._centerline_matching_computed)
+        for age in (20, 30):
+            self.assertTrue(
+                all(
+                    index == -1
+                    for index in collec.centerlines[
+                        age
+                    ].index_cl_pts_prev_centerline
+                )
+            )
+
+    def test_match_centerlines_failure(self: Self) -> None:
+        """Matching failure returns False and clears matching results."""
+        collec = _make_synthetic_collection()
+        self.assertTrue(collec.match_centerlines())
+
+        def _raise(*args: object, **kwargs: object) -> bool:
+            raise RuntimeError("failure")
+
+        collec._match_centerlines_monoproc = _raise  # type: ignore[method-assign]
+        self.assertFalse(collec.match_centerlines())
+        self.assertFalse(collec._centerline_matching_computed)
+        for centerline in collec.centerlines.values():
+            self.assertListEqual(centerline.index_cl_pts_prev_centerline, [])
+            for cl_pt in centerline.cl_points:
+                self.assertListEqual(cl_pt.cl_pt_index_prev, [])
+                self.assertListEqual(cl_pt.cl_pt_index_next, [])
+
+    def test_velocity_perturbation_previous_centerline(self: Self) -> None:
+        """Velocity perturbation of previous centerline is checked."""
+        collec = _make_synthetic_collection()
+        collec.set_centerline_constant_properties(20, {"Vel_perturb": 1.0})
+        indexes = collec._apply_centerline_warping(
+            np.inf, 0.0, 1.0, 1.0, 5, "asymmetric", (20, 10)
+        )
+        self.assertEqual(len(indexes), collec.centerlines[20].get_nb_points())
+
+    def test_connect_bends_from_matching(self: Self) -> None:
+        """MATCHING connection creates consistent BendEvolution."""
+        collec = _make_synthetic_collection()
+        collec.match_centerlines()
+        collec.connect_bends(1, BendConnectionMethod.MATCHING)
+        self.assertEqual(collec.get_nb_bends_evol(), 4)
+        ids = [bend_evol.id for bend_evol in collec.bends_evol]
+        self.assertListEqual(ids, list(range(4)))
+        for bend_evol in collec.bends_evol:
+            for age, indexes in bend_evol.bend_indexes.items():
+                for index in indexes:
+                    self.assertEqual(
+                        collec.centerlines[age].bends[index].bend_evol_id,
+                        bend_evol.id,
+                    )
+        # rerun gives the same result
+        bend_indexes = [be.bend_indexes for be in collec.bends_evol]
+        collec.connect_bends(1, BendConnectionMethod.MATCHING)
+        self.assertListEqual(
+            bend_indexes, [be.bend_indexes for be in collec.bends_evol]
+        )
+
+    def test_connected_cl_pts_are_distinct(self: Self) -> None:
+        """Connected points of the next bend are counted only once."""
+        collec = _make_synthetic_collection()
+        collec.match_centerlines()
+        bend = collec.centerlines[10].bends[1]
+        ref = collec._get_connected_cl_pts_per_bend(bend, 10, 20)
+        # duplicate connections
+        for index in range(bend.index_inflex_up + 1, bend.index_inflex_down):
+            cl_pt = collec.centerlines[10].cl_points[index]
+            cl_pt.cl_pt_index_next = cl_pt.cl_pt_index_next * 2
+        res = collec._get_connected_cl_pts_per_bend(bend, 10, 20)
+        self.assertDictEqual(ref, res)
+
+    def test_create_bend_evolution_merge_split(self: Self) -> None:
+        """Bend evolution traversal handles merges, splits and births."""
+        collec = _make_fake_collection({10: 2, 20: 2, 30: 3, 40: 1})
+        # merge: bends 0 and 1 of age 10 -> bend 0 of age 20
+        _connect(collec, 10, 0, 20, 0)
+        _connect(collec, 10, 1, 20, 0)
+        # split: bend 0 of age 20 -> bends 0 and 1 of age 30
+        _connect(collec, 20, 0, 30, 0)
+        _connect(collec, 20, 0, 30, 1)
+        # birth: bend 1 of age 20 (no predecessor) -> bend 2 of age 30
+        _connect(collec, 20, 1, 30, 2)
+        _connect(collec, 30, 2, 40, 0)
+        collec._create_bend_evolution(4, _all_uids(collec))
+
+        self.assertEqual(collec.get_nb_bends_evol(), 2)
+        bend_evol0, bend_evol1 = collec.bends_evol
+        self.assertDictEqual(
+            bend_evol0.bend_indexes, {10: [0, 1], 20: [0], 30: [0, 1]}
+        )
+        self.assertTrue(bend_evol0.isvalid)
+        self.assertEqual(bend_evol0.id, 0)
+        self.assertDictEqual(
+            bend_evol1.bend_indexes, {20: [1], 30: [2], 40: [0]}
+        )
+        self.assertFalse(bend_evol1.isvalid)
+        self.assertEqual(bend_evol1.id, 1)
+        self.assertEqual(collec.centerlines[30].bends[1].bend_evol_id, 0)
+        self.assertEqual(collec.centerlines[40].bends[0].bend_evol_id, 1)
+
+    def test_create_bend_evolution_long_chain(self: Self) -> None:
+        """Bend evolution traversal does not hit the recursion limit."""
+        nb_ages = sys.getrecursionlimit() + 100
+        collec = _make_fake_collection(dict.fromkeys(range(1, nb_ages + 1), 1))
+        for age in range(1, nb_ages):
+            _connect(collec, age, 0, age + 1, 0)
+        collec._create_bend_evolution(2, _all_uids(collec))
+        self.assertEqual(collec.get_nb_bends_evol(), 1)
+        self.assertEqual(collec.bends_evol[0].get_number_of_bends(), nb_ages)
+
+    def test_get_bend_evol_side(self: Self) -> None:
+        """BendEvolution side is STRAIGHT or UNKNOWN when undetermined."""
+        collec = _make_synthetic_collection()
+        collec.connect_bends(1, BendConnectionMethod.APEX)
+        bend_evol = collec.bends_evol[0]
+        bends = [
+            collec.centerlines[age].bends[indexes[0]]
+            for age, indexes in bend_evol.bend_indexes.items()
+        ]
+        self.assertEqual(len(bends), 3)
+        for bend in bends:
+            bend.side = BendSide.STRAIGHT
+        self.assertEqual(collec.get_bend_evol_side(0), BendSide.STRAIGHT)
+        bends[0].side = BendSide.UP
+        bends[1].side = BendSide.DOWN
+        self.assertEqual(collec.get_bend_evol_side(0), BendSide.UNKNOWN)
+        bends[2].side = BendSide.DOWN
+        self.assertEqual(collec.get_bend_evol_side(0), BendSide.DOWN)
+        bends[1].side = BendSide.UP
+        bends[2].side = BendSide.UP
+        self.assertEqual(collec.get_bend_evol_side(0), BendSide.UP)
+
+    def test_smooth_trajectory(self: Self) -> None:
+        """Trajectory smoothing is tied to ages and robust."""
+        ages = np.array([10, 20, 30, 40, 50])
+        # repeated positions
+        lx = np.array([0.0, 0.0, 1.0, 1.0, 2.0])
+        ly = np.array([0.0, 0.0, 1.0, 1.0, 2.0])
+        res = CenterlineCollection._smooth_trajectory(ages, lx, ly, 0.5)
+        self.assertEqual(len(res), ages.size)
+        self.assertTrue(np.all(np.isfinite(res)))
+        # no smoothing: interpolation at input ages
+        lx = np.array([0.0, 1.0, 3.0, 2.0, 5.0])
+        ly = np.array([1.0, 0.0, 2.0, 4.0, 1.0])
+        res = CenterlineCollection._smooth_trajectory(ages, lx, ly, 0.0)
+        self.assertTrue(np.allclose(np.array(res), np.column_stack((lx, ly))))
+        # less than 3 ages: no smoothing
+        res = CenterlineCollection._smooth_trajectory(
+            ages[:2], lx[:2], ly[:2], 0.5
+        )
+        self.assertTrue(
+            np.allclose(np.array(res), np.column_stack((lx[:2], ly[:2])))
+        )
+        # nan points are kept undefined
+        lx_nan = lx.copy()
+        lx_nan[2] = np.nan
+        res = CenterlineCollection._smooth_trajectory(ages, lx_nan, ly, 0.0)
+        self.assertTrue(np.all(np.isnan(res[2])))
+        self.assertTrue(np.allclose(res[3], [lx[3], ly[3]]))
+
+    def test_smooth_trajectories_no_print(self: Self) -> None:
+        """Trajectory smoothing returns one point per age without print."""
+        collec = _make_synthetic_collection()
+        collec.connect_bends(1, BendConnectionMethod.APEX)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            collec.find_all_bend_middle(True, smoothing_factor=0.0)
+            collec.find_all_bend_centroid(True, smoothing_factor=1.0)
+            collec.find_all_bend_apex(2, True, smoothing_factor=1.0)
+        self.assertEqual(out.getvalue(), "")
+        for bend_evol in collec.bends_evol:
+            nb_ages = len(bend_evol.get_all_ages())
+            self.assertEqual(len(bend_evol.middle_trajec_smooth), nb_ages)
+            self.assertEqual(len(bend_evol.centroid_trajec_smooth), nb_ages)
+            self.assertEqual(len(bend_evol.apex_trajec_smooth), nb_ages)
+            # smoothing factor 0 interpolates the middle points
+            for age, pt in zip(
+                bend_evol.get_all_ages(),
+                bend_evol.middle_trajec_smooth,
+                strict=True,
+            ):
+                bend = collec.centerlines[age].bends[
+                    bend_evol.bend_indexes[age][0]
+                ]
+                assert bend.pt_center is not None
+                self.assertTrue(np.allclose(pt, bend.pt_center[:2]))
+
+    def test_apex_points_missing_apex(self: Self) -> None:
+        """Raw apex trajectory handles missing apex (index_apex == -1)."""
+        collec = _make_synthetic_collection()
+        collec.connect_bends(1, BendConnectionMethod.APEX)
+        collec.find_all_bend_apex(2, False)
+        bend_evol = collec.bends_evol[0]
+        self.assertEqual(
+            len(bend_evol.apex_trajec_smooth), len(bend_evol.get_all_ages())
+        )
+        self.assertTrue(np.all(np.isfinite(bend_evol.apex_trajec_smooth)))
+        bend = collec.centerlines[20].bends[bend_evol.bend_indexes[20][0]]
+        bend.index_apex = -1
+        apex_pts = collec._get_bend_evol_apex_points(0)
+        self.assertTrue(np.all(np.isnan(apex_pts[1])))
+        self.assertTrue(np.all(np.isfinite(apex_pts[0])))
+        smooth_pts = collec._do_smooth_bend_apex_trajec(0)
+        self.assertEqual(len(smooth_pts), 3)
+        self.assertTrue(np.all(np.isnan(smooth_pts[1])))
+
+    def test_section_last_segment(self: Self) -> None:
+        """The last centerline segment is tested for intersection."""
+        centerline = self.collec.centerlines[30]
+        pts = [cl_pt.pt[:2] for cl_pt in centerline.cl_points]
+        mid = (pts[-1] + pts[-2]) / 2.0
+        d = pts[-1] - pts[-2]
+        nrm = np.array([-d[1], d[0]]) / np.linalg.norm(d)
+        section = LineString([mid - 0.5 * nrm, mid + 0.5 * nrm])
+        isolines, indexes = self.collec._create_all_channel_sections(section)
+        self.assertListEqual([isoline.age for isoline in isolines], [30])
+        self.assertListEqual(indexes, [len(pts) - 2])
+
+    def test_section_short_line(self: Self) -> None:
+        """Segments crossing a short section are found."""
+        centerline = self.collec.centerlines[20]
+        pts = [cl_pt.pt[:2] for cl_pt in centerline.cl_points]
+        j = len(pts) // 2
+        mid = (pts[j] + pts[j + 1]) / 2.0
+        d = pts[j + 1] - pts[j]
+        nrm = np.array([-d[1], d[0]]) / np.linalg.norm(d)
+        # section much shorter than the distance between channel points
+        section = LineString([mid - 0.1 * nrm, mid + 0.1 * nrm])
+        isolines, indexes = self.collec._create_all_channel_sections(section)
+        self.assertIn(20, [isoline.age for isoline in isolines])
+        self.assertIn(j, indexes)
+
+    def test_find_points_on_sections_bend_id(self: Self) -> None:
+        """Section bend id is the bend of the youngest isoline."""
+        collec = _make_synthetic_collection()
+        collec.set_section_lines([(150.0, -150.0)], [(150.0, 150.0)])
+        self.assertTrue(collec.find_points_on_sections(thres=1))
+        self.assertEqual(len(collec.sections), 1)
+        isolines, indexes = collec._create_all_channel_sections(
+            collec.section_lines[0]
+        )
+        k = int(np.argmax([isoline.age for isoline in isolines]))
+        expected = collec._get_bend_index_from_cl_point_index(
+            indexes[k], isolines[k].age
+        )
+        self.assertEqual(collec.sections[0].bend_id, f"0-{expected}")
+
+    def test_find_points_on_sections_no_bends(self: Self) -> None:
+        """Sections are created even if centerlines have no bend."""
+        collec = _make_synthetic_collection()
+        for centerline in collec.centerlines.values():
+            centerline.bends = []
+        self.assertIsNone(collec._get_bend_index_from_cl_point_index(0, 10))
+        collec.set_section_lines([(150.0, -150.0)], [(150.0, 150.0)])
+        self.assertTrue(collec.find_points_on_sections(thres=1))
+        self.assertEqual(len(collec.sections), 1)
+        self.assertEqual(collec.sections[0].bend_id, "0--1")
 
 
 if __name__ == "__main__":

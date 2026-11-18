@@ -6,6 +6,7 @@
 This module contains helpers to load centerline-collection related datasets.
 """
 
+import os
 from typing import Any
 
 import numpy as np
@@ -17,7 +18,12 @@ from pybend.io.centerline_io import (
     load_centerline_dataset_from_csv,
     load_centerline_dataset_from_kml,
 )
-from pybend.io.common import CenterlineIOFormat, resolve_path
+from pybend.io.common import (
+    CenterlineIOFormat,
+    normalize_age,
+    read_csv,
+    resolve_path,
+)
 from pybend.model.enumerations import PropertyNames
 
 
@@ -112,8 +118,10 @@ def load_centerline_collection_from_multiple_files(
 
             For ``CenterlineIOFormat.KML``:
                 - ``directory`` (str): base directory containing the KML files
-                - ``keyword`` (str): keyword for coordinate line (default
-                  ``"coordinates"``)
+                - ``keyword`` (str): tag name of coordinate elements
+                  (default ``"coordinates"``)
+                - ``to_metric`` (bool): convert lon/lat degrees to local
+                  metric coordinates (default ``False``)
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame
@@ -137,8 +145,12 @@ def load_centerline_collection_from_multiple_files(
         case CenterlineIOFormat.KML:
             directory: str = kwargs.get("directory", "")
             keyword = kwargs.get("keyword", "coordinates")
+            to_metric = kwargs.get("to_metric", False)
             dataset = load_centerline_evolution_from_multiple_kml(
-                directory, map_file=map_file, keyword=keyword
+                directory,
+                map_file=map_file,
+                keyword=keyword,
+                to_metric=to_metric,
             )
         case _:
             raise ValueError(f"File format {kind} not supported.")
@@ -158,11 +170,14 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     Returns:
         dict [int, pd.DataFrame]: dictionary where ages are keys and DataFrame
         with centerline point coordinates and properties are values.
+
+    Raises:
+        ValueError: If an age is not an integer value.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
     )
-    data: pd.DataFrame = pd.read_csv(str(path), sep=sep)
+    data: pd.DataFrame = read_csv(path, sep=sep)
 
     mess: str = (
         " property is missing. Try to use load_centerline_evolution_"
@@ -197,7 +212,7 @@ def load_centerline_collection_dataset_from_Flumy_csv(
     ages: npt.NDArray[np.int64] = data["Iteration"].unique()
     for age in ages.tolist():
         sub_data = data[data["Iteration"] == age].drop("Iteration", axis=1)
-        map_dataset[age] = sub_data.reset_index(drop=True)
+        map_dataset[normalize_age(age)] = sub_data.reset_index(drop=True)
 
     return map_dataset
 
@@ -233,11 +248,15 @@ def load_centerline_evolution_from_single_xy_csv(
         dict[int, pd.DataFrame]: dictionary where ages are keys and
         DataFrame with centerline point coordinates and properties are
         values.
+
+    Raises:
+        ValueError: If an age is not an integer value (e.g. 10.5). Integer
+            valued ages stored as floats (e.g. 10.0) are cast to int.
     """
     path = resolve_path(
         base_dir=None, raw_url=filepath, ctx="loading centerline collection"
     )
-    data: pd.DataFrame = pd.read_csv(str(path), sep=sep)
+    data: pd.DataFrame = read_csv(path, sep=sep)
 
     mess: str = " property is missing. Cannot load the data."
     assert x_prop in data.columns, f"{x_prop}" + mess
@@ -283,9 +302,7 @@ def load_centerline_evolution_from_single_xy_csv(
                 ].to_numpy()  # type: ignore
             )
         )
-        print(sub_data.columns)
-        # sub_data.drop(columns=age_prop, inplace=True)
-        map_dataset[age] = sub_data.reset_index(drop=True)
+        map_dataset[normalize_age(age)] = sub_data.reset_index(drop=True)
     return map_dataset
 
 
@@ -318,6 +335,9 @@ def load_centerline_evolution_from_multiple_xy_csv(
         dict[int, pd.DataFrame]: dictionary where ages are keys and
         DataFrame with centerline point coordinates and properties are
         values.
+
+    Raises:
+        ValueError: If an age is not an integer value.
     """
     assert len(map_file) > 0, "The map of files is empty."
 
@@ -328,34 +348,48 @@ def load_centerline_evolution_from_multiple_xy_csv(
             filename, x_prop, y_prop, z_prop, drop_columns, sep=sep
         )
         if data is not None:
-            map_dataset[key] = data
+            map_dataset[normalize_age(key)] = data
 
     return map_dataset
 
 
 def load_centerline_evolution_from_multiple_kml(
-    directory: str, map_file: dict[int, str], keyword: str = "coordinates"
+    directory: str,
+    map_file: dict[int, str],
+    keyword: str = "coordinates",
+    to_metric: bool = False,
 ) -> dict[int, pd.DataFrame]:
     """Load centerline data from multiple files.
 
     Args:
-        directory (str): directory where the kml files are
+        directory (str): directory where the kml files are. File names are
+            joined to it with ``os.path.join`` (absolute file names are kept
+            as is).
         map_file (dict[int, str]): dictionnary of age and file name in the
             directory
-        keyword (str, optional): keyword to search for coordinate line.
+        keyword (str, optional): tag name of the coordinate elements.
             Defaults to "coordinates".
+        to_metric (bool, optional): if True, convert lon/lat degrees to
+            local metric coordinates (see
+            ``load_centerline_dataset_from_kml``).
+            Defaults to False.
 
     Returns:
         dict[int, pd.DataFrame]: dictionary where ages are keys and DataFrame
         with centerline point coordinates and properties are values.
+
+    Raises:
+        ValueError: If an age is not an integer value.
     """
     assert len(map_file) > 0, "The map of files is empty."
 
     map_dataset = {}
     for key, filename in map_file.items():
-        filepath: str = directory + filename
-        data = load_centerline_dataset_from_kml(filepath, keyword)
+        filepath: str = os.path.join(directory, filename)
+        data = load_centerline_dataset_from_kml(
+            filepath, keyword, to_metric=to_metric
+        )
         if data is not None:
-            map_dataset[key] = data
+            map_dataset[normalize_age(key)] = data
 
     return map_dataset

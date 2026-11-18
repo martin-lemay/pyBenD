@@ -519,6 +519,26 @@ class TestsProcessFunctions(unittest.TestCase):
             np.round(mat_exp.flatten(), 4).tolist(),
         )
 
+    def test_get_MP_clockwise(self: Self) -> None:
+        """Test that get_MP rotates dir_trans onto ref in all cases."""
+        ref = np.array((1.0, 0.0))
+        for dir_trans in ((1.0, 1.0), (1.0, -1.0), (-1.0, -0.5), (0.2, -3.0)):
+            vec = np.array(dir_trans) / np.linalg.norm(dir_trans)
+            obs = np.dot(get_MP(np.array(dir_trans), ref), vec)
+            self.assertAlmostEqual(abs(obs[0]), 1.0)
+            self.assertAlmostEqual(obs[1], 0.0)
+
+    def test_get_angle_between_vectors_small(self: Self) -> None:
+        """Test oriented angle for very small angles."""
+        teta = 1e-4
+        vec2 = np.array((np.cos(teta), np.sin(teta)))
+        vec1 = np.array((1.0, 0.0))
+        self.assertAlmostEqual(get_angle_between_vectors(vec1, vec2), teta)
+        self.assertAlmostEqual(
+            get_angle_between_vectors(vec2, vec1), 2.0 * np.pi - teta
+        )
+        self.assertEqual(get_angle_between_vectors(vec1, vec1), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

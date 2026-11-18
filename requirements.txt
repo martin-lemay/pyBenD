@@ -9,6 +9,7 @@ psutil>=6.1.0
 pyparsing>=3.2.0
 pytest>=8.3.3
 ruff>=0.7.1
+scikit-learn
 scipy>=1.14.1
 seaborn>=0.13.2
 shapely>=2.0.6
@@ -17,6 +18,7 @@ sphinx_rtd_theme
 sphinx-argparse>=0.5.2
 sphinx-design
 nbsphinx
+ipython
 # Running CLI programs and capture outputs
 sphinxcontrib-programoutput>=0.17
 statsmodels>=0.14.4

@@ -67,14 +67,23 @@ class ChannelCrossSection(Isoline):
     def complete_channel_shape(self: Self, nb_pts: int = 11) -> None:
         """Create channel cross-section assuming parabolic shape.
 
+        The number of points is made odd so that the middle point is the
+        channel reference point (bottom of the parabola). With a single
+        point, only the reference point is created.
+
         Args:
-            nb_pts (int, optional): Number of points.
+            nb_pts (int, optional): Number of points (strictly positive).
                 Defaults to 11.
         """
+        assert nb_pts > 0, "Number of points must be strictly positive."
         # to get an odd number
         if nb_pts % 2 == 0:
             nb_pts += 1
-        Xparabol: npt.NDArray[np.float64] = np.linspace(-1.0, 1.0, nb_pts)
+        # np.linspace(-1, 1, 1) returns [-1] (channel bank), so handle the
+        # single point case to keep the reference point at the middle
+        Xparabol: npt.NDArray[np.float64] = (
+            np.linspace(-1.0, 1.0, nb_pts) if nb_pts > 1 else np.zeros(1)
+        )
 
         Yparabol: npt.NDArray[np.float64] = (
             Xparabol * Xparabol * self.cl_pt_ref.depth_max()

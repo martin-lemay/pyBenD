@@ -50,7 +50,7 @@ def build_temporal_graph(
     norm_width: float,
     weights: dict[str, float] | None = None,
     gap_penalty_metric: str = "sinuosity",
-    gap_penalty_scale: float = 1.0,
+    gap_penalty_scale: float = 2.5,
     spatial_tolerance: float = 2.0,
 ) -> nx.DiGraph:
     """Build a directed temporal graph linking bends across ages.
@@ -59,6 +59,12 @@ def build_temporal_graph(
     Directed edges go from older to younger bends based on
     sequence alignment and split/merge detection.
 
+    Each matched edge stores in its ``cost`` attribute the substitution
+    cost of the matched pair of bends. The total alignment cost between
+    two successive centerlines is stored in
+    ``graph.graph["alignment_costs"][(age_t1, age_t2)]``. Split and
+    merge edges have the ``split`` or ``merge`` attribute set to True.
+
     Args:
         centerline_collection: Collection of centerlines.
         norm_width: Normalisation width (e.g. channel width).
@@ -66,8 +72,13 @@ def build_temporal_graph(
         gap_penalty_metric: Metric for gap penalties
             (``"sinuosity"`` or ``"curvature"``).
         gap_penalty_scale: Scale factor for gap penalties.
+            Defaults to 2.5. A match is preferred over a
+            deletion + insertion when its substitution cost is lower
+            than the sum of the two gap penalties (see
+            ``align_bend_sequences``).
         spatial_tolerance: Distance threshold expressed as a
             multiple of *norm_width* for split/merge detection.
+            Defaults to 2.0.
 
     Returns:
         nx.DiGraph: directed temporal graph.
@@ -80,6 +91,8 @@ def build_temporal_graph(
     )
 
     g: nx.DiGraph = nx.DiGraph()
+    alignment_costs: dict[tuple[int, int], float] = {}
+    g.graph["alignment_costs"] = alignment_costs
     ages = centerline_collection.get_all_ages()
 
     # 1. Add ALL bends as nodes.
@@ -104,14 +117,18 @@ def build_temporal_graph(
             gap_penalty_scale,
         )
 
-        # 2a. Matched pairs.
-        for bid_t1, bid_t2 in alignment.matches:
+        alignment_costs[(age_t1, age_t2)] = alignment.total_cost
+
+        # 2a. Matched pairs: store the substitution cost of each pair.
+        for (bid_t1, bid_t2), pair_cost in zip(
+            alignment.matches, alignment.match_costs, strict=True
+        ):
             bend_t1 = cl_t1.bends[bid_t1]
             bend_t2 = cl_t2.bends[bid_t2]
             g.add_edge(
                 bend_t1.uid,
                 bend_t2.uid,
-                cost=alignment.total_cost,
+                cost=pair_cost,
             )
             bend_t1.add_bend_connection_next(bend_t2.uid)
             bend_t2.add_bend_connection_prev(bend_t1.uid)
@@ -159,7 +176,9 @@ def build_bend_evolutions_from_graph(
 
     Starting from bends in the youngest centerline, traverses
     backward through predecessors to collect all ancestor bends,
-    then groups them by age into ``BendEvolution`` objects.
+    then groups them by age into ``BendEvolution`` objects. In
+    ``bend_indexes``, ages are sorted in ascending order and the bend
+    ids of each age are sorted in ascending order.
 
     Args:
         graph: Directed temporal graph from
@@ -193,13 +212,16 @@ def build_bend_evolutions_from_graph(
                     ancestors.append(pred)
                     queue.append(pred)
 
-        # Group by age.
-        bend_indexes: dict[int, list[int]] = {}
+        # Group by age; ages in ascending order and bend ids sorted in
+        # ascending order so that bend_indexes[age][0] is the most
+        # upstream bend.
+        grouped: dict[int, list[int]] = {}
         for uid in ancestors:
             age, bid = parse_bend_uid(uid)
-            if age not in bend_indexes:
-                bend_indexes[age] = []
-            bend_indexes[age].append(bid)
+            grouped.setdefault(age, []).append(bid)
+        bend_indexes: dict[int, list[int]] = {
+            age: sorted(grouped[age]) for age in sorted(grouped)
+        }
 
         order = max(len(ids) for ids in bend_indexes.values())
 

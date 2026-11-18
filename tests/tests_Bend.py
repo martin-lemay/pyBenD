@@ -9,7 +9,13 @@ Tests functions for Bend class.
 import unittest
 from typing import Self
 
-from pybend.model.Bend import Bend, get_bend_uid, parse_bend_uid
+from pybend.model.Bend import (
+    Bend,
+    BendClPointIndexIter,
+    get_bend_uid,
+    parse_bend_uid,
+    uid_module,
+)
 from pybend.model.enumerations import BendSide
 
 # input
@@ -182,6 +188,51 @@ class TestsBend(unittest.TestCase):
             assert bend.bend_uid_prev is not None  # to avoid type warning
             self.assertEqual(len(bend.bend_uid_prev), 1)
             self.assertEqual(bend.bend_uid_prev[0], uid_out2)
+
+
+class TestsBendBugFixes(unittest.TestCase):
+    """Regression tests for Bend bug fixes."""
+
+    def test_cl_point_index_iterator(self: Self) -> None:
+        """Iterator yields indexes from upstream to downstream inflection."""
+        bend = Bend(bend_id1, index_inflex_up1, index_inflex_down1, age1)
+        indexes = list(BendClPointIndexIter(bend))
+        self.assertEqual(
+            indexes, list(range(index_inflex_up1, index_inflex_down1 + 1))
+        )
+        self.assertEqual(len(indexes), bend.get_nb_points())
+        # iterator can be reused
+        self.assertEqual(list(BendClPointIndexIter(bend)), indexes)
+
+    def test_default_attributes_are_none(self: Self) -> None:
+        """Undefined attributes default to None, apex to -1."""
+        bend = Bend(bend_id1, index_inflex_up1, index_inflex_down1, age1)
+        self.assertIsNone(bend.index_max_curv)
+        self.assertIsNone(bend.bend_evol_id)
+        self.assertEqual(bend.index_apex, -1)
+
+    def test_bend_uid_out_of_range(self: Self) -> None:
+        """Bend ids out of [0, uid_module[ raise ValueError."""
+        self.assertEqual(get_bend_uid(uid_module - 1, 1), 2 * uid_module - 1)
+        for bend_id in (uid_module, uid_module + 5, -1):
+            with self.assertRaises(ValueError):
+                get_bend_uid(bend_id, age1)
+            with self.assertRaises(ValueError):
+                Bend(bend_id, 0, 10, age1)
+
+    def test_bend_uid_float_age(self: Self) -> None:
+        """Integer-valued float ages are accepted, others are rejected."""
+        uid = get_bend_uid(bend_id1, float(age1))
+        self.assertIsInstance(uid, int)
+        self.assertEqual(uid, uid_out1)
+        self.assertEqual(parse_bend_uid(float(uid)), (age1, bend_id1))
+        for age in (1500.5, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                get_bend_uid(bend_id1, age)
+        with self.assertRaises(ValueError):
+            parse_bend_uid(15000005.5)
+        with self.assertRaises(ValueError):
+            get_bend_uid(2.5, age1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

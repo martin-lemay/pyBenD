@@ -50,6 +50,9 @@ class BendEvolution:
     ) -> None:
         """Store bend indexes in each Centerline that belongs to BendEvolution.
 
+        Bend indexes are stored with ages sorted in ascending order and
+        bend indexes sorted in ascending order at each age.
+
         Args:
             bend_indexes (dict[int, list[int]]): dictionnary that contains
                 indexes of bends that belongs to this BendEvolution in each
@@ -61,7 +64,10 @@ class BendEvolution:
 
         """
         #: indexes of bends in each centerline that belongs to bend evolution
-        self.bend_indexes: dict[int, list[int]] = bend_indexes
+        self.bend_indexes: dict[int, list[int]] = {
+            age: sorted(indexes)
+            for age, indexes in sorted(bend_indexes.items())
+        }
         #: bend evolution id
         self.id: int = ide
         #: bend evolution order
@@ -98,19 +104,24 @@ class BendEvolution:
         return to_return
 
     def set_is_valid(self: Self, nb: int) -> None:
-        """Update isvalid according to input number of bends.
+        """Update isvalid according to input number of ages.
 
         Args:
-            nb (int): minimum number of bends
+            nb (int): minimum number of ages (i.e., of centerlines
+                where the bend evolution is present)
 
         """
         self.isvalid = self._check_is_valid(nb)
 
     def _check_is_valid(self: Self, nb: int) -> bool:
-        """Check bend validity according to input number of bends.
+        """Check bend validity according to input number of ages.
 
         Args:
-            nb (int): minimum number of bends
+            nb (int): minimum number of ages (i.e., of centerlines
+                where the bend evolution is present)
+
+        Returns:
+            bool: True if the bend evolution spans at least nb ages.
 
         """
         return self.get_all_ages().size >= nb
@@ -125,10 +136,11 @@ class BendEvolution:
         return np.sort(list(self.bend_indexes.keys()))
 
     def get_number_of_bends(self: Self) -> int:
-        """Get the number of bends.
+        """Get the total number of bends over all ages.
 
         Returns:
-            int: number of bends
+            int: number of bends (sum over all ages of the number of bend
+            indexes)
 
         """
-        return len(self.bend_indexes)
+        return sum(len(indexes) for indexes in self.bend_indexes.values())

@@ -24,17 +24,19 @@ import pandas as pd  # type: ignore[import-untyped]
 
 from pybend.io.centerline_collection_io import (
     load_centerline_collection_dataset_from_Flumy_csv,
+    load_centerline_evolution_from_multiple_kml,
     load_centerline_evolution_from_multiple_xy_csv,
     load_centerline_evolution_from_single_xy_csv,
 )
 from pybend.io.centerline_io import (
+    EARTH_RADIUS,
     create_dataset_from_xy,
     dump_centerline_to_csv,
     load_centerline_dataset_from_csv,
     load_centerline_dataset_from_Flumy_csv,
     load_centerline_dataset_from_kml,
 )
-from pybend.io.common import resolve_path
+from pybend.io.common import normalize_age, resolve_path
 from pybend.model.Centerline import Centerline
 
 # inputs
@@ -533,6 +535,134 @@ class TestsPybendIO(unittest.TestCase):
             "Import centerline collection - single file: columns are not well "
             + "loaded.",
         )
+
+
+_KML_TEMPLATE: str = """<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document><Placemark><LineString>
+<coordinates>
+{coords}
+</coordinates>
+</LineString></Placemark></Document></kml>
+"""
+
+
+def _write_kml(directory: str, name: str, coords: str) -> str:
+    """Write a minimal KML file.
+
+    Args:
+        directory: Output directory.
+        name: File name.
+        coords: Text of the coordinates element.
+
+    Returns:
+        Path of the written file.
+    """
+    path = os.path.join(directory, name)
+    with open(path, "w", encoding="utf-8") as fout:
+        fout.write(_KML_TEMPLATE.format(coords=coords))
+    return path
+
+
+class TestsKmlAndAges(unittest.TestCase):
+    """Tests of the KML reader and age normalisation."""
+
+    def test_kml_reference_values(self: Self) -> None:
+        """KML reader parses all points of the reference file."""
+        dataset = load_centerline_dataset_from_kml(filepath3)
+        self.assertAlmostEqual(dataset["Cart_abscissa"].iloc[0], 0.0)
+        self.assertAlmostEqual(
+            dataset["Cart_abscissa"].iloc[1], 0.984807753012208
+        )
+        self.assertAlmostEqual(
+            dataset["Cart_ordinate"].iloc[-1], -4.678087313719285
+        )
+
+    def test_kml_multiline_whitespace_2d(self: Self) -> None:
+        """Tuples split over lines/tabs, 2D tuples, several elements."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = _write_kml(tmp_dir, "a.kml", "1.0,2.0\n\t3.5,4.5   \n5e0,6")
+            dataset = load_centerline_dataset_from_kml(path)
+        self.assertEqual(dataset.shape, (3, 4))
+        self.assertTrue(np.allclose(dataset["Cart_abscissa"], [1.0, 3.5, 5.0]))
+        self.assertTrue(np.allclose(dataset["Cart_ordinate"], [2.0, 4.5, 6.0]))
+        self.assertTrue(np.allclose(dataset["Elevation"], 0.0))
+
+    def test_kml_no_eval(self: Self) -> None:
+        """Malicious content is not evaluated."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = _write_kml(
+                tmp_dir, "a.kml", "__import__('os').getcwd(),1.0 2.0,3.0"
+            )
+            with self.assertRaises(ValueError):
+                load_centerline_dataset_from_kml(path)
+
+    def test_kml_to_metric(self: Self) -> None:
+        """Lon/lat degrees are projected to local meters."""
+        lat0 = 45.0
+        coords = f"2.0,{lat0},0 2.01,{lat0},0 2.0,{lat0 + 0.01},0"
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = _write_kml(tmp_dir, "a.kml", coords)
+            dataset = load_centerline_dataset_from_kml(path, to_metric=True)
+            dataset_deg = load_centerline_dataset_from_kml(path)
+        dlon = EARTH_RADIUS * np.radians(0.01) * np.cos(np.radians(lat0))
+        dlat = EARTH_RADIUS * np.radians(0.01)
+        self.assertTrue(
+            np.allclose(dataset["Cart_abscissa"], [0.0, dlon, 0.0])
+        )
+        self.assertTrue(
+            np.allclose(dataset["Cart_ordinate"], [0.0, 0.0, dlat])
+        )
+        self.assertAlmostEqual(dataset["Cart_abscissa"].iloc[1], 786.3, 0)
+        self.assertTrue(
+            np.allclose(dataset_deg["Cart_abscissa"], [2.0, 2.01, 2.0])
+        )
+
+    def test_multiple_kml_directory_join(self: Self) -> None:
+        """Directory without trailing separator is joined correctly."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            _write_kml(tmp_dir, "a.kml", "0,0 1,0 2,0")
+            _write_kml(tmp_dir, "b.kml", "0,1 1,1 2,1")
+            data = load_centerline_evolution_from_multiple_kml(
+                tmp_dir, {1: "a.kml", 2: "b.kml"}
+            )
+        self.assertEqual(sorted(data.keys()), [1, 2])
+        self.assertEqual(data[2].shape[0], 3)
+
+    def test_normalize_age(self: Self) -> None:
+        """Integer-valued ages are cast to int, others raise."""
+        self.assertEqual(normalize_age(10.0), 10)
+        self.assertIsInstance(normalize_age(np.float64(10.0)), int)
+        self.assertEqual(normalize_age(np.int64(7)), 7)
+        with self.assertRaises(ValueError):
+            normalize_age(10.5)
+        with self.assertRaises(ValueError):
+            normalize_age(float("nan"))
+
+    def test_single_csv_float_ages(self: Self) -> None:
+        """Float ages are cast to int or rejected when not integer."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = os.path.join(tmp_dir, "cl.csv")
+            pd.DataFrame(
+                {
+                    "X": [0.0, 1.0, 0.0, 1.0],
+                    "Y": [0.0, 0.0, 1.0, 1.0],
+                    "Age": [10.0, 10.0, 20.0, 20.0],
+                }
+            ).to_csv(path, sep=";", index=False)
+            data = load_centerline_evolution_from_single_xy_csv(path)
+            self.assertEqual(sorted(data.keys()), [10, 20])
+            self.assertTrue(all(type(k) is int for k in data))
+
+            pd.DataFrame(
+                {
+                    "X": [0.0, 1.0, 0.0, 1.0],
+                    "Y": [0.0, 0.0, 1.0, 1.0],
+                    "Age": [10.5, 10.5, 20.0, 20.0],
+                }
+            ).to_csv(path, sep=";", index=False)
+            with self.assertRaises(ValueError):
+                load_centerline_evolution_from_single_xy_csv(path)
 
 
 if __name__ == "__main__":

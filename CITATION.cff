@@ -5,7 +5,7 @@ message: >-
 title: "pyBenD: Python Bend Dynamics"
 type: software
 license: MIT
-version: 1.0.0
+version: 1.0.3
 repository-code: "https://github.com/martin-lemay/pyBenD"
 url: "https://github.com/martin-lemay/pyBenD"
 authors:
@@ -27,7 +27,7 @@ preferred-citation:
     - family-names: Lemay
       given-names: Martin
       orcid: "https://orcid.org/0000-0002-5538-7885"
-  version: 1.0.1
+  version: 1.0.3
   repository-code: "https://github.com/martin-lemay/pyBenD"
   url: "https://github.com/martin-lemay/pyBenD"
   doi: "10.5281/zenodo.18451972"

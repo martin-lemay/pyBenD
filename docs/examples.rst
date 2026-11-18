@@ -36,8 +36,8 @@ Submitted to *Earth Surface Processes and Landforms*.
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/bend_apex_detection.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.4?urlpath=lab/tree/notebooks/bend_apex_detection.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.4/notebooks/bend_apex_detection.ipynb>`_ (need to install pybend first)
 
 Bend kinematic analysis
 ************************
@@ -64,8 +64,8 @@ controlled by the 3D kinematics of meander bends. Geological Society, London, Sp
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/bend_kinematics_analysis.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.4?urlpath=lab/tree/notebooks/bend_kinematics_analysis.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.4/notebooks/bend_kinematics_analysis.ipynb>`_ (need to install pybend first)
 
 
 Meander morphometry analysis
@@ -92,8 +92,8 @@ along continental margins: Comparison with fluvial meandering channels. Marine a
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb>`_ (recommended)
-* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.3/notebooks/meander_morphometry_analysis.ipynb>`_ (need to install pybend first)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.4?urlpath=lab/tree/notebooks/meander_morphometry_analysis.ipynb>`_ (recommended)
+* `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/v1.0.4/notebooks/meander_morphometry_analysis.ipynb>`_ (need to install pybend first)
 
 
 Seine River migration analysis
@@ -119,5 +119,5 @@ Sci Rep 13, 16566 (2023). `doi.org/10.1038/s41598-023-43849-6 <https://doi.org/1
 
 You can execute the notebook online using:
 
-* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.3?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb>`_ (recommended)
+* `Binder (JupyterLab) <https://mybinder.org/v2/gh/martin-lemay/pyBenD/v1.0.4?urlpath=lab/tree/notebooks/seine_river_migration_analysis.ipynb>`_ (recommended)
 * `Google Colab <https://colab.research.google.com/github/martin-lemay/pyBenD/blob/main/notebooks/seine_river_migration_analysis.ipynb>`_ (need to install pybend first)

@@ -30,8 +30,8 @@ Installation
 
 To install pyBenD, you may either clone the ``GitHub`` `repository <https://github.com/martin-lemay/pyBenD.git>`_
 or download an archive in
-:download:`zip <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.3.zip>` or
-:download:`tar.gz <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.3.tar.gz>` 
+:download:`zip <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.4.zip>` or
+:download:`tar.gz <https://github.com/martin-lemay/pyBenD/archive/refs/tags/v1.0.4.tar.gz>` 
 format. In both cases, it is recommended to use a 
 `virtual Python environment <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`_.
 
@@ -59,21 +59,21 @@ From pyBenD GitHub repository, run the following commands:
 
 
 If you downloaded an archive, install the package from the following commands
-(replace `PATH/TO/pyBenD-1.0.3.zip` to the actual path to the downloaded archive):
+(replace `PATH/TO/pyBenD-1.0.4.zip` to the actual path to the downloaded archive):
 
 - using pip (where .venv is your virtual environment directory):
 
 .. code-block:: bash
    
    source .venv/bin/activate
-   pip install PATH/TO/pyBenD-1.0.3.zip
+   pip install PATH/TO/pyBenD-1.0.4.zip
 
 - using conda (where venv is the name of an existing conda virtual environment):
 
 .. code-block:: bash
    
    conda activate venv
-   conda install PATH/TO/pyBenD-1.0.3.zip
+   conda install PATH/TO/pyBenD-1.0.4.zip
 
 
 Testing

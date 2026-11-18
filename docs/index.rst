@@ -20,7 +20,7 @@ meandering system morphodynamic analysis.
    If you use pyBenD, please cite one of the related papers and/or its reference on Zenodo:
 
    - pyBenD v1.0.3: Lemay, M. (2026). pyBenD: Python Bend Dynamics (v1.0.3).
-     Zenodo. `doi.org/10.5281/zenodo.18451972 <https://doi.org/10.5281/zenodo.18451972>`_
+     Zenodo. `doi.org/10.5281/zenodo.24338125 <https://doi.org/10.5281/zenodo.24338125>`_
    - pyBenD develop version: Lemay, M. (2026). pyBenD: Python Bend Dynamics.
      Zenodo. `doi.org/10.5281/zenodo.18442369 <https://doi.org/10.5281/zenodo.18442369>`_
 
